@@ -1,0 +1,139 @@
+{
+  "brand_identity": {
+    "name": "Léa Beauté Valognes",
+    "tone": "Elegant, Luxurious, Intimate, Professional",
+    "archetype": "Jewel & Luxury (Light Variant)",
+    "theme_mode": "light",
+    "logo_url": "https://customer-assets.emergentagent.com/job_2c5a61ba-d41e-4013-9ecc-f1a07917e6f6/artifacts/hpgw4x9j_logo16-9_1.png"
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Playfair Display, serif",
+      "weights": ["400", "600", "700"],
+      "usage": "All section titles, hero text, and major callouts. Use italic variant for emphasis words."
+    },
+    "body": {
+      "font_family": "Manrope, sans-serif",
+      "weights": ["300", "400", "500"],
+      "usage": "Paragraphs, navigation, buttons, and UI elements."
+    },
+    "accent": {
+      "font_family": "Cormorant Garamond, serif",
+      "usage": "Subtitles, quotes, and decorative elements."
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#D4AF37",
+        "foreground": "#FFFFFF",
+        "50": "#FBF7E6",
+        "100": "#F6EFCC",
+        "200": "#EDDF99",
+        "300": "#E4CF66",
+        "400": "#DBBF33",
+        "500": "#D4AF37",
+        "600": "#AA8C2C",
+        "700": "#806921",
+        "800": "#554616",
+        "900": "#2B230B"
+      },
+      "secondary": {
+        "DEFAULT": "#F9F7F2",
+        "foreground": "#1A1A1A",
+        "dark": "#E8DCCA"
+      },
+      "accent": {
+        "DEFAULT": "#E8DCCA",
+        "foreground": "#1A1A1A",
+        "soft": "#F5E6D3"
+      },
+      "neutral": {
+        "DEFAULT": "#1A1A1A",
+        "light": "#4A4A4A",
+        "lighter": "#808080",
+        "background": "#FFFFFF"
+      }
+    },
+    "gradients": {
+      "gold_text": "bg-clip-text text-transparent bg-gradient-to-r from-[#D4AF37] via-[#F3E5AB] to-[#D4AF37]",
+      "gold_border": "border-image-source: linear-gradient(to right, #D4AF37, #F3E5AB, #D4AF37)",
+      "soft_overlay": "bg-gradient-to-b from-white/0 via-white/50 to-white"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "light": "bg-white/70 backdrop-blur-xl border border-white/40 shadow-[0_8px_32px_rgba(212,175,55,0.1)]",
+      "card": "bg-[#F9F7F2]/80 backdrop-blur-md border border-[#D4AF37]/20 hover:border-[#D4AF37]/50 transition-all duration-500"
+    },
+    "shadows": {
+      "soft": "shadow-[0_4px_20px_rgba(0,0,0,0.03)]",
+      "gold_glow": "shadow-[0_0_30px_rgba(212,175,55,0.15)]"
+    },
+    "border_radius": {
+      "default": "rounded-none",
+      "soft": "rounded-2xl",
+      "buttons": "rounded-full"
+    }
+  },
+  "layout_strategies": {
+    "container": "max-w-7xl mx-auto px-6 md:px-12",
+    "spacing": {
+      "section_gap": "py-24 md:py-32",
+      "element_gap": "gap-8 md:gap-12"
+    },
+    "grids": {
+      "bento_services": "grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8",
+      "hero_split": "grid grid-cols-1 lg:grid-cols-12 gap-0"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#1A1A1A] text-white hover:bg-[#D4AF37] hover:text-white transition-all duration-300 rounded-full px-8 py-4 text-sm uppercase tracking-widest font-medium",
+      "secondary": "bg-transparent border border-[#1A1A1A] text-[#1A1A1A] hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all duration-300 rounded-full px-8 py-4 text-sm uppercase tracking-widest",
+      "gold": "bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-full px-8 py-4"
+    },
+    "cards": {
+      "service": "group relative overflow-hidden bg-white p-8 hover:bg-[#F9F7F2] transition-colors duration-500 border border-transparent hover:border-[#D4AF37]/20",
+      "pricing": "bg-white p-8 border border-[#E8DCCA] hover:shadow-lg transition-all duration-300"
+    }
+  },
+  "image_urls": {
+    "hero_bg": "https://images.unsplash.com/photo-1765745518739-bd8225374713?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "facial_treatment": "https://images.unsplash.com/photo-1761718210055-e83ca7e2c9ad?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "nutrition_coaching": "https://images.unsplash.com/photo-1543362905-bddfadc3d44f?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "massage_room": "https://images.unsplash.com/photo-1765745518673-b562b7304a53?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "logo": "https://customer-assets.emergentagent.com/job_2c5a61ba-d41e-4013-9ecc-f1a07917e6f6/artifacts/hpgw4x9j_logo16-9_1.png"
+  },
+  "instructions_to_main_agent": [
+    "Use 'Playfair Display' for all headings (h1-h4). Import it from Google Fonts.",
+    "Use 'Manrope' for all body text. Import it from Google Fonts.",
+    "Implement smooth scrolling using 'lenis' library.",
+    "For the 'Tarifs' modal, use a full-screen or large dialog with a glassmorphism backdrop.",
+    "The 'Guinot' section should feel distinct - use white background with red accents (Guinot brand colors) or keep it consistent with the gold/nude theme but add specific Guinot product imagery placeholders if needed.",
+    "Ensure the 'Gift Card' section uses Stripe Elements or a simulated flow that feels secure and premium.",
+    "The Admin Dashboard should be clean, using Shadcn tables and forms, but with the brand's font (Manrope) and primary color (#D4AF37) for active states.",
+    "Do not use pure black (#000000). Use #1A1A1A or #2B230B.",
+    "Add 'data-testid' to all interactive elements (buttons, links, inputs)."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: 'transition: all'. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add '.App { text-align: center; }' in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Create new components that match the style and conventions of existing components when needed",
+    "Examine existing components to understand the project's component patterns before creating new ones",
+    "Components MUST use named exports (export const ComponentName = ...)",
+    "Pages MUST use default exports (export default function PageName() {...})",
+    "Use 'sonner' for toasts. Sonner component are located in '/app/src/components/ui/sonner.tsx'"
+  ]
+}

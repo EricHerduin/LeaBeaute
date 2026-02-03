@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="description" content="A product from Htag Facility" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
+        <!--
+        manifest.json provides metadata used when your web app is installed on a
+        user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+        -->
+        <!--
+        Notice the use of %PUBLIC_URL% in the tags above.
+        It will be replaced with the URL of the `public` folder during the build.
+        Only files inside the `public` folder can be referenced from the HTML.
+
+        Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+        work correctly both with client-side routing and a non-root public URL.
+        Learn how to configure a non-root public URL by running `npm run build`.
+        -->
+        <title>Léa Beauté - Institut de Beauté</title>
+        <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
+        <!--
+        These two scripts have been added for the Visual Edits, please do not edit or remove them
+        -->
+        <script>
+            // Only load visual edit scripts when inside an iframe
+            if (window.self !== window.top) {
+                // Load debug monitor script
+                var debugMonitorScript = document.createElement('script');
+                debugMonitorScript.src = 'https://assets.emergent.sh/scripts/debug-monitor.js';
+                document.head.appendChild(debugMonitorScript);
+
+                // Configure Tailwind
+                window.tailwind = window.tailwind || {};
+                tailwind.config = {
+                    corePlugins: { preflight: false },
+                };
+
+                // Load Tailwind CDN
+                var tailwindScript = document.createElement('script');
+                tailwindScript.src = 'https://cdn.tailwindcss.com';
+                document.head.appendChild(tailwindScript);
+            }
+        </script>
+    </head>
+    <body>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="root"></div>
+        <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+        <a
+            id="emergent-badge"
+            target="_blank"
+            href="https://htagfacility.fr"
+            style="
+                display: inline-flex !important;
+                box-sizing: border-box;
+                width: 178px;
+                height: 40px;
+                padding: 8px 12px 8px 12px;
+                align-items: center !important;
+                gap: 8px;
+                border-radius: 50px !important;
+                background: #000 !important;
+                position: fixed !important;
+                bottom: 16px;
+                right: 16px;
+                text-decoration: none;
+                font-family: -apple-system, BlinkMacSystemFont,
+                    &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell,
+                    &quot;Open Sans&quot;, &quot;Helvetica Neue&quot;,
+                    sans-serif !important;
+                font-size: 12px !important;
+                z-index: 9999 !important;
+            "
+        >
+        <span
+    style="
+        display: inline-flex !important;
+        width: 26px;
+        height: 26px;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 9999px !important;
+        background: #fff !important;
+        flex: 0 0 26px;
+    "
+>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 639 624" aria-hidden="true" focusable="false">
+                <path fill="rgb(41,35,92)" fill-rule="evenodd" d="M 312.50,0.00 325.00,4.50 335.50,15.00 340.50,27.00 340.50,41.00 310.50,142.00 309.00,142.50 258.50,49.00 272.50,2.00 274.50,0.00 312.50,0.00 Z M 515.50,0.00 525.00,3.50 533.50,12.00 537.50,22.00 537.50,33.00 500.50,155.00 531.50,156.00 478.50,233.00 477.00,234.50 469.50,235.00 464.50,253.00 326.00,452.50 327.50,443.00 334.50,420.00 337.50,416.00 349.50,372.00 307.50,350.00 322.00,349.50 330.00,351.50 340.00,357.50 348.50,369.00 350.50,369.00 390.50,235.00 357.50,234.00 316.50,156.00 421.00,155.50 467.50,1.00 515.50,0.00 Z"/>
+                <path fill="rgb(15,112,183)" fill-rule="evenodd" d="M 86.00,233.50 81.00,233.50 72.00,229.50 61.50,218.00 58.50,209.00 58.50,197.00 67.50,172.00 76.00,162.50 85.00,157.50 86.50,158.00 86.00,233.50 Z M 0.00,394.50 4.50,377.00 7.00,374.50 110.50,428.00 20.00,427.50 11.00,422.50 3.50,414.00 0.50,407.00 0.00,394.50 Z M 86.50,623.00 140.50,444.00 142.00,443.50 207.00,476.50 208.50,482.00 175.50,592.00 166.50,610.00 156.00,618.50 146.00,622.50 86.50,623.00 Z"/>
+                <path fill="rgb(233,78,26)" fill-rule="evenodd" d="M 638.00,189.50 632.50,211.00 627.50,220.00 620.00,227.50 607.00,233.50 591.50,234.00 634.00,172.50 637.50,178.00 638.00,189.50 Z M 544.00,428.50 456.50,428.00 511.00,349.50 553.00,349.50 565.00,353.50 573.50,361.00 579.50,373.00 579.50,388.00 570.50,412.00 558.00,423.50 544.00,428.50 Z M 326.00,622.50 323.00,622.50 323.50,620.00 375.00,546.50 374.50,553.00 365.50,583.00 358.50,600.00 345.00,614.50 336.00,619.50 326.00,622.50 Z"/>
+                <path fill="rgb(43,46,131)" fill-rule="evenodd" d="M 223.00,349.50 168.50,349.00 205.00,228.50 255.50,321.00 250.50,331.00 240.00,341.50 223.00,349.50 Z"/>
+                <path fill="rgb(41,35,93)" fill-rule="evenodd" d="M 357.00,234.50 337.50,234.00 254.50,80.00 251.50,72.00 259.00,49.50 309.50,143.00 306.50,155.00 316.50,156.00 352.50,223.00 357.00,234.50 Z M 332.00,363.50 323.50,359.00 331.00,361.50 332.00,363.50 Z"/>
+                <path fill="rgb(78,41,87)" fill-rule="evenodd" d="M 503.00,234.50 492.00,234.50 494.50,229.00 544.50,157.00 546.00,155.50 557.00,155.50 503.00,234.50 Z M 306.00,519.50 306.50,513.00 314.50,489.00 452.00,290.50 452.50,293.00 443.50,321.00 306.00,519.50 Z"/>
+                <path fill="rgb(41,36,96)" fill-rule="evenodd" d="M 321.00,234.50 309.00,234.50 307.50,233.00 243.50,114.00 241.50,106.00 246.00,92.50 316.50,223.00 321.00,234.50 Z M 301.00,234.50 292.50,234.00 238.50,134.00 235.50,126.00 239.00,117.50 299.50,229.00 301.00,234.50 Z M 212.00,205.50 212.00,166.50 213.50,168.00 213.50,201.00 212.00,205.50 Z M 347.00,378.50 290.50,350.00 296.00,349.50 301.00,352.50 302.00,351.50 303.00,353.50 304.00,352.50 305.00,354.50 306.00,353.50 307.00,355.50 308.00,354.50 309.00,356.50 310.00,355.50 311.00,357.50 312.00,356.50 313.00,358.50 314.00,357.50 315.00,359.50 316.00,358.50 317.00,360.50 318.00,359.50 319.00,361.50 320.00,360.50 321.00,362.50 322.00,361.50 323.00,363.50 324.00,362.50 325.00,364.50 326.00,363.50 327.00,365.50 328.00,364.50 329.00,366.50 330.00,365.50 331.00,367.50 334.00,367.50 336.00,370.50 347.00,375.50 347.00,378.50 Z"/>
+                <path fill="rgb(42,37,99)" fill-rule="evenodd" d="M 278.00,248.50 227.50,155.00 235.00,128.50 240.50,136.00 292.50,233.00 292.00,234.50 283.00,234.50 281.50,236.00 278.00,248.50 Z M 207.00,217.50 207.00,161.50 211.50,166.00 211.50,208.00 207.00,217.50 Z M 345.00,384.50 277.50,350.00 290.00,349.50 306.00,357.50 347.00,378.50 345.00,384.50 Z"/>
+                <path fill="rgb(17,110,181)" fill-rule="evenodd" d="M 95.00,234.50 86.50,233.00 86.50,158.00 91.00,155.50 95.50,156.00 95.00,234.50 Z M 133.00,428.50 111.00,428.50 15.00,379.50 6.00,374.50 6.50,371.00 11.00,365.50 133.00,428.50 Z M 209.00,478.50 141.00,443.50 142.50,438.00 141.50,433.00 143.00,432.50 211.00,467.50 211.50,472.00 209.00,478.50 Z"/>
+                <path fill="rgb(43,56,117)" fill-rule="evenodd" d="M 183.00,233.50 176.50,233.00 177.00,155.50 186.50,156.00 186.50,232.00 183.00,233.50 Z M 334.00,419.50 331.00,419.50 311.00,409.50 197.00,350.50 190.50,350.00 223.00,349.50 337.00,407.50 338.50,409.00 334.00,419.50 Z"/>
+                <path fill="rgb(39,64,126)" fill-rule="evenodd" d="M 174.00,234.50 166.50,234.00 167.00,155.50 176.50,156.00 176.50,233.00 174.00,234.50 Z M 321.00,426.50 212.00,370.50 168.50,350.00 197.00,350.50 211.00,357.50 332.00,419.50 331.00,421.50 321.00,426.50 Z"/>
+                <path fill="rgb(41,36,94)" fill-rule="evenodd" d="M 337.00,234.50 321.50,234.00 249.50,100.00 245.50,92.00 252.00,74.50 335.50,229.00 337.00,234.50 Z M 215.00,195.50 215.00,171.50 216.50,174.00 216.50,191.00 215.00,195.50 Z M 348.00,375.50 298.50,350.00 303.00,349.50 348.00,372.50 348.00,375.50 Z"/>
+                <path fill="rgb(94,44,85)" fill-rule="evenodd" d="M 512.00,234.50 504.00,234.50 504.50,232.00 556.50,157.00 558.00,155.50 566.00,155.50 512.00,234.50 Z M 299.00,542.50 298.50,540.00 304.50,521.00 443.00,321.50 436.50,344.00 299.00,542.50 Z"/>
+                <path fill="rgb(38,83,148)" fill-rule="evenodd" d="M 146.00,234.50 138.50,234.00 139.00,155.50 146.50,156.00 146.00,234.50 Z M 269.00,428.50 247.00,428.50 93.50,350.00 116.00,349.50 269.00,428.50 Z"/>
+                <path fill="rgb(43,40,109)" fill-rule="evenodd" d="M 263.00,298.50 256.50,289.00 215.50,211.00 211.50,207.00 221.00,175.50 271.50,270.00 263.00,298.50 Z"/>
+                <path fill="rgb(22,105,174)" fill-rule="evenodd" d="M 106.00,234.50 100.50,234.00 101.00,155.50 106.50,156.00 106.00,234.50 Z M 214.00,462.50 13.50,360.00 19.00,355.50 32.00,361.50 31.50,360.00 33.00,359.50 41.00,363.50 42.00,366.50 44.00,365.50 45.00,368.50 81.00,386.50 80.50,385.00 82.00,384.50 88.00,387.50 89.50,389.00 88.50,390.00 91.00,389.50 91.00,391.50 93.00,390.50 94.00,393.50 130.00,411.50 129.50,410.00 131.00,409.50 137.00,412.50 138.50,414.00 137.50,415.00 140.00,414.50 140.00,416.50 142.00,415.50 143.00,418.50 179.00,436.50 178.50,435.00 180.00,434.50 186.00,437.50 187.50,439.00 186.50,440.00 189.00,439.50 189.00,441.50 191.00,440.50 192.00,443.50 215.00,454.50 214.00,462.50 Z"/>
+                <path fill="rgb(38,77,141)" fill-rule="evenodd" d="M 154.00,234.50 146.50,234.00 147.00,155.50 154.50,156.00 154.00,234.50 Z M 290.00,428.50 270.00,428.50 116.50,350.00 137.00,349.50 290.00,428.50 Z"/>
+                <path fill="rgb(51,36,91)" fill-rule="evenodd" d="M 485.00,234.50 477.50,234.00 531.50,156.00 540.00,155.50 485.00,234.50 Z M 319.00,475.50 318.50,473.00 324.50,455.00 462.00,256.50 461.50,263.00 456.50,277.00 319.00,475.50 Z"/>
+                <path fill="rgb(33,94,161)" fill-rule="evenodd" d="M 127.00,234.50 119.50,234.00 120.00,155.50 127.50,156.00 127.00,234.50 Z M 220.00,439.50 44.50,350.00 63.00,349.50 105.00,370.50 222.00,430.50 223.50,432.00 220.00,439.50 Z"/>
+                <path fill="rgb(39,88,154)" fill-rule="evenodd" d="M 138.00,234.50 130.50,234.00 131.00,155.50 138.50,156.00 138.00,234.50 Z M 246.00,428.50 227.00,428.50 73.50,350.00 93.00,349.50 246.00,428.50 Z"/>
+                <path fill="rgb(178,63,60)" fill-rule="evenodd" d="M 563.00,234.50 556.50,234.00 561.50,226.00 609.50,157.00 611.00,155.50 616.00,156.50 616.50,158.00 563.00,234.50 Z M 429.00,428.50 422.50,428.00 428.50,418.00 473.50,353.00 477.00,349.50 483.00,349.50 429.00,428.50 Z M 286.50,623.00 402.00,456.50 401.50,463.00 397.50,474.00 296.50,620.00 293.50,623.00 286.50,623.00 Z"/>
+                <path fill="rgb(108,46,82)" fill-rule="evenodd" d="M 520.00,234.50 512.50,234.00 517.50,226.00 565.50,157.00 567.00,155.50 574.00,155.50 520.00,234.50 Z M 293.00,561.50 297.50,544.00 436.00,344.50 435.50,349.00 439.00,349.50 439.50,351.00 293.00,561.50 Z"/>
+                <path fill="rgb(24,102,171)" fill-rule="evenodd" d="M 113.00,234.50 106.50,234.00 107.00,155.50 113.50,156.00 113.00,234.50 Z M 216.00,453.50 21.50,354.00 29.00,350.50 210.00,442.50 218.50,448.00 216.00,453.50 Z"/>
+                <path fill="rgb(129,51,76)" fill-rule="evenodd" d="M 533.00,234.50 526.50,234.00 532.50,225.00 580.50,156.00 587.00,155.50 533.00,234.50 Z M 283.00,595.50 285.50,583.00 293.50,570.00 444.50,352.00 447.00,349.50 452.00,349.50 452.50,351.00 446.50,360.00 283.00,595.50 Z"/>
+                <path fill="rgb(167,59,64)" fill-rule="evenodd" d="M 556.00,234.50 550.50,234.00 552.50,230.00 602.50,158.00 605.00,155.50 610.00,155.50 556.00,234.50 Z M 422.00,428.50 415.50,428.00 419.50,422.00 469.50,350.00 476.00,349.50 422.00,428.50 Z M 280.50,623.00 407.00,440.50 403.50,455.00 350.50,532.00 289.50,620.00 286.50,623.00 280.50,623.00 Z"/>
+                <path fill="rgb(28,99,167)" fill-rule="evenodd" d="M 119.00,234.50 113.50,234.00 114.00,155.50 119.50,156.00 119.00,234.50 Z M 218.00,447.50 29.50,351.00 44.00,349.50 188.00,422.50 219.00,438.50 220.50,442.00 218.00,447.50 Z"/>
+                <path fill="rgb(190,66,55)" fill-rule="evenodd" d="M 570.00,234.50 563.50,234.00 568.50,226.00 616.50,157.00 622.00,158.50 570.00,234.50 Z M 435.00,428.50 430.00,428.50 429.50,427.00 480.50,353.00 484.00,349.50 490.00,349.50 435.00,428.50 Z M 293.50,623.00 397.00,474.50 392.50,491.00 305.50,617.00 300.50,623.00 293.50,623.00 Z"/>
+                <path fill="rgb(42,39,104)" fill-rule="evenodd" d="M 271.00,269.50 221.50,177.00 221.50,172.00 227.00,155.50 232.50,163.00 277.50,247.00 277.50,252.00 271.00,269.50 Z M 205.00,220.50 205.00,159.50 206.50,161.00 206.50,218.00 205.00,220.50 Z M 344.00,387.50 270.50,350.00 277.00,349.50 297.00,359.50 344.00,383.50 345.50,385.00 344.00,387.50 Z"/>
+                <path fill="rgb(157,57,67)" fill-rule="evenodd" d="M 550.00,234.50 544.50,234.00 551.50,223.00 596.50,158.00 599.00,155.50 604.00,155.50 550.00,234.50 Z M 274.50,623.00 463.50,350.00 469.00,349.50 467.50,354.00 417.50,426.00 410.50,430.00 408.50,439.00 404.50,445.00 282.50,621.00 280.50,623.00 274.50,623.00 Z"/>
+                <path fill="rgb(37,72,135)" fill-rule="evenodd" d="M 161.00,234.50 154.50,234.00 155.00,155.50 161.50,156.00 161.00,234.50 Z M 308.00,428.50 291.00,428.50 137.50,350.00 155.00,349.50 293.00,419.50 308.00,428.50 Z"/>
+                <path fill="rgb(118,49,79)" fill-rule="evenodd" d="M 526.00,234.50 520.50,234.00 524.50,227.00 572.50,158.00 575.00,155.50 580.00,155.50 580.50,157.00 526.00,234.50 Z M 288.00,578.50 288.50,573.00 294.50,559.00 436.50,354.00 440.00,349.50 446.00,349.50 288.00,578.50 Z"/>
+                <path fill="rgb(211,72,43)" fill-rule="evenodd" d="M 584.00,234.50 576.50,234.00 627.00,162.50 631.50,167.00 584.00,234.50 Z M 450.00,428.50 443.00,428.50 443.50,426.00 495.50,351.00 497.00,349.50 504.00,349.50 450.00,428.50 Z M 307.50,623.00 386.00,509.50 386.50,513.00 381.50,528.00 315.50,623.00 307.50,623.00 Z"/>
+                <path fill="rgb(148,55,70)" fill-rule="evenodd" d="M 544.00,234.50 538.50,234.00 542.50,228.00 592.50,156.00 598.00,155.50 544.00,234.50 Z M 275.00,622.50 276.50,613.00 285.50,599.00 454.50,355.00 459.00,349.50 463.00,349.50 463.50,351.00 457.50,360.00 275.00,622.50 Z"/>
+                <path fill="rgb(200,68,50)" fill-rule="evenodd" d="M 576.00,234.50 571.00,234.50 571.50,232.00 620.50,161.00 622.00,159.50 625.00,160.50 626.50,163.00 576.00,234.50 Z M 442.00,428.50 435.50,428.00 487.50,353.00 491.00,349.50 496.00,349.50 489.50,361.00 442.00,428.50 Z M 300.50,623.00 392.00,491.50 387.50,508.00 313.50,615.00 307.50,623.00 300.50,623.00 Z"/>
+                <path fill="rgb(139,52,73)" fill-rule="evenodd" d="M 538.00,234.50 533.50,234.00 540.50,223.00 585.50,158.00 588.00,155.50 592.00,155.50 590.50,160.00 538.00,234.50 Z M 279.00,609.50 279.50,603.00 283.50,594.00 452.50,350.00 458.00,349.50 279.00,609.50 Z"/>
+                <path fill="rgb(43,43,122)" fill-rule="evenodd" d="M 256.00,320.50 253.50,319.00 205.50,229.00 212.00,207.50 215.50,211.00 262.50,299.00 256.00,320.50 Z"/>
+                <path fill="rgb(20,107,177)" fill-rule="evenodd" d="M 100.00,234.50 95.50,234.00 96.00,155.50 100.50,156.00 100.00,234.50 Z M 212.00,468.50 9.50,365.00 13.00,360.50 15.00,360.50 178.00,443.50 213.00,461.50 212.00,468.50 Z"/>
+                <path fill="rgb(37,68,131)" fill-rule="evenodd" d="M 166.00,234.50 161.50,234.00 162.00,155.50 166.50,156.00 166.00,234.50 Z M 312.00,428.50 309.00,428.50 295.00,421.50 155.50,350.00 172.00,350.50 212.00,370.50 319.00,425.50 312.00,428.50 Z"/>
+                <path fill="rgb(59,43,96)" fill-rule="evenodd" d="M 491.00,234.50 485.50,234.00 537.50,159.00 541.00,155.50 545.00,155.50 491.00,234.50 Z M 315.00,488.50 317.50,477.00 325.50,465.00 456.00,277.50 453.50,289.00 445.50,301.00 315.00,488.50 Z"/>
+                <path fill="rgb(225,76,34)" fill-rule="evenodd" d="M 591.00,234.50 584.50,234.00 626.50,173.00 632.00,167.50 634.50,172.00 591.00,234.50 Z M 456.00,428.50 451.00,428.50 450.50,427.00 502.50,352.00 505.00,349.50 510.00,349.50 510.50,351.00 504.50,360.00 456.00,428.50 Z M 315.50,623.00 380.00,529.50 380.50,533.00 377.50,543.00 371.50,552.00 323.50,621.00 315.50,623.00 Z"/>
+                <path fill="rgb(43,51,111)" fill-rule="evenodd" d="M 189.00,231.50 186.50,231.00 187.00,155.50 191.50,156.00 191.50,230.00 189.00,231.50 Z M 338.00,408.50 223.50,350.00 237.00,349.50 308.00,385.50 339.00,401.50 339.50,406.00 338.00,408.50 Z"/>
+                <path fill="rgb(41,46,105)" fill-rule="evenodd" d="M 199.00,225.50 199.00,156.50 204.50,160.00 204.50,221.00 199.00,225.50 Z M 342.00,394.50 255.50,350.00 270.00,349.50 318.00,373.50 343.00,386.50 344.50,389.00 342.00,394.50 Z"/>
+                <path fill="rgb(42,48,108)" fill-rule="evenodd" d="M 193.00,229.50 191.50,229.00 191.50,156.00 195.00,155.50 196.50,157.00 196.50,227.00 193.00,229.50 Z M 340.00,403.50 339.00,401.50 237.50,350.00 250.00,349.50 337.00,393.50 341.50,397.00 340.00,403.50 Z"/>
+                <path fill="rgb(37,91,158)" fill-rule="evenodd" d="M 130.00,234.50 127.50,234.00 128.00,155.50 130.50,156.00 130.00,234.50 Z M 224.00,431.50 63.50,350.00 73.00,349.50 87.00,356.50 226.00,427.50 227.50,429.00 224.00,431.50 Z"/>
+                <path fill="rgb(42,36,95)" fill-rule="evenodd" d="M 308.00,234.50 301.50,234.00 240.50,121.00 238.50,116.00 241.00,108.50 308.00,234.50 Z"/>
+                <path fill="rgb(43,46,106)" fill-rule="evenodd" d="M 197.00,227.50 196.50,157.00 198.00,156.50 198.50,226.00 197.00,227.50 Z M 342.00,396.50 250.50,350.00 255.00,349.50 279.00,361.50 341.00,393.50 342.00,396.50 Z"/>
+            </svg>
+        </span>
+            <p
+                style="
+                    color: #FFF !important;
+                    font-family: 'Inter', sans-serif !important;
+                    font-size: 13px !important;
+                    font-style: normal !important;
+                    font-weight: 600 !important;
+                    line-height: 20px !important;
+                    margin: 0 !important;
+                    white-space: nowrap !important;
+                "
+            >
+                Made by Htag Facility
+            </p>
+        </a>
+        <script>
+            !(function (t, e) {
+                var o, n, p, r;
+                e.__SV ||
+                    ((window.posthog = e),
+                    (e._i = []),
+                    (e.init = function (i, s, a) {
+                        function g(t, e) {
+                            var o = e.split(".");
+                            2 == o.length && ((t = t[o[0]]), (e = o[1])),
+                                (t[e] = function () {
+                                    t.push(
+                                        [e].concat(
+                                            Array.prototype.slice.call(
+                                                arguments,
+                                                0,
+                                            ),
+                                        ),
+                                    );
+                                });
+                        }
+                        ((p = t.createElement("script")).type =
+                            "text/javascript"),
+                            (p.crossOrigin = "anonymous"),
+                            (p.async = !0),
+                            (p.src =
+                                s.api_host.replace(
+                                    ".i.posthog.com",
+                                    "-assets.i.posthog.com",
+                                ) + "/static/array.js"),
+                            (r =
+                                t.getElementsByTagName(
+                                    "script",
+                                )[0]).parentNode.insertBefore(p, r);
+                        var u = e;
+                        for (
+                            void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
+                                u.people = u.people || [],
+                                u.toString = function (t) {
+                                    var e = "posthog";
+                                    return (
+                                        "posthog" !== a && (e += "." + a),
+                                        t || (e += " (stub)"),
+                                        e
+                                    );
+                                },
+                                u.people.toString = function () {
+                                    return u.toString(1) + ".people (stub)";
+                                },
+                                o =
+                                    "init me ws ys ps bs capture je Di ks register register_once register_for_session unregister unregister_for_session Ps getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Es $s createPersonProfile Is opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing Ss debug xs getPageViewId captureTraceFeedback captureTraceMetric".split(
+                                        " ",
+                                    ),
+                                n = 0;
+                            n < o.length;
+                            n++
+                        )
+                            g(u, o[n]);
+                        e._i.push([i, s, a]);
+                    }),
+                    (e.__SV = 1));
+            })(document, window.posthog || []);
+            posthog.init("phc_xAvL2Iq4tFmANRE7kzbKwaSqp1HJjN7x48s3vr0CMjs", {
+                api_host: "https://us.i.posthog.com",
+                person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well,
+                session_recording: {
+                    recordCrossOriginIframes: true,
+                    capturePerformance: false,
+                },
+            });
+        </script>
+    </body>
+</html>

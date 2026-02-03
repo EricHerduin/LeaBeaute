@@ -1,0 +1,992 @@
+import { useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
+import { toast } from 'sonner';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+const API = `${BACKEND_URL}/api`;
+
+const emptyPriceForm = {
+  category: '',
+  name: '',
+  priceEur: '',
+  durationMin: '',
+  note: '',
+  isActive: true
+};
+
+const emptyCouponForm = {
+  code: '',
+  type: 'percentage',
+  value: '',
+  validTo: '',
+  isActive: true,
+  maxUses: ''
+};
+
+export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('prices');
+
+  const [prices, setPrices] = useState([]);
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showAddPriceModal, setShowAddPriceModal] = useState(false);
+  const [newPriceForm, setNewPriceForm] = useState(emptyPriceForm);
+  const [editingPriceId, setEditingPriceId] = useState(null);
+  const [editPriceForm, setEditPriceForm] = useState({});
+
+  const [coupons, setCoupons] = useState([]);
+  const [showAddCouponModal, setShowAddCouponModal] = useState(false);
+  const [newCouponForm, setNewCouponForm] = useState(emptyCouponForm);
+  const [editingCouponId, setEditingCouponId] = useState(null);
+  const [editCouponForm, setEditCouponForm] = useState({});
+
+  const [giftCards, setGiftCards] = useState([]);
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem('admin_token');
+    if (savedToken) {
+      setToken(savedToken);
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    if (activeTab === 'prices') {
+      fetchPrices(token);
+    }
+    if (activeTab === 'coupons') {
+      fetchCoupons();
+    }
+    if (activeTab === 'gift-cards') {
+      fetchGiftCards();
+    }
+  }, [token, activeTab]);
+
+  const categories = useMemo(() => {
+    const unique = new Set(prices.map((item) => item.category).filter(Boolean));
+    return ['all', ...unique];
+  }, [prices]);
+
+  const filteredPrices = useMemo(() => {
+    return prices.filter((item) => {
+      const matchCategory = filterCategory === 'all' || item.category === filterCategory;
+      const matchSearch =
+        searchTerm.trim() === '' ||
+        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category?.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchCategory && matchSearch;
+    });
+  }, [prices, filterCategory, searchTerm]);
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API}/admin/login`, { password });
+      if (response.data?.success) {
+        setToken(response.data.token);
+        setIsAuthenticated(true);
+        localStorage.setItem('admin_token', response.data.token);
+        toast.success('Connexion réussie');
+      } else {
+        toast.error('Mot de passe incorrect');
+      }
+    } catch (error) {
+      toast.error('Mot de passe incorrect');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setToken(null);
+    localStorage.removeItem('admin_token');
+    toast.success('Déconnexion réussie');
+  };
+
+  const fetchPrices = async (authToken) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API}/prices/all`, {
+        headers: { Authorization: authToken }
+      });
+      setPrices(response.data || []);
+    } catch (error) {
+      toast.error('Erreur lors du chargement des tarifs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCoupons = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API}/coupons`, {
+        headers: { Authorization: token }
+      });
+      setCoupons(response.data || []);
+    } catch (error) {
+      toast.error('Erreur lors du chargement des coupons');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchGiftCards = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${API}/gift-cards/all`, {
+        headers: { Authorization: token }
+      });
+      setGiftCards(response.data || []);
+    } catch (error) {
+      toast.error('Erreur lors du chargement des cartes cadeaux');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddPrice = async () => {
+    if (!newPriceForm.category.trim()) {
+      toast.error('Veuillez entrer une catégorie');
+      return;
+    }
+    if (!newPriceForm.name.trim()) {
+      toast.error('Veuillez entrer une désignation');
+      return;
+    }
+    if (newPriceForm.priceEur === '') {
+      toast.error('Veuillez entrer un prix');
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${API}/prices`,
+        {
+          category: newPriceForm.category,
+          name: newPriceForm.name,
+          priceEur: newPriceForm.priceEur ? parseFloat(newPriceForm.priceEur) : null,
+          durationMin: newPriceForm.durationMin ? parseInt(newPriceForm.durationMin, 10) : null,
+          note: newPriceForm.note || null,
+          isActive: newPriceForm.isActive,
+          sortOrder: 0
+        },
+        {
+          headers: { Authorization: token }
+        }
+      );
+      toast.success('Tarif ajouté avec succès');
+      setShowAddPriceModal(false);
+      setNewPriceForm(emptyPriceForm);
+      fetchPrices(token);
+    } catch (error) {
+      toast.error('Erreur lors de l\'ajout du tarif');
+    }
+  };
+
+  const handleEditPrice = (item) => {
+    setEditingPriceId(item.id);
+    setEditPriceForm({ ...item });
+  };
+
+  const handleCancelPriceEdit = () => {
+    setEditingPriceId(null);
+    setEditPriceForm({});
+  };
+
+  const handleSavePriceEdit = async () => {
+    try {
+      await axios.put(`${API}/prices/${editingPriceId}`, editPriceForm, {
+        headers: { Authorization: token }
+      });
+      toast.success('Tarif mis à jour');
+      setEditingPriceId(null);
+      fetchPrices(token);
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
+  const handleDeletePrice = async (id) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce tarif ?')) return;
+    try {
+      await axios.delete(`${API}/prices/${id}`, {
+        headers: { Authorization: token }
+      });
+      toast.success('Tarif supprimé');
+      fetchPrices(token);
+    } catch (error) {
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  const handleAddCoupon = async () => {
+    if (!newCouponForm.code.trim()) {
+      toast.error('Veuillez entrer un code');
+      return;
+    }
+    if (newCouponForm.value === '') {
+      toast.error('Veuillez entrer une valeur');
+      return;
+    }
+    if (!newCouponForm.validTo) {
+      toast.error('Veuillez choisir une date d\'expiration');
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${API}/coupons`,
+        {
+          code: newCouponForm.code,
+          type: newCouponForm.type,
+          value: parseFloat(newCouponForm.value),
+          validTo: new Date(newCouponForm.validTo).toISOString(),
+          isActive: newCouponForm.isActive,
+          maxUses: newCouponForm.maxUses ? parseInt(newCouponForm.maxUses, 10) : null
+        },
+        {
+          headers: { Authorization: token }
+        }
+      );
+      toast.success('Coupon créé avec succès');
+      setShowAddCouponModal(false);
+      setNewCouponForm(emptyCouponForm);
+      fetchCoupons();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de la création du coupon');
+    }
+  };
+
+  const handleEditCoupon = (coupon) => {
+    setEditingCouponId(coupon.id);
+    setEditCouponForm({ ...coupon });
+  };
+
+  const handleCancelCouponEdit = () => {
+    setEditingCouponId(null);
+    setEditCouponForm({});
+  };
+
+  const handleSaveCouponEdit = async () => {
+    try {
+      await axios.put(`${API}/coupons/${editingCouponId}`, editCouponForm, {
+        headers: { Authorization: token }
+      });
+      toast.success('Coupon mis à jour');
+      setEditingCouponId(null);
+      fetchCoupons();
+    } catch (error) {
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
+  const handleDeleteCoupon = async (id) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce coupon ?')) return;
+    try {
+      await axios.delete(`${API}/coupons/${id}`, {
+        headers: { Authorization: token }
+      });
+      toast.success('Coupon supprimé');
+      fetchCoupons();
+    } catch (error) {
+      toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#F9F7F2] flex items-center justify-center px-6">
+        <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full">
+          <h1 className="text-3xl font-bold mb-6 text-[#1A1A1A] text-center">Admin Dashboard</h1>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Mot de passe</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                data-testid="admin-password-input"
+                className="w-full px-4 py-3 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              data-testid="admin-login-btn"
+              className="w-full bg-[#D4AF37] text-[#1A1A1A] font-semibold py-3 rounded-lg hover:bg-[#C5A028] transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Connexion...' : 'Se connecter'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F9F7F2]">
+      <div className="bg-white shadow-sm border-b border-[#E8DCCA]">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-[#1A1A1A]">Administration</h1>
+            <p className="text-sm text-[#4A4A4A]">Gestion des tarifs, cartes cadeaux et coupons</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            data-testid="admin-logout-btn"
+            className="text-sm text-[#4A4A4A] hover:text-[#D4AF37] transition-colors"
+          >
+            Déconnexion
+          </button>
+        </div>
+        <div className="border-t border-[#E8DCCA]">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="flex gap-8">
+              <button
+                onClick={() => {
+                  setActiveTab('prices');
+                  setFilterCategory('all');
+                  setSearchTerm('');
+                }}
+                className={`py-4 px-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'prices'
+                    ? 'border-[#D4AF37] text-[#D4AF37]'
+                    : 'border-transparent text-[#4A4A4A] hover:text-[#D4AF37]'
+                }`}
+              >
+                Tarifs
+              </button>
+              <button
+                onClick={() => setActiveTab('gift-cards')}
+                className={`py-4 px-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'gift-cards'
+                    ? 'border-[#D4AF37] text-[#D4AF37]'
+                    : 'border-transparent text-[#4A4A4A] hover:text-[#D4AF37]'
+                }`}
+              >
+                Cartes cadeaux
+              </button>
+              <button
+                onClick={() => setActiveTab('coupons')}
+                className={`py-4 px-2 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'coupons'
+                    ? 'border-[#D4AF37] text-[#D4AF37]'
+                    : 'border-transparent text-[#4A4A4A] hover:text-[#D4AF37]'
+                }`}
+              >
+                Coupons
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {activeTab === 'prices' && (
+          <div>
+            <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+              <div className="flex flex-col md:flex-row gap-4 mb-4">
+                <input
+                  type="text"
+                  placeholder="Rechercher par catégorie ou nom..."
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  data-testid="admin-search-input"
+                  className="flex-1 px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+                <select
+                  value={filterCategory}
+                  onChange={(event) => setFilterCategory(event.target.value)}
+                  data-testid="admin-category-filter"
+                  className="px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat === 'all' ? 'Toutes les catégories' : cat}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => setShowAddPriceModal(true)}
+                  data-testid="admin-add-btn"
+                  className="bg-[#D4AF37] text-[#1A1A1A] font-semibold px-5 py-2 rounded-lg hover:bg-[#C5A028] transition-colors"
+                >
+                  Ajouter un tarif
+                </button>
+              </div>
+              <p className="text-sm text-[#4A4A4A]">
+                {filteredPrices.length} tarif(s) affiché(s)
+              </p>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[#F9F7F2] border-b border-[#E8DCCA]">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Catégorie</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Nom</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Prix (€)</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Durée (min)</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Note</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Actif</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Ordre</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPrices.map((item, index) => (
+                      <tr key={item.id} className={index % 2 === 0 ? 'bg-white' : 'bg-[#F9F7F2]/40'}>
+                        {editingPriceId === item.id ? (
+                          <>
+                            <td className="px-4 py-3">
+                              <input
+                                type="text"
+                                value={editPriceForm.category || ''}
+                                onChange={(event) =>
+                                  setEditPriceForm({ ...editPriceForm, category: event.target.value })
+                                }
+                                className="w-full px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="text"
+                                value={editPriceForm.name || ''}
+                                onChange={(event) =>
+                                  setEditPriceForm({ ...editPriceForm, name: event.target.value })
+                                }
+                                className="w-full px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={editPriceForm.priceEur ?? ''}
+                                onChange={(event) =>
+                                  setEditPriceForm({
+                                    ...editPriceForm,
+                                    priceEur: event.target.value === '' ? null : parseFloat(event.target.value)
+                                  })
+                                }
+                                className="w-24 px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="number"
+                                value={editPriceForm.durationMin ?? ''}
+                                onChange={(event) =>
+                                  setEditPriceForm({
+                                    ...editPriceForm,
+                                    durationMin: event.target.value === '' ? null : parseInt(event.target.value, 10)
+                                  })
+                                }
+                                className="w-24 px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="text"
+                                value={editPriceForm.note ?? ''}
+                                onChange={(event) =>
+                                  setEditPriceForm({ ...editPriceForm, note: event.target.value })
+                                }
+                                className="w-full px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(editPriceForm.isActive)}
+                                onChange={(event) =>
+                                  setEditPriceForm({ ...editPriceForm, isActive: event.target.checked })
+                                }
+                                className="w-4 h-4"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="number"
+                                value={editPriceForm.sortOrder ?? 0}
+                                onChange={(event) =>
+                                  setEditPriceForm({
+                                    ...editPriceForm,
+                                    sortOrder: parseInt(event.target.value || '0', 10)
+                                  })
+                                }
+                                className="w-20 px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-3">
+                                <button
+                                  onClick={handleSavePriceEdit}
+                                  className="text-green-700 hover:text-green-900 text-sm font-medium"
+                                >
+                                  Enregistrer
+                                </button>
+                                <button
+                                  onClick={handleCancelPriceEdit}
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                >
+                                  Annuler
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">{item.category}</td>
+                            <td className="px-4 py-3 text-sm text-[#1A1A1A] font-medium">{item.name}</td>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">{item.priceEur ?? '-'}</td>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">{item.durationMin ?? '-'}</td>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">{item.note || '-'}</td>
+                            <td className="px-4 py-3 text-sm">
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs ${
+                                  item.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {item.isActive ? 'Oui' : 'Non'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">{item.sortOrder ?? 0}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-3">
+                                <button
+                                  onClick={() => handleEditPrice(item)}
+                                  className="text-[#D4AF37] hover:text-[#C5A028] text-sm font-medium"
+                                >
+                                  Modifier
+                                </button>
+                                <button
+                                  onClick={() => handleDeletePrice(item.id)}
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                >
+                                  Supprimer
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'gift-cards' && (
+          <div>
+            <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+              <h2 className="text-lg font-semibold text-[#1A1A1A]">Historique des cartes cadeaux</h2>
+              <p className="text-sm text-[#4A4A4A]">
+                Consultation uniquement. {giftCards.length} carte(s) trouvée(s).
+              </p>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[#F9F7F2] border-b border-[#E8DCCA]">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Code</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Montant (€)</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Statut</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Acheteur</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Email</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Bénéficiaire</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Date création</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {giftCards.map((card, index) => (
+                      <tr key={card.id || card.code} className={index % 2 === 0 ? 'bg-white' : 'bg-[#F9F7F2]/40'}>
+                        <td className="px-4 py-3 text-sm text-[#1A1A1A] font-medium">{card.code}</td>
+                        <td className="px-4 py-3 text-sm text-[#4A4A4A]">{card.amount ?? '-'}</td>
+                        <td className="px-4 py-3 text-sm text-[#4A4A4A]">{card.status || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-[#4A4A4A]">{card.buyerName || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-[#4A4A4A]">{card.buyerEmail || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-[#4A4A4A]">{card.recipientName || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                          {card.createdAt ? new Date(card.createdAt).toLocaleDateString('fr-FR') : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'coupons' && (
+          <div>
+            <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+              <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-[#1A1A1A]">Coupons</h2>
+                  <p className="text-sm text-[#4A4A4A]">{coupons.length} coupon(s) enregistrés</p>
+                </div>
+                <button
+                  onClick={() => setShowAddCouponModal(true)}
+                  className="bg-[#D4AF37] text-[#1A1A1A] font-semibold px-5 py-2 rounded-lg hover:bg-[#C5A028] transition-colors"
+                >
+                  Ajouter un coupon
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[#F9F7F2] border-b border-[#E8DCCA]">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Code</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Type</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Valeur</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Date d'expiration</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Utilisations</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Statut</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {coupons.map((coupon, index) => (
+                      <tr key={coupon.id || coupon.code} className={index % 2 === 0 ? 'bg-white' : 'bg-[#F9F7F2]/40'}>
+                        {editingCouponId === coupon.id ? (
+                          <>
+                            <td className="px-4 py-3">
+                              <input
+                                type="text"
+                                value={editCouponForm.code || ''}
+                                onChange={(event) =>
+                                  setEditCouponForm({ ...editCouponForm, code: event.target.value })
+                                }
+                                className="w-full px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <select
+                                value={editCouponForm.type || 'percentage'}
+                                onChange={(event) =>
+                                  setEditCouponForm({ ...editCouponForm, type: event.target.value })
+                                }
+                                className="w-full px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              >
+                                <option value="percentage">Pourcentage</option>
+                                <option value="fixed">Montant fixe</option>
+                              </select>
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={editCouponForm.value ?? ''}
+                                onChange={(event) =>
+                                  setEditCouponForm({
+                                    ...editCouponForm,
+                                    value: event.target.value === '' ? null : parseFloat(event.target.value)
+                                  })
+                                }
+                                className="w-24 px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="date"
+                                value={
+                                  editCouponForm.validTo
+                                    ? new Date(editCouponForm.validTo).toISOString().slice(0, 10)
+                                    : ''
+                                }
+                                onChange={(event) =>
+                                  setEditCouponForm({
+                                    ...editCouponForm,
+                                    validTo: event.target.value
+                                      ? new Date(event.target.value).toISOString()
+                                      : null
+                                  })
+                                }
+                                className="w-full px-2 py-1 border border-[#E8DCCA] rounded text-sm"
+                              />
+                            </td>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                              {editCouponForm.uses ?? 0}
+                            </td>
+                            <td className="px-4 py-3">
+                              <input
+                                type="checkbox"
+                                checked={Boolean(editCouponForm.isActive)}
+                                onChange={(event) =>
+                                  setEditCouponForm({ ...editCouponForm, isActive: event.target.checked })
+                                }
+                                className="w-4 h-4"
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-3">
+                                <button
+                                  onClick={handleSaveCouponEdit}
+                                  className="text-green-700 hover:text-green-900 text-sm font-medium"
+                                >
+                                  Enregistrer
+                                </button>
+                                <button
+                                  onClick={handleCancelCouponEdit}
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                >
+                                  Annuler
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-4 py-3 text-sm text-[#1A1A1A] font-medium">{coupon.code}</td>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                              {coupon.type === 'fixed' ? 'Montant fixe' : 'Pourcentage'}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                              {coupon.value ?? '-'}
+                              {coupon.type === 'percentage' ? '%' : '€'}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                              {coupon.validTo ? new Date(coupon.validTo).toLocaleDateString('fr-FR') : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                              {coupon.uses ?? 0}
+                              {coupon.maxUses ? ` / ${coupon.maxUses}` : ''}
+                            </td>
+                            <td className="px-4 py-3 text-sm">
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs ${
+                                  coupon.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                }`}
+                              >
+                                {coupon.isActive ? 'Actif' : 'Inactif'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex gap-3">
+                                <button
+                                  onClick={() => handleEditCoupon(coupon)}
+                                  className="text-[#D4AF37] hover:text-[#C5A028] text-sm font-medium"
+                                >
+                                  Modifier
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCoupon(coupon.id)}
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                >
+                                  Supprimer
+                                </button>
+                              </div>
+                            </td>
+                          </>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {showAddPriceModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg max-w-lg w-full p-6">
+            <h2 className="text-2xl font-bold mb-6 text-[#1A1A1A]">Ajouter un tarif</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Catégorie</label>
+                <select
+                  value={newPriceForm.category}
+                  onChange={(event) => setNewPriceForm({ ...newPriceForm, category: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                >
+                  <option value="">Sélectionner une catégorie...</option>
+                  {categories
+                    .filter((cat) => cat !== 'all')
+                    .map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                </select>
+                <input
+                  type="text"
+                  value={newPriceForm.category}
+                  onChange={(event) => setNewPriceForm({ ...newPriceForm, category: event.target.value })}
+                  placeholder="Ou saisir une nouvelle catégorie"
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] mt-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Désignation</label>
+                <input
+                  type="text"
+                  value={newPriceForm.name}
+                  onChange={(event) => setNewPriceForm({ ...newPriceForm, name: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Prix (€)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={newPriceForm.priceEur}
+                  onChange={(event) => setNewPriceForm({ ...newPriceForm, priceEur: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Durée (min)</label>
+                <input
+                  type="number"
+                  value={newPriceForm.durationMin}
+                  onChange={(event) => setNewPriceForm({ ...newPriceForm, durationMin: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Note</label>
+                <input
+                  type="text"
+                  value={newPriceForm.note}
+                  onChange={(event) => setNewPriceForm({ ...newPriceForm, note: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={newPriceForm.isActive}
+                  onChange={(event) => setNewPriceForm({ ...newPriceForm, isActive: event.target.checked })}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm text-[#4A4A4A]">Actif</span>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleAddPrice}
+                  className="flex-1 bg-[#D4AF37] text-[#1A1A1A] font-semibold py-2 rounded-lg hover:bg-[#C5A028] transition-colors"
+                >
+                  Ajouter
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAddPriceModal(false);
+                    setNewPriceForm(emptyPriceForm);
+                  }}
+                  className="flex-1 px-4 py-2 border border-[#E8DCCA] rounded-lg text-[#4A4A4A] hover:bg-[#F9F7F2] transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAddCouponModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg max-w-lg w-full p-6">
+            <h2 className="text-2xl font-bold mb-6 text-[#1A1A1A]">Ajouter un coupon</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Code</label>
+                <input
+                  type="text"
+                  value={newCouponForm.code}
+                  onChange={(event) => setNewCouponForm({ ...newCouponForm, code: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Type</label>
+                <select
+                  value={newCouponForm.type}
+                  onChange={(event) => setNewCouponForm({ ...newCouponForm, type: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                >
+                  <option value="percentage">Pourcentage</option>
+                  <option value="fixed">Montant fixe</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Valeur</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={newCouponForm.value}
+                  onChange={(event) => setNewCouponForm({ ...newCouponForm, value: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Date d'expiration</label>
+                <input
+                  type="date"
+                  value={newCouponForm.validTo}
+                  onChange={(event) => setNewCouponForm({ ...newCouponForm, validTo: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#4A4A4A] mb-2">Utilisations max (optionnel)</label>
+                <input
+                  type="number"
+                  value={newCouponForm.maxUses}
+                  onChange={(event) => setNewCouponForm({ ...newCouponForm, maxUses: event.target.value })}
+                  className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  checked={newCouponForm.isActive}
+                  onChange={(event) => setNewCouponForm({ ...newCouponForm, isActive: event.target.checked })}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm text-[#4A4A4A]">Actif</span>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleAddCoupon}
+                  className="flex-1 bg-[#D4AF37] text-[#1A1A1A] font-semibold py-2 rounded-lg hover:bg-[#C5A028] transition-colors"
+                >
+                  Ajouter
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAddCouponModal(false);
+                    setNewCouponForm(emptyCouponForm);
+                  }}
+                  className="flex-1 px-4 py-2 border border-[#E8DCCA] rounded-lg text-[#4A4A4A] hover:bg-[#F9F7F2] transition-colors"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
