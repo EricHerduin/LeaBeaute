@@ -558,7 +558,7 @@ export default function AdminPage() {
         color: textColor,
       });
 
-      page.drawText('Tel: 06 XX XX XX XX', {
+      page.drawText('Tel: 02 33 21 48 19', {
         x: 40,
         y: 25,
         size: 9,
@@ -566,7 +566,7 @@ export default function AdminPage() {
         color: textColor,
       });
 
-      page.drawText('Adresse de l\'institut', {
+      page.drawText('7 Rue du Palais de Justice - 50700 Valognes', {
         x: 40,
         y: 10,
         size: 9,
@@ -723,7 +723,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-[#E8DCCA]">
+      <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-[#E8DCCA]">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-[#1A1A1A]">Admin Dashboard</h1>
           <button
@@ -736,7 +736,7 @@ export default function AdminPage() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-[#E8DCCA]">
+      <div className="sticky top-[73px] z-40 bg-white border-b border-[#E8DCCA]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex gap-8">
             <button

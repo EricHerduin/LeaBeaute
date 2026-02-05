@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Logo from '../assets/photos/logos/logo16-9_1.png';
+import OpeningStatus from './OpeningStatus';
 
 export default function Navigation({ onShowPricing }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -49,7 +50,7 @@ export default function Navigation({ onShowPricing }) {
         ? 'bg-white/40 backdrop-blur shadow-lg before:bg-none'
         : 'bg-[#222]/40 before:bg-gradient-to-b before:from-black/60 before:to-transparent'
     }`}>
-      <div className="max-w-7xl mx-auto px-6 md:px-12 relative">
+      <div className="max-w-8xl mx-auto px-6 md:px-12 relative">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3" data-testid="nav-logo" onClick={handleHomeClick}>
@@ -61,7 +62,8 @@ export default function Navigation({ onShowPricing }) {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
+            
             <Link
               to="/a-propos-institut"
               className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
@@ -110,6 +112,7 @@ export default function Navigation({ onShowPricing }) {
             >
               Prendre rendez-vous
             </a>
+            <OpeningStatus isScrolled={isScrolled} />
           </div>
 
           {/* Mobile Menu Button */}

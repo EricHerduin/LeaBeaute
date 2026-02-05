@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
-import HeroImage from '../assets/photos/Hero.jpg';
+import nutritionImage from '../assets/photos/prestations/Chrono nutrition.png' 
 
 export default function CoachingPage() {
   const [showPricing, setShowPricing] = useState(false);
@@ -44,7 +44,7 @@ export default function CoachingPage() {
               className="rounded-2xl overflow-hidden shadow-lg"
             >
               <img 
-                src={HeroImage} 
+                src={nutritionImage} 
                 alt="Coaching Chrononutrition" 
                 className="w-full h-96 object-cover"
               />
