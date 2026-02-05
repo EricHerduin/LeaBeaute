@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 import stripe
 import secrets
 import string
+import httpx
 from email_service import send_gift_card_email, generate_gift_card_email_html
 
 ROOT_DIR = Path(__file__).parent
@@ -134,6 +135,13 @@ class CouponUpdate(BaseModel):
     validTo: Optional[str] = None
     isActive: Optional[bool] = None
     maxUses: Optional[int] = None
+
+class TestimonialCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=60)
+    rating: int = Field(ge=1, le=5)
+    text: str = Field(min_length=10, max_length=600)
+    service: Optional[str] = None
+    allowDisplay: bool = True
 
 # ============ SEED DATA ============
 
@@ -1130,6 +1138,92 @@ async def cancel_coupon_usage(token: str):
     )
     
     return {"success": True, "message": "Coupon usage canceled"}
+
+@api_router.post("/testimonials")
+async def create_testimonial(payload: TestimonialCreate):
+    """Create a new internal testimonial (public)"""
+    testimonial = payload.model_dump()
+    testimonial["id"] = str(uuid.uuid4())
+    testimonial["createdAt"] = datetime.now(timezone.utc)
+    testimonial["isApproved"] = bool(payload.allowDisplay)
+
+    await db.testimonials.insert_one(testimonial)
+
+    return {"success": True, "id": testimonial["id"]}
+
+@api_router.get("/testimonials")
+async def list_testimonials(limit: int = 6):
+    """List approved internal testimonials"""
+    safe_limit = max(1, min(limit, 12))
+    cursor = (
+        db.testimonials.find({"isApproved": True}, {"_id": 0})
+        .sort("createdAt", -1)
+        .limit(safe_limit)
+    )
+    items = await cursor.to_list(safe_limit)
+    return {"items": items}
+
+@api_router.get("/google-reviews")
+async def get_google_reviews():
+    """Fetch Google reviews from Google Places API"""
+    place_id = os.environ.get('GOOGLE_PLACE_ID')
+    api_key = os.environ.get('GOOGLE_PLACES_API_KEY')
+    
+    if not place_id or not api_key:
+        raise HTTPException(status_code=500, detail="Google Places API not configured")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            # Get place details including reviews
+            response = await client.get(
+                "https://maps.googleapis.com/maps/api/place/details/json",
+                params={
+                    "place_id": place_id,
+                    "fields": "name,rating,user_ratings_total,reviews",
+                    "key": api_key,
+                    "language": "fr"
+                }
+            )
+            
+            data = response.json()
+            
+            if data.get('status') != 'OK':
+                logger.error(f"Google Places API error: {data.get('status')}")
+                raise HTTPException(status_code=500, detail=f"Google API error: {data.get('status')}")
+            
+            result = data.get('result', {})
+            
+            # Format reviews with responses
+            reviews = []
+            for review in result.get('reviews', [])[:5]:  # Limit to 5 most recent
+                reviews.append({
+                    "author": review.get('author_name'),
+                    "rating": review.get('rating'),
+                    "text": review.get('text'),
+                    "time": review.get('time'),
+                    "relative_time": review.get('relative_time_description'),
+                    "profile_photo": review.get('profile_photo_url'),
+                    "author_url": review.get('author_url'),
+                    # Owner response if exists
+                    "reply": {
+                        "text": review.get('reply', {}).get('comment'),
+                        "time": review.get('reply', {}).get('time')
+                    } if review.get('reply') else None
+                })
+            
+            return {
+                "name": result.get('name'),
+                "rating": result.get('rating'),
+                "user_ratings_total": result.get('user_ratings_total'),
+                "reviews": reviews
+            }
+            
+    except httpx.HTTPError as e:
+        logger.error(f"HTTP error fetching Google reviews: {e}")
+        raise HTTPException(status_code=500, detail="Error fetching reviews")
+    except Exception as e:
+        logger.error(f"Error fetching Google reviews: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Include router
 app.include_router(api_router)

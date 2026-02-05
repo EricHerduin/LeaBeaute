@@ -1,10 +1,8 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
 import ScrollToTop from "./components/ScrollToTop";
 import CookieConsent from "./components/CookieConsent";
-import StructuredData from "./components/StructuredData";
 import LandingPage from './pages/LandingPage';
 import GuinotPage from './pages/GuinotPage';
 import CoachingPage from './pages/CoachingPage';
@@ -19,8 +17,7 @@ import NotFound from './pages/NotFound';
 
 function App() {
   return (
-    <HelmetProvider>
-      <StructuredData />
+    <>
       <BrowserRouter>
         <ScrollToTop />
         <Routes>
@@ -39,7 +36,7 @@ function App() {
       </BrowserRouter>
       <CookieConsent />
       <Toaster position="top-right" richColors />
-    </HelmetProvider>
+    </>
   );
 }
 

@@ -1,0 +1,348 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - navigation [ref=e4]:
+        - generic [ref=e6]:
+          - link "Léa Beauté Valognes" [ref=e7]:
+            - /url: /
+            - img "Léa Beauté Valognes" [ref=e8]
+          - button [ref=e9]:
+            - img [ref=e10]
+      - generic [ref=e12]:
+        - img "Institut de beauté" [ref=e14]
+        - generic [ref=e17]:
+          - heading "L'élégance au naturel" [level=1] [ref=e19]:
+            - text: L'élégance au
+            - generic [ref=e20]: naturel
+          - paragraph [ref=e21]: Votre institut de beauté à Valognes. Soins visage Guinot, épilations, LPG, extensions de cils, manucure et accompagnement nutrition.
+          - generic [ref=e22]:
+            - link "Prendre Rendez-vous" [ref=e23]:
+              - /url: tel:0233214819
+            - button "Découvrir nos tarifs" [ref=e24]
+        - generic [ref=e26]:
+          - generic [ref=e27]: Découvrir
+          - img [ref=e29]
+      - generic [ref=e32]:
+        - generic [ref=e33]:
+          - heading "Nos prestations" [level=2] [ref=e34]
+          - paragraph [ref=e35]: Un large éventail de soins pour sublimer votre beauté naturelle
+        - generic [ref=e36]:
+          - button "En savoir plus sur Épilations" [ref=e37]:
+            - generic [ref=e42]:
+              - generic [ref=e43]: E
+              - img "Épilations (sourcils, lèvres, maillot, jambes)" [ref=e44]
+            - heading "Épilations" [level=3] [ref=e47]
+            - paragraph [ref=e48]: Sourcils, lèvres, maillot, jambes... Toutes zones avec des techniques adaptées.
+            - generic [ref=e49]:
+              - text: Découvrir
+              - img [ref=e50]
+          - button "En savoir plus sur Soins visage Guinot" [ref=e52]:
+            - generic [ref=e57]:
+              - generic [ref=e58]: G
+              - img "Soins visage Guinot" [ref=e59]
+            - heading "Soins visage Guinot" [level=3] [ref=e62]
+            - paragraph [ref=e63]: Hydradermie, Hydra Peeling, Age Summum... Technologies brevetées pour une peau rajeunie.
+            - generic [ref=e64]:
+              - text: Découvrir
+              - img [ref=e65]
+          - button "En savoir plus sur LPG" [ref=e67]:
+            - generic [ref=e72]:
+              - generic [ref=e73]: L
+              - img "LPG Endermologie" [ref=e74]
+            - heading "LPG" [level=3] [ref=e77]
+            - paragraph [ref=e78]: Technologie mécanobiol Endermologie pour le corps. Forfaits et entretien disponibles.
+            - generic [ref=e79]:
+              - text: Découvrir
+              - img [ref=e80]
+          - button "En savoir plus sur Extensions de cils" [ref=e82]:
+            - generic [ref=e87]:
+              - generic [ref=e88]: C
+              - img "Extensions de cils" [ref=e89]
+            - heading "Extensions de cils" [level=3] [ref=e92]
+            - paragraph [ref=e93]: 1ère pose et remplissages. YUMI Lashes, réhaussement de cils et browlift.
+            - generic [ref=e94]:
+              - text: Découvrir
+              - img [ref=e95]
+          - button "En savoir plus sur Mains & Pieds" [ref=e97]:
+            - generic [ref=e102]:
+              - generic [ref=e103]: M
+              - img "Mains et pieds" [ref=e104]
+            - heading "Mains & Pieds" [level=3] [ref=e107]
+            - paragraph [ref=e108]: Manucure, semi-permanent, french, beauté des mains et pieds, paraffine.
+            - generic [ref=e109]:
+              - text: Découvrir
+              - img [ref=e110]
+          - button "En savoir plus sur Maquillage" [ref=e112]:
+            - generic [ref=e117]:
+              - generic [ref=e118]: Q
+              - img "Maquillage" [ref=e119]
+            - heading "Maquillage" [level=3] [ref=e122]
+            - paragraph [ref=e123]: Maquillage jour, soir, forfait mariée. Cours d'auto-maquillage.
+            - generic [ref=e124]:
+              - text: Découvrir
+              - img [ref=e125]
+          - button "En savoir plus sur Soins corps" [ref=e127]:
+            - generic [ref=e132]:
+              - generic [ref=e133]: S
+              - img "Soins corps" [ref=e134]
+            - heading "Soins corps" [level=3] [ref=e137]
+            - paragraph [ref=e138]: Gommage, modelage, enveloppement. Rêve de détente, future maman, duo.
+            - generic [ref=e139]:
+              - text: Découvrir
+              - img [ref=e140]
+          - button "En savoir plus sur Accompagnement nutrition" [ref=e142]:
+            - generic [ref=e147]:
+              - generic [ref=e148]: A
+              - img "Accompagnement nutrition - Chrononutrition" [ref=e149]
+            - heading "Accompagnement nutrition" [level=3] [ref=e152]
+            - paragraph [ref=e153]: Accompagnement nutritionnel personnalisé pour retrouver votre équilibre.
+            - generic [ref=e154]:
+              - text: Découvrir
+              - img [ref=e155]
+          - button "En savoir plus sur Autres prestations" [ref=e157]:
+            - generic [ref=e162]:
+              - generic [ref=e163]: +
+              - img "Autres prestations" [ref=e164]
+            - heading "Autres prestations" [level=3] [ref=e167]
+            - paragraph [ref=e168]: UV, pressothérapie, électrolyse, teinture cils/sourcils, strass dentaire.
+            - generic [ref=e169]:
+              - text: Découvrir
+              - img [ref=e170]
+        - generic [ref=e172]:
+          - link "Voir toutes les prestations" [ref=e173]:
+            - /url: /prestations
+          - button "Consulter tous les tarifs" [ref=e174]
+      - generic [ref=e179]:
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - generic [ref=e182]: Technologie avancée
+            - heading "Soins visage Guinot" [level=2] [ref=e183]
+          - paragraph [ref=e184]: Leader français de la cosmétique professionnelle, Guinot propose des soins visage à la technologie brevetée pour des résultats visibles et prouvés.
+          - generic [ref=e185]:
+            - generic [ref=e186]:
+              - img [ref=e187]
+              - generic [ref=e189]:
+                - heading "Hydradermie 1000" [level=4] [ref=e190]
+                - paragraph [ref=e191]: Restaure l'énergie cellulaire pour une peau rajeunie
+            - generic [ref=e192]:
+              - img [ref=e193]
+              - generic [ref=e195]:
+                - heading "Hydra Peeling" [level=4] [ref=e196]
+                - paragraph [ref=e197]: Réduit les taches brunes de -55% en 3 séances
+            - generic [ref=e198]:
+              - img [ref=e199]
+              - generic [ref=e201]:
+                - heading "Lift Summum" [level=4] [ref=e202]
+                - paragraph [ref=e203]: Alternative non-chirurgicale au lifting médical
+            - generic [ref=e204]:
+              - img [ref=e205]
+              - generic [ref=e207]:
+                - heading "Age Summum" [level=4] [ref=e208]
+                - paragraph [ref=e209]: Raffermit visage, cou et décolleté
+          - generic [ref=e210]:
+            - button "En savoir plus" [ref=e211]
+            - button "Voir les tarifs" [ref=e212]
+        - generic [ref=e213]:
+          - img "Soin visage Guinot" [ref=e215]
+          - generic [ref=e217]:
+            - paragraph [ref=e218]: 60 min
+            - paragraph [ref=e219]: Durée moyenne d'un soin
+      - generic [ref=e222]:
+        - img "LPG Endermologie" [ref=e225]
+        - generic [ref=e227]:
+          - generic [ref=e228]:
+            - generic [ref=e229]: Technologie mécanobiol
+            - heading "LPG Endermologie" [level=2] [ref=e230]
+          - paragraph [ref=e231]: La technologie LPG Endermologie stimule naturellement les cellules pour raffermir, lisser et affiner la silhouette sans chirurgie.
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - img [ref=e234]
+              - paragraph [ref=e236]: Raffermissement de la peau
+            - generic [ref=e237]:
+              - img [ref=e238]
+              - paragraph [ref=e240]: Lissage des capitons
+            - generic [ref=e241]:
+              - img [ref=e242]
+              - paragraph [ref=e244]: Affinement de la silhouette
+            - generic [ref=e245]:
+              - img [ref=e246]
+              - paragraph [ref=e248]: Drainage et décongestion
+            - generic [ref=e249]:
+              - img [ref=e250]
+              - paragraph [ref=e252]: Récupération sportive
+          - generic [ref=e253]:
+            - heading "Nos formules LPG" [level=3] [ref=e254]
+            - generic [ref=e255]:
+              - paragraph [ref=e256]: "• Le body : 16€"
+              - paragraph [ref=e257]: "• La séance : 55€"
+              - paragraph [ref=e258]: "• Forfait 10 séances + 1 offerte : 550€"
+              - paragraph [ref=e259]: "• Séance d'entretien : 49€"
+          - button "Découvrir tous les tarifs" [ref=e260]
+      - generic [ref=e262]:
+        - generic [ref=e263]:
+          - heading "Cartes cadeaux" [level=2] [ref=e264]
+          - paragraph [ref=e265]: Offrez un moment de détente et de beauté avec nos cartes cadeaux valables 6 mois
+        - generic [ref=e266]:
+          - generic [ref=e267]:
+            - button "15€ Carte cadeau" [ref=e268]:
+              - generic [ref=e269]: 15€
+              - generic [ref=e270]: Carte cadeau
+            - button "20€ Carte cadeau" [ref=e271]:
+              - generic [ref=e272]: 20€
+              - generic [ref=e273]: Carte cadeau
+            - button "30€ Carte cadeau" [ref=e274]:
+              - generic [ref=e275]: 30€
+              - generic [ref=e276]: Carte cadeau
+            - button "50€ Carte cadeau" [ref=e277]:
+              - generic [ref=e278]: 50€
+              - generic [ref=e279]: Carte cadeau
+            - generic [ref=e280]:
+              - generic [ref=e281]: Autre montant
+              - spinbutton [ref=e282]
+              - generic [ref=e283]: Entre 10€ et 500€
+          - generic [ref=e284]:
+            - heading "Informations" [level=3] [ref=e285]
+            - list [ref=e286]:
+              - listitem [ref=e287]:
+                - img [ref=e288]
+                - generic [ref=e290]: Valable 6 mois à partir de la date d'achat
+              - listitem [ref=e291]:
+                - img [ref=e292]
+                - generic [ref=e294]: Utilisable sur toutes les prestations de l'institut
+              - listitem [ref=e295]:
+                - img [ref=e296]
+                - generic [ref=e298]: Non remboursable
+              - listitem [ref=e299]:
+                - img [ref=e300]
+                - generic [ref=e302]: Paiement sécurisé par Stripe
+      - generic [ref=e305]:
+        - generic [ref=e306]:
+          - generic [ref=e307]:
+            - generic [ref=e308]: Nutrition & Bien-être
+            - heading "Accompagnement en chrononutrition" [level=2] [ref=e309]
+          - paragraph [ref=e310]: Un accompagnement personnalisé pour manger au bon moment et retrouver votre équilibre naturel. La chrononutrition respecte votre rythme biologique pour des habitudes durables.
+          - generic [ref=e311]:
+            - generic [ref=e312]:
+              - img [ref=e313]
+              - paragraph [ref=e315]: Diagnostic personnalisé de vos habitudes
+            - generic [ref=e316]:
+              - img [ref=e317]
+              - paragraph [ref=e319]: Plan adapté à votre rythme de vie
+            - generic [ref=e320]:
+              - img [ref=e321]
+              - paragraph [ref=e323]: Suivi régulier et ajustements
+            - generic [ref=e324]:
+              - img [ref=e325]
+              - paragraph [ref=e327]: "Objectif : équilibre alimentaire durable"
+          - generic [ref=e328]:
+            - button "En savoir plus" [ref=e329]
+            - link "Prendre contact" [ref=e330]:
+              - /url: tel:0233214819
+        - img "Accompagnement nutrition" [ref=e333]
+      - generic [ref=e336]:
+        - heading "Nous contacter" [level=2] [ref=e338]
+        - generic [ref=e339]:
+          - generic [ref=e341]:
+            - heading "Coordonnées" [level=3] [ref=e342]
+            - generic [ref=e343]:
+              - generic [ref=e344]:
+                - img [ref=e345]
+                - generic [ref=e347]:
+                  - paragraph [ref=e348]: Téléphone
+                  - link "02 33 21 48 19" [ref=e349]:
+                    - /url: tel:0233214819
+              - generic [ref=e350]:
+                - img [ref=e351]
+                - generic [ref=e354]:
+                  - paragraph [ref=e355]: Adresse
+                  - paragraph [ref=e356]: 7 Rue du Palais de Justice
+                  - paragraph [ref=e357]: 50700 Valognes
+            - link "Itinéraire" [ref=e359]:
+              - /url: https://www.google.com/maps/dir//7+Rue+du+Palais+de+Justice,+50700+Valognes
+              - img [ref=e360]
+              - text: Itinéraire
+          - generic [ref=e363]:
+            - heading "Horaires d'ouverture" [level=3] [ref=e364]
+            - generic [ref=e365]:
+              - generic [ref=e366]:
+                - generic [ref=e367]: Lundi
+                - generic [ref=e368]: 14:00–18:30
+              - generic [ref=e369]:
+                - generic [ref=e370]: Mardi
+                - generic [ref=e371]: 09:00–18:30
+              - generic [ref=e372]:
+                - generic [ref=e373]: Mercredi
+                - generic [ref=e374]: Fermé
+              - generic [ref=e375]:
+                - generic [ref=e376]: Jeudi
+                - generic [ref=e377]: 09:00–18:30
+              - generic [ref=e378]:
+                - generic [ref=e379]: Vendredi
+                - generic [ref=e380]: 09:00–18:30
+              - generic [ref=e381]:
+                - generic [ref=e382]: Samedi
+                - generic [ref=e383]: 09:00–16:00
+              - generic [ref=e384]:
+                - generic [ref=e385]: Dimanche
+                - generic [ref=e386]: Fermé
+      - contentinfo [ref=e387]:
+        - generic [ref=e388]:
+          - generic [ref=e389]:
+            - generic [ref=e390]:
+              - img "Léa Beauté Valognes" [ref=e391]
+              - paragraph [ref=e392]: Votre institut de beauté à Valognes. Élégance, expertise et bien-être depuis des années.
+            - generic [ref=e393]:
+              - heading "Navigation" [level=3] [ref=e394]
+              - list [ref=e395]:
+                - listitem [ref=e396]:
+                  - link "Accueil" [ref=e397]:
+                    - /url: /
+                - listitem [ref=e398]:
+                  - link "Soins Guinot" [ref=e399]:
+                    - /url: /guinot
+                - listitem [ref=e400]:
+                  - link "Accompagnement Nutrition" [ref=e401]:
+                    - /url: /accompagnement-nutrition
+                - listitem [ref=e402]:
+                  - button "Tarifs" [ref=e403]
+            - generic [ref=e404]:
+              - heading "Contact" [level=3] [ref=e405]
+              - list [ref=e406]:
+                - listitem [ref=e407]:
+                  - link "02 33 21 48 19" [ref=e408]:
+                    - /url: tel:0233214819
+                - listitem [ref=e409]: 7 Rue du Palais de Justice
+                - listitem [ref=e410]: 50700 Valognes
+          - generic [ref=e411]:
+            - paragraph [ref=e412]: © 2026 Léa Beauté Valognes. Tous droits réservés.
+            - generic [ref=e413]:
+              - link "Mentions légales" [ref=e414]:
+                - /url: /mentions-legales
+              - link "Confidentialité" [ref=e415]:
+                - /url: /confidentialite
+              - link "Cookies" [ref=e416]:
+                - /url: /cookies
+    - generic [ref=e419]:
+      - img [ref=e420]
+      - generic [ref=e422]:
+        - heading "🍪 Cookies sur Léa Beauté" [level=3] [ref=e423]
+        - paragraph [ref=e424]: Nous utilisons des cookies pour améliorer votre expérience sur notre site. Certains sont nécessaires au fonctionnement du site, d'autres nous aident à analyser l'utilisation et personnaliser le contenu.
+        - generic [ref=e425]:
+          - button "Accepter tout" [ref=e426]
+          - button "Cookies nécessaires uniquement" [ref=e427]
+          - button "Refuser tout" [ref=e428]
+        - generic [ref=e429]:
+          - button "Voir les détails" [ref=e430]
+          - link "Politique de cookies" [ref=e431]:
+            - /url: /cookies
+      - button "Fermer" [ref=e432]:
+        - img [ref=e433]
+    - region "Notifications alt+T"
+  - link "Made by Htag Facility" [ref=e436]:
+    - /url: https://htagfacility.fr
+    - img [ref=e438]
+    - paragraph [ref=e485]: Made by Htag Facility
+```
