@@ -99,7 +99,7 @@ export default function Navigation({ onShowPricing }) {
               Cartes cadeaux
             </button>
             <Link
-              to="/coaching-chrononutrition"
+              to="/accompagnement-nutrition"
               data-testid="nav-coaching"
               className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
             >
@@ -176,11 +176,11 @@ export default function Navigation({ onShowPricing }) {
             </button>
 
             <Link
-              to="/coaching-chrononutrition"
+              to="/accompagnement-nutrition"
               onClick={() => setIsMobileMenuOpen(false)}
               className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
             >
-              Coaching
+              Accompagnement Nutrition
             </Link>
 
             <a

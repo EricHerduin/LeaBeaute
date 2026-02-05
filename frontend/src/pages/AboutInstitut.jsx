@@ -144,7 +144,7 @@ export default function AboutInstitut() {
               <li>Beauté des mains et des pieds : manucure, pose de vernis, soins spa, nail art tendance.</li>
               <li>Maquillage, rehaussement et teinture des cils et sourcils : révélez votre regard et votre éclat naturel.</li>
               <li>Rituels bien-être sur-mesure : chaque cliente repart avec des conseils personnalisés pour prolonger les bienfaits à la maison.</li>
-              <li>Coaching chrononutrition : un accompagnement global pour se sentir bien dans sa peau, à l’intérieur comme à l’extérieur.</li>
+              <li>Accompagnement nutrition : un accompagnement global pour se sentir bien dans sa peau, à l'intérieur comme à l'extérieur.</li>
             </ul>
             <p className="text-lg text-[#4A4A4A] mb-6 leading-relaxed font-semibold text-center">Notre promesse : révéler votre beauté, tout en prenant soin de votre bien-être.<br/>
             <span className="block mt-2 text-[#808080] text-base font-normal">Vous hésitez sur une prestation ? Venez discuter avec nous, nous prendrons le temps de vous conseiller et de vous orienter vers ce qui vous conviendra le mieux.</span></p>

@@ -88,11 +88,11 @@ export const services = [
     pricingCategories: ['Soins corps', 'Soins corps spécifiques']
   },
   {
-    id: 'coaching-chrononutrition',
+    id: 'accompagnement-nutrition',
     imageSrc: uvImage,
-    imageAlt: 'Coaching chrononutrition',
-    fallbackLetter: 'N',
-    title: 'Coaching chrononutrition',
+    imageAlt: 'Accompagnement nutrition - Chrononutrition',
+    fallbackLetter: 'A',
+    title: 'Accompagnement nutrition',
     description: 'Accompagnement nutritionnel personnalisé pour retrouver votre équilibre.',
     details: "Un accompagnement sur-mesure pour installer des habitudes simples et durables.",
     techniquesText: 'Bilan personnalisé · Suivi & ajustements · Conseils pratiques',

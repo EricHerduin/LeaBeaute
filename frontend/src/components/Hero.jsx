@@ -35,7 +35,7 @@ export default function Hero({ onShowPricing }) {
             className="text-lg md:text-xl text-white/90 mb-8 leading-relaxed"
           >
             Votre institut de beauté à Valognes. Soins visage Guinot, épilations, LPG,
-            extensions de cils, manucure et coaching chrononutrition.
+            extensions de cils, manucure et accompagnement nutrition.
           </motion.p>
 
           <motion.div

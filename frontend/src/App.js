@@ -13,6 +13,7 @@ import Cookies from './pages/Cookies';
 import AdminPage from './pages/AdminPage';
 import AboutInstitut from './pages/AboutInstitut';
 import ServicesPage from './pages/ServicesPage';
+import NotFound from './pages/NotFound';
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/guinot" element={<GuinotPage />} />
-          <Route path="/coaching-chrononutrition" element={<CoachingPage />} />
+          <Route path="/accompagnement-nutrition" element={<CoachingPage />} />
           <Route path="/gift-card-success" element={<GiftCardSuccess />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/confidentialite" element={<Confidentialite />} />
@@ -30,6 +31,7 @@ function App() {
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/a-propos-institut" element={<AboutInstitut />} />
           <Route path="/prestations" element={<ServicesPage />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
       <CookieConsent />

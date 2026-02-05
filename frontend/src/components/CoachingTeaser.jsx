@@ -19,7 +19,7 @@ export default function CoachingTeaser() {
                 Nutrition & Bien-être
               </span>
               <h2 className="text-4xl md:text-6xl font-bold mb-6 text-[#1A1A1A]">
-                Coaching en <span className="gold-gradient-text italic">chrononutrition</span>
+                Accompagnement en <span className="gold-gradient-text italic">chrononutrition</span>
               </h2>
             </div>
             <p className="text-lg text-[#4A4A4A] mb-6 leading-relaxed">
@@ -43,7 +43,7 @@ export default function CoachingTeaser() {
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
               <button
-                onClick={() => navigate('/coaching-chrononutrition')}
+                onClick={() => navigate('/accompagnement-nutrition')}
                 data-testid="coaching-learn-more-btn"
                 className="btn-primary"
               >
@@ -69,7 +69,7 @@ export default function CoachingTeaser() {
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
               <img
                 src="https://images.unsplash.com/photo-1543362905-bddfadc3d44f?crop=entropy&cs=srgb&fm=jpg&q=85"
-                alt="Coaching nutrition"
+                alt="Accompagnement nutrition"
                 className="w-full h-[500px] object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>

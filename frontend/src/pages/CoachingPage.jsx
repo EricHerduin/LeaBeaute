@@ -23,7 +23,7 @@ export default function CoachingPage() {
               transition={{ duration: 0.8 }}
             >
               <h1 className="text-5xl md:text-6xl font-bold mb-6 text-[#1A1A1A]">
-                Coaching en <span className="gold-gradient-text italic">Chrononutrition</span>
+                Accompagnement en <span className="gold-gradient-text italic">Chrononutrition</span>
               </h1>
               <p className="text-lg md:text-xl text-[#4A4A4A] mb-8 leading-relaxed">
                 Un accompagnement personnalisé pour manger au bon moment et retrouver votre équilibre naturel.
@@ -45,7 +45,7 @@ export default function CoachingPage() {
             >
               <img 
                 src={nutritionImage} 
-                alt="Coaching Chrononutrition" 
+                alt="Accompagnement Chrononutrition" 
                 className="w-full h-96 object-cover"
               />
             </motion.div>
@@ -77,13 +77,40 @@ export default function CoachingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="glass-card p-6 rounded-2xl text-center"
+              className="glass-card overflow-hidden rounded-2xl"
             >
-              <div className="text-4xl mb-4">🌅</div>
-              <h3 className="text-xl font-bold mb-3 text-[#1A1A1A]">Le matin</h3>
-              <p className="text-[#4A4A4A] text-sm">
-                Petit-déjeuner riche en protéines et féculents pour démarrer la journée avec énergie
-              </p>
+              {/* Morning Visual - Animated Sunrise */}
+              <div className="relative h-48 bg-gradient-to-b from-[#FFE5B4] via-[#FFD580] to-[#FFA500] overflow-hidden">
+                {/* Sun */}
+                <motion.div
+                  animate={{ y: [20, 0, 20] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-16 h-16 bg-gradient-to-b from-[#FFD580] to-[#FFA500] rounded-full shadow-lg"
+                />
+                {/* Rays */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {[0, 45, 90, 135, 180, 225, 270, 315].map((angle) => (
+                    <motion.div
+                      key={angle}
+                      initial={{ opacity: 0.3 }}
+                      animate={{ opacity: [0.3, 0.8, 0.3] }}
+                      transition={{ duration: 2, repeat: Infinity, delay: angle / 360 }}
+                      style={{ transform: `rotate(${angle}deg)` }}
+                      className="absolute w-1 h-8 bg-[#FFD580] origin-center"
+                    />
+                  ))}
+                </div>
+                {/* Coffee Cup */}
+                <div className="absolute bottom-2 right-4 w-8 h-10 border-2 border-[#8B4513] rounded-b-lg">
+                  <div className="absolute top-2 right-0 w-3 h-4 border-2 border-[#8B4513] rounded-r-lg" />
+                </div>
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold mb-3 text-[#1A1A1A]">Le matin</h3>
+                <p className="text-[#4A4A4A] text-sm">
+                  Petit-déjeuner riche en protéines et féculents pour démarrer la journée avec énergie
+                </p>
+              </div>
             </motion.div>
 
             <motion.div
@@ -91,13 +118,32 @@ export default function CoachingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="glass-card p-6 rounded-2xl text-center"
+              className="glass-card overflow-hidden rounded-2xl"
             >
-              <div className="text-4xl mb-4">☀️</div>
-              <h3 className="text-xl font-bold mb-3 text-[#1A1A1A]">À midi</h3>
-              <p className="text-[#4A4A4A] text-sm">
-                Repas équilibré avec protéines, féculents et légumes pour soutenir vos activités
-              </p>
+              {/* Noon Visual - Animated Sun & Plate */}
+              <div className="relative h-48 bg-gradient-to-b from-[#87CEEB] via-[#E0F6FF] to-[#FFE4B5] overflow-hidden">
+                {/* Sun at zenith */}
+                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-[#FFD700] to-[#FFA500] rounded-full shadow-lg" />
+                
+                {/* Plate illustration */}
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+                  {/* Plate circle */}
+                  <div className="relative w-16 h-16 border-4 border-[#D4AF37] rounded-full bg-white/20">
+                    {/* Protein segment */}
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-3 h-6 bg-[#E8A47A] rounded-b-lg" />
+                    {/* Veggie segment */}
+                    <div className="absolute bottom-1 right-2 w-3 h-6 bg-[#90EE90] rounded-lg" />
+                    {/* Starch segment */}
+                    <div className="absolute bottom-1 left-2 w-3 h-6 bg-[#F4A460] rounded-lg" />
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold mb-3 text-[#1A1A1A]">À midi</h3>
+                <p className="text-[#4A4A4A] text-sm">
+                  Repas équilibré avec protéines, féculents et légumes pour soutenir vos activités
+                </p>
+              </div>
             </motion.div>
 
             <motion.div
@@ -105,13 +151,43 @@ export default function CoachingPage() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="glass-card p-6 rounded-2xl text-center"
+              className="glass-card overflow-hidden rounded-2xl"
             >
-              <div className="text-4xl mb-4">🌙</div>
-              <h3 className="text-xl font-bold mb-3 text-[#1A1A1A]">Le soir</h3>
-              <p className="text-[#4A4A4A] text-sm">
-                Repas léger à base de protéines et légumes pour favoriser une bonne récupération
-              </p>
+              {/* Evening Visual - Animated Stars & Moon */}
+              <div className="relative h-48 bg-gradient-to-b from-[#1A1A2E] via-[#2D2D5F] to-[#3D3D7A] overflow-hidden">
+                {/* Moon */}
+                <motion.div
+                  animate={{ opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="absolute top-6 right-8 w-14 h-14 bg-gradient-to-br from-[#FFE4B5] to-[#FFDEAD] rounded-full shadow-lg"
+                />
+                
+                {/* Stars */}
+                {[...Array(12)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    animate={{ opacity: [0.3, 1, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: i * 0.15 }}
+                    className="absolute w-1.5 h-1.5 bg-white rounded-full"
+                    style={{
+                      left: `${Math.random() * 100}%`,
+                      top: `${Math.random() * 60}%`
+                    }}
+                  />
+                ))}
+
+                {/* Crescent Moon detail */}
+                <div className="absolute top-6 right-8 w-14 h-14 rounded-full bg-gradient-to-b from-[#2D2D5F] to-transparent" />
+                
+                {/* Pillow/Rest symbol */}
+                <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 w-16 h-6 border-3 border-[#D4AF37] rounded-lg bg-white/10" />
+              </div>
+              <div className="p-6 text-center">
+                <h3 className="text-xl font-bold mb-3 text-[#1A1A1A]">Le soir</h3>
+                <p className="text-[#4A4A4A] text-sm">
+                  Repas léger à base de protéines et légumes pour favoriser une bonne récupération
+                </p>
+              </div>
             </motion.div>
           </div>
 
@@ -230,7 +306,7 @@ export default function CoachingPage() {
             >
               <h3 className="text-2xl font-bold mb-4 text-[#1A1A1A]">Note importante</h3>
               <p className="text-[#4A4A4A] leading-relaxed mb-4">
-                Ce coaching en chrononutrition est un accompagnement nutritionnel et ne constitue pas un traitement médical.
+                Cet accompagnement en chrononutrition est un service nutritionnel et ne constitue pas un traitement médical.
               </p>
               <p className="text-[#4A4A4A] leading-relaxed">
                 Aucune promesse de perte de poids garantie n'est formulée. L'objectif est de vous aider à retrouver un équilibre alimentaire durable, 
@@ -262,7 +338,7 @@ export default function CoachingPage() {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-6 text-[#1A1A1A]">
-              Intéressé(e) par un coaching ?
+              Intéressé(e) par un accompagnement nutrition ?
             </h2>
             <p className="text-lg text-[#4A4A4A] mb-8 leading-relaxed">
               Contactez-nous par téléphone pour discuter de vos objectifs et définir un accompagnement adapté.

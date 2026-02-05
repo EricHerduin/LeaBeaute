@@ -10,7 +10,7 @@ export default function Footer({ onShowPricing }) {
             <img
               src="https://customer-assets.emergentagent.com/job_2c5a61ba-d41e-4013-9ecc-f1a07917e6f6/artifacts/hpgw4x9j_logo16-9_1.png"
               alt="Léa Beauté Valognes"
-              className="h-16 w-auto mb-4"
+              className="h-24 md:h-28 w-auto mb-6"
             />
             <p className="text-white/70 leading-relaxed">
               Votre institut de beauté à Valognes. Élégance, expertise et bien-être depuis des années.
@@ -28,7 +28,7 @@ export default function Footer({ onShowPricing }) {
                 <Link to="/guinot" className="text-white/70 hover:text-[#D4AF37] transition-colors">Soins Guinot</Link>
               </li>
               <li>
-                <Link to="/coaching-chrononutrition" className="text-white/70 hover:text-[#D4AF37] transition-colors">Coaching</Link>
+                <Link to="/accompagnement-nutrition" className="text-white/70 hover:text-[#D4AF37] transition-colors">Accompagnement Nutrition</Link>
               </li>
               <li>
                 <button onClick={onShowPricing} className="text-white/70 hover:text-[#D4AF37] transition-colors">

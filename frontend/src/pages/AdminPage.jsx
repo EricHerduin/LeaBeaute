@@ -2,10 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faHouse, faXmark, faInfoCircle, faFilePdf, faEnvelope, faCalendarPlus, faUserEdit, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faHouse, faXmark, faInfoCircle, faFilePdf, faEnvelope, faCalendarPlus, faUserEdit, faCheckCircle, faCog } from '@fortawesome/free-solid-svg-icons';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import AdminDashboardHome from './AdminDashboardHome';
 import logoLeaBeaute from '../assets/photos/logos/logo16-9_1.png';
+import { pricingPdfConfig } from '../lib/pricingPdfConfig';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -40,6 +41,9 @@ export default function AdminPage() {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [showAddPriceModal, setShowAddPriceModal] = useState(false);
+  const [showCategoryOrderModal, setShowCategoryOrderModal] = useState(false);
+  const [selectedCategoriesForPdf, setSelectedCategoriesForPdf] = useState([]);
+  const [categoryOrder, setCategoryOrder] = useState([]);
   const [newPriceForm, setNewPriceForm] = useState({
     category: '',
     name: '',
@@ -88,6 +92,26 @@ export default function AdminPage() {
       fetchPrices(savedToken);
     }
   }, []);
+
+  // Load category preferences on mount and when prices change
+  useEffect(() => {
+    if (prices.length > 0) {
+      // Extract unique categories from prices
+      const allCategories = [...new Set(prices.map(p => p.category))].sort();
+      
+      // Load saved order and selection from localStorage
+      const savedOrder = localStorage.getItem('categoryOrder');
+      const savedSelection = localStorage.getItem('selectedCategoriesForPdf');
+      
+      if (savedOrder) {
+        setCategoryOrder(JSON.parse(savedOrder));
+        setSelectedCategoriesForPdf(JSON.parse(savedSelection) || allCategories);
+      } else {
+        setCategoryOrder(allCategories);
+        setSelectedCategoriesForPdf(allCategories);
+      }
+    }
+  }, [prices]);
 
   // Gift Cards functions
   const fetchGiftCards = useCallback(async () => {
@@ -174,6 +198,41 @@ export default function AdminPage() {
     }
   };
 
+  // Category management functions
+  const saveCategoryPreferences = (order, selected) => {
+    localStorage.setItem('categoryOrder', JSON.stringify(order));
+    localStorage.setItem('selectedCategoriesForPdf', JSON.stringify(selected));
+  };
+
+  const handleMoveCategory = (index, direction) => {
+    const newOrder = [...categoryOrder];
+    if (direction === 'up' && index > 0) {
+      [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
+    } else if (direction === 'down' && index < newOrder.length - 1) {
+      [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+    }
+    setCategoryOrder(newOrder);
+    saveCategoryPreferences(newOrder, selectedCategoriesForPdf);
+  };
+
+  const handleToggleCategorySelection = (category) => {
+    const newSelected = selectedCategoriesForPdf.includes(category)
+      ? selectedCategoriesForPdf.filter(c => c !== category)
+      : [...selectedCategoriesForPdf, category];
+    setSelectedCategoriesForPdf(newSelected);
+    saveCategoryPreferences(categoryOrder, newSelected);
+  };
+
+  const handleSelectAllCategories = () => {
+    setSelectedCategoriesForPdf([...categoryOrder]);
+    saveCategoryPreferences(categoryOrder, categoryOrder);
+  };
+
+  const handleDeselectAllCategories = () => {
+    setSelectedCategoriesForPdf([]);
+    saveCategoryPreferences(categoryOrder, []);
+  };
+
   const handleAddPrice = async () => {
     if (!newPriceForm.category.trim()) {
       toast.error('Veuillez entrer une catégorie');
@@ -249,6 +308,589 @@ export default function AdminPage() {
       fetchPrices(token);
     } catch (error) {
       toast.error('Erreur lors de la suppression');
+    }
+  };
+
+  const handleExportPricesPdf = async () => {
+    try {
+      // Filter by active status and selected categories
+      const activePrices = prices.filter((item) => {
+        const isActive = item.isActive !== false;
+        const isInSelectedCategory = selectedCategoriesForPdf.includes(item.category);
+        return isActive && isInSelectedCategory;
+      });
+      
+      if (activePrices.length === 0) {
+        toast.error('Aucun tarif actif à exporter dans les catégories sélectionnées');
+        return;
+      }
+
+      const grouped = activePrices.reduce((acc, item) => {
+        const category = item.category || 'Autres';
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(item);
+        return acc;
+      }, {});
+
+      // Use the saved category order instead of pricingPdfConfig
+      const orderList = categoryOrder.length > 0 ? categoryOrder : (Array.isArray(pricingPdfConfig.categoryOrder) ? pricingPdfConfig.categoryOrder : []);
+      const normalizedOrder = orderList.map((item) => String(item).toLowerCase());
+
+      const getOrderIndex = (category) => normalizedOrder.indexOf(String(category).toLowerCase());
+
+      const categories = Object.keys(grouped).sort((a, b) => {
+        const indexA = getOrderIndex(a);
+        const indexB = getOrderIndex(b);
+        if (indexA !== -1 || indexB !== -1) {
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          if (indexA !== indexB) return indexA - indexB;
+        }
+        return a.localeCompare(b, 'fr');
+      });
+
+      categories.forEach((category) => {
+        grouped[category].sort((a, b) => {
+          const orderA = Number.isFinite(a.sortOrder) ? a.sortOrder : 0;
+          const orderB = Number.isFinite(b.sortOrder) ? b.sortOrder : 0;
+          if (orderA !== orderB) return orderA - orderB;
+          return (a.name || '').localeCompare(b.name || '', 'fr');
+        });
+      });
+
+      const pdfDoc = await PDFDocument.create();
+
+      const fetchBytes = async (url) => {
+        if (!url) return null;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Font fetch failed');
+        return await response.arrayBuffer();
+      };
+
+      let font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      let fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      try {
+        const regularBytes = await fetchBytes(pricingPdfConfig.fonts?.regular);
+        const semiboldBytes = await fetchBytes(pricingPdfConfig.fonts?.semibold);
+        if (regularBytes && semiboldBytes) {
+          font = await pdfDoc.embedFont(regularBytes);
+          fontBold = await pdfDoc.embedFont(semiboldBytes);
+        }
+      } catch (error) {
+        console.warn('Impossible de charger Montserrat, utilisation des polices par défaut.');
+      }
+
+      let logoImage = null;
+      let logoDims = null;
+      try {
+        const logoBytes = await fetch(logoLeaBeaute).then((res) => res.arrayBuffer());
+        logoImage = await pdfDoc.embedPng(logoBytes);
+        const maxLogoWidth = 140;
+        const maxLogoHeight = 50;
+        const scale = Math.min(maxLogoWidth / logoImage.width, maxLogoHeight / logoImage.height);
+        logoDims = logoImage.scale(scale);
+      } catch (error) {
+        console.warn('Logo introuvable pour le PDF tarifs.');
+      }
+
+      const pageWidth = 595.28;
+      const pageHeight = 841.89;
+      const marginX = 40;
+      const marginTop = 70;
+      const footerHeight = 48;
+      const contentBottom = 30 + footerHeight;
+
+      const colors = {
+        gold: rgb(0.83, 0.69, 0.22),
+        goldDark: rgb(0.72, 0.56, 0.14),
+        text: rgb(0.12, 0.12, 0.12),
+        muted: rgb(0.4, 0.4, 0.4)
+      };
+
+      const drawRoundedRect = (page, x, y, width, height, radius, options) => {
+        const r = Math.min(radius, width / 2, height / 2);
+        const path = `M ${x + r} ${y} L ${x + width - r} ${y} A ${r} ${r} 0 0 1 ${x + width} ${y + r} L ${x + width} ${y + height - r} A ${r} ${r} 0 0 1 ${x + width - r} ${y + height} L ${x + r} ${y + height} A ${r} ${r} 0 0 1 ${x} ${y + height - r} L ${x} ${y + r} A ${r} ${r} 0 0 1 ${x + r} ${y} Z`;
+        page.drawSvgPath(path, options);
+      };
+
+      const drawFooter = (page) => {
+        const footerY = 24;
+        page.drawLine({
+          start: { x: marginX, y: footerY + 18 },
+          end: { x: pageWidth - marginX, y: footerY + 18 },
+          thickness: 1,
+          color: colors.gold
+        });
+        const footerLabel = pricingPdfConfig.footerLabel || 'Retrouvez-nous';
+        page.drawText(footerLabel, {
+          x: marginX,
+          y: footerY + 4,
+          size: 9,
+          font: fontBold,
+          color: colors.muted
+        });
+        const footerText = `${pricingPdfConfig.facebook}  |  ${pricingPdfConfig.instagram}  |  ${pricingPdfConfig.website}`;
+        const footerTextWidth = font.widthOfTextAtSize(footerText, 9);
+        page.drawText(footerText, {
+          x: (pageWidth - footerTextWidth) / 2,
+          y: footerY + 4,
+          size: 9,
+          font,
+          color: colors.muted
+        });
+      };
+
+      const drawHeader = (page) => {
+        const title = pricingPdfConfig.title || 'Tarifs';
+        
+        if (logoImage && logoDims) {
+          const logoX = marginX;
+          const logoY = pageHeight - 25 - logoDims.height;
+          page.drawImage(logoImage, {
+            x: logoX,
+            y: logoY,
+            width: logoDims.width,
+            height: logoDims.height
+          });
+        }
+        
+        const titleWidth = fontBold.widthOfTextAtSize(title, 20);
+        const titleX = (pageWidth - titleWidth) / 2;
+        page.drawText(title, {
+          x: titleX,
+          y: pageHeight - 38,
+          size: 20,
+          font: fontBold,
+          color: colors.text
+        });
+        
+        const lineLength = 80;
+        const lineStartX = (pageWidth - lineLength) / 2;
+        const lineEndX = lineStartX + lineLength;
+        page.drawLine({
+          start: { x: lineStartX, y: pageHeight - 50 },
+          end: { x: lineEndX, y: pageHeight - 50 },
+          thickness: 1.2,
+          color: colors.goldDark
+        });
+      };
+
+      let page = pdfDoc.addPage([pageWidth, pageHeight]);
+      drawHeader(page);
+      drawFooter(page);
+
+      const columnGap = 12;
+      const columns = 2;
+      const columnWidth = (pageWidth - marginX * 2 - columnGap) / columns;
+      const columnTop = pageHeight - marginTop - 14;
+      let columnIndex = 0;
+      let columnY = columnTop;
+
+      const formatPrice = (value) => {
+        if (value === null || value === undefined || value === '') return 'Tarif sur demande';
+        const numberValue = Number(value);
+        if (Number.isNaN(numberValue)) return 'Tarif sur demande';
+        return `${numberValue.toFixed(2)} €`;
+      };
+
+      const truncateText = (text, maxWidth, size) => {
+        if (font.widthOfTextAtSize(text, size) <= maxWidth) return text;
+        let truncated = text;
+        while (truncated.length > 0 && font.widthOfTextAtSize(`${truncated}…`, size) > maxWidth) {
+          truncated = truncated.slice(0, -1);
+        }
+        return `${truncated}…`;
+      };
+
+      const drawDottedLeader = (page, startX, endX, y, size) => {
+        const dot = '.';
+        const dotWidth = font.widthOfTextAtSize(dot, size);
+        const dotsCount = Math.max(0, Math.floor((endX - startX) / dotWidth));
+        if (dotsCount > 0) {
+          page.drawText(dot.repeat(dotsCount), {
+            x: startX,
+            y,
+            size,
+            font,
+            color: colors.muted
+          });
+        }
+      };
+
+      const getColumnX = (index) => marginX + index * (columnWidth + columnGap);
+
+      const ensureColumnSpace = (boxHeight) => {
+        if (columnY - boxHeight < contentBottom) {
+          if (columnIndex < columns - 1) {
+            columnIndex += 1;
+            columnY = columnTop;
+          } else {
+            page = pdfDoc.addPage([pageWidth, pageHeight]);
+            drawHeader(page);
+            drawFooter(page);
+            columnIndex = 0;
+            columnY = columnTop;
+          }
+        }
+      };
+
+      categories.forEach((category) => {
+        const items = grouped[category];
+        const boxPadding = 8;
+        const titleSize = 12;
+        const rowSize = 9;
+        const itemHeight = 16;
+        const itemGap = 4;
+        const boxWidth = columnWidth;
+        const itemsHeight = items.length * itemHeight + Math.max(0, items.length - 1) * itemGap;
+        const boxHeight = boxPadding * 2 + titleSize + 8 + itemsHeight;
+
+        ensureColumnSpace(boxHeight);
+
+        const boxX = getColumnX(columnIndex);
+        const boxY = columnY - boxHeight;
+        drawRoundedRect(page, boxX, boxY, boxWidth, boxHeight, 10, {
+          borderColor: colors.goldDark,
+          borderWidth: 1.4,
+          color: rgb(1, 1, 1)
+        });
+        drawRoundedRect(page, boxX + 2, boxY + 2, boxWidth - 4, boxHeight - 4, 8, {
+          borderColor: colors.gold,
+          borderWidth: 0.9,
+          color: rgb(1, 1, 1)
+        });
+
+        page.drawText(category, {
+          x: boxX + boxPadding,
+          y: columnY - boxPadding - titleSize + 2,
+          size: titleSize,
+          font: fontBold,
+          color: colors.text
+        });
+
+        let lineY = columnY - boxPadding - titleSize - 10;
+        items.forEach((item) => {
+          const name = item.name || '';
+          const price = formatPrice(item.priceEur);
+          const itemBoxX = boxX + boxPadding;
+          const itemBoxY = lineY - itemHeight + 4;
+          const itemBoxWidth = boxWidth - boxPadding * 2;
+
+          drawRoundedRect(page, itemBoxX, itemBoxY, itemBoxWidth, itemHeight, 6, {
+            borderColor: colors.gold,
+            borderWidth: 0.7,
+            color: rgb(1, 1, 1)
+          });
+
+          const priceWidth = fontBold.widthOfTextAtSize(price, rowSize);
+          const priceX = itemBoxX + itemBoxWidth - 8 - priceWidth;
+          const nameX = itemBoxX + 8;
+          const maxNameWidth = priceX - nameX - 10;
+          const safeName = truncateText(name, maxNameWidth, rowSize);
+
+          page.drawText(safeName, {
+            x: nameX,
+            y: lineY - 2,
+            size: rowSize,
+            font,
+            color: colors.text
+          });
+
+          const nameWidth = font.widthOfTextAtSize(safeName, rowSize);
+          const dotsStart = nameX + nameWidth + 4;
+          const dotsEnd = priceX - 4;
+          drawDottedLeader(page, dotsStart, dotsEnd, lineY - 2, rowSize);
+
+          page.drawText(price, {
+            x: priceX,
+            y: lineY - 2,
+            size: rowSize,
+            font: fontBold,
+            color: colors.text
+          });
+
+          lineY -= itemHeight + itemGap;
+        });
+
+        columnY = boxY - 12;
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'tarifs-lea-beaute.pdf';
+      link.click();
+      URL.revokeObjectURL(url);
+      toast.success('PDF des tarifs généré');
+    } catch (error) {
+      console.error('Erreur génération PDF tarifs:', error);
+      toast.error('Erreur lors de la génération du PDF tarifs');
+    }
+  };
+
+  const handlePreviewPricesPdf = async () => {
+    try {
+      // Filter by active status and selected categories
+      const activePrices = prices.filter((item) => {
+        const isActive = item.isActive !== false;
+        const isInSelectedCategory = selectedCategoriesForPdf.includes(item.category);
+        return isActive && isInSelectedCategory;
+      });
+      
+      if (activePrices.length === 0) {
+        toast.error('Aucun tarif actif à visualiser dans les catégories sélectionnées');
+        return;
+      }
+
+      const grouped = activePrices.reduce((acc, item) => {
+        const category = item.category || 'Autres';
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(item);
+        return acc;
+      }, {});
+
+      // Use the saved category order instead of pricingPdfConfig
+      const orderList = categoryOrder.length > 0 ? categoryOrder : (Array.isArray(pricingPdfConfig.categoryOrder) ? pricingPdfConfig.categoryOrder : []);
+      const normalizedOrder = orderList.map((item) => String(item).toLowerCase());
+      const getOrderIndex = (category) => normalizedOrder.indexOf(String(category).toLowerCase());
+
+      const categories = Object.keys(grouped).sort((a, b) => {
+        const indexA = getOrderIndex(a);
+        const indexB = getOrderIndex(b);
+        if (indexA !== -1 || indexB !== -1) {
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          if (indexA !== indexB) return indexA - indexB;
+        }
+        return a.localeCompare(b, 'fr');
+      });
+
+      categories.forEach((category) => {
+        grouped[category].sort((a, b) => {
+          const orderA = Number.isFinite(a.sortOrder) ? a.sortOrder : 0;
+          const orderB = Number.isFinite(b.sortOrder) ? b.sortOrder : 0;
+          if (orderA !== orderB) return orderA - orderB;
+          return (a.name || '').localeCompare(b.name || '', 'fr');
+        });
+      });
+
+      const pdfDoc = await PDFDocument.create();
+
+      const fetchBytes = async (url) => {
+        if (!url) return null;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Font fetch failed');
+        return await response.arrayBuffer();
+      };
+
+      let font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      let fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      try {
+        const regularBytes = await fetchBytes(pricingPdfConfig.fonts?.regular);
+        const semiboldBytes = await fetchBytes(pricingPdfConfig.fonts?.semibold);
+        if (regularBytes && semiboldBytes) {
+          font = await pdfDoc.embedFont(regularBytes);
+          fontBold = await pdfDoc.embedFont(semiboldBytes);
+        }
+      } catch (fontError) {
+        console.warn('Polices personnalisées non disponibles, utilisation des polices par défaut');
+      }
+
+      let pageNumber = 1;
+      let page = pdfDoc.addPage([595, 842]);
+      const [pageWidth, pageHeight] = page.getSize();
+      const margin = 30;
+      let yPosition = pageHeight - margin;
+
+      // Add logo
+      try {
+        const logoImg = new Image();
+        logoImg.onload = async () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = logoImg.width;
+          canvas.height = logoImg.height;
+          ctx.drawImage(logoImg, 0, 0);
+          const logoBytes = await fetch(canvas.toDataURL('image/png')).then(r => r.arrayBuffer());
+          const embeddedImg = await pdfDoc.embedPng(logoBytes);
+          const logoDims = embeddedImg.scale(0.3);
+          page.drawImage(embeddedImg, margin, pageHeight - margin - logoDims.height, logoDims.width, logoDims.height);
+          yPosition -= logoDims.height + 15;
+        };
+        logoImg.src = logoLeaBeaute;
+      } catch (logoError) {
+        console.warn('Logo introuvable pour le PDF tarifs.');
+      }
+
+      const drawPage = (pageNum, categoryList) => {
+        if (pageNum > 1) {
+          page = pdfDoc.addPage([595, 842]);
+          yPosition = pageHeight - margin;
+        }
+
+        const title = pricingPdfConfig.title || 'Tarifs';
+        page.drawText(title, {
+          x: margin + 80,
+          y: yPosition,
+          size: 20,
+          font: fontBold,
+          color: rgb(212, 175, 55)
+        });
+        yPosition -= 30;
+
+        page.drawLine({
+          start: { x: 150, y: yPosition + 5 },
+          end: { x: 450, y: yPosition + 5 },
+          thickness: 2,
+          color: rgb(212, 175, 55)
+        });
+        yPosition -= 20;
+
+        const boxesPerRow = 2;
+        let boxX = margin;
+        let boxY = yPosition;
+        let currentBoxIndex = 0;
+
+        categoryList.forEach((category) => {
+          if (!grouped[category]) return;
+
+          const boxWidth = (pageWidth - margin * 2 - 10) / boxesPerRow;
+          const items = grouped[category];
+          const itemHeight = 15;
+          const itemGap = 2;
+          const contentHeight = items.length * (itemHeight + itemGap) + 30;
+
+          if (boxY - contentHeight - 10 < margin + 50 && currentBoxIndex % boxesPerRow !== 0) {
+            boxX = margin;
+            boxY -= contentHeight + 20;
+          }
+
+          if (boxY - contentHeight - 10 < margin + 50) {
+            yPosition = boxY - 20;
+            drawPage(pageNum + 1, categoryList.slice(categoryList.indexOf(category)));
+            return;
+          }
+
+          const columnIndex = currentBoxIndex % boxesPerRow;
+          boxX = margin + columnIndex * (boxWidth + 10);
+
+          const drawRoundRect = (x, y, w, h, r, borderColor) => {
+            const path = [];
+            path.push({ x: x + r, y });
+            path.push({ x: x + w - r, y });
+            path.push({ x: x + w, y: y + r });
+            path.push({ x: x + w, y: y + h - r });
+            path.push({ x: x + w - r, y: y + h });
+            path.push({ x: x + r, y: y + h });
+            path.push({ x, y: y + h - r });
+            path.push({ x, y: y + r });
+            for (let i = 0; i < path.length; i++) {
+              const curr = path[i];
+              const next = path[(i + 1) % path.length];
+              page.drawLine({ start: curr, end: next, thickness: 1.5, color: borderColor });
+            }
+          };
+
+          drawRoundRect(boxX + 1, boxY - contentHeight - 1, boxWidth - 2, contentHeight, 8, rgb(212, 175, 55));
+          drawRoundRect(boxX - 1, boxY - contentHeight + 1, boxWidth - 2, contentHeight - 2, 8, rgb(212, 175, 55));
+
+          page.drawText(category, {
+            x: boxX + 10,
+            y: boxY - 20,
+            size: 12,
+            font: fontBold,
+            color: rgb(212, 175, 55)
+          });
+
+          let itemY = boxY - 40;
+          items.forEach((item) => {
+            const name = item.name || '';
+            const price = item.priceEur ? `${item.priceEur.toFixed(2)}€` : 'Tarif sur demande';
+
+            page.drawText(name, {
+              x: boxX + 10,
+              y: itemY,
+              size: 9,
+              font,
+              color: rgb(26, 26, 26),
+              maxWidth: boxWidth - 40
+            });
+
+            page.drawText(price, {
+              x: boxX + boxWidth - 25,
+              y: itemY,
+              size: 9,
+              font: fontBold,
+              color: rgb(26, 26, 26),
+              align: 'right'
+            });
+
+            itemY -= itemHeight + itemGap;
+          });
+
+          columnY = boxY - 12;
+          currentBoxIndex++;
+
+          if (currentBoxIndex % boxesPerRow === 0) {
+            boxY -= contentHeight + 20;
+          }
+        });
+
+        yPosition = boxY - 20;
+      };
+
+      drawPage(1, categories);
+
+      // Add footer with social links
+      const footerY = margin + 15;
+      const footerLabel = pricingPdfConfig.footerLabel || 'Retrouvez-nous';
+      page.drawText(footerLabel, {
+        x: margin,
+        y: footerY + 20,
+        size: 9,
+        font: fontBold,
+        color: rgb(212, 175, 55)
+      });
+
+      const socialSpacing = 80;
+      if (pricingPdfConfig.website) {
+        page.drawText(pricingPdfConfig.website, {
+          x: margin,
+          y: footerY,
+          size: 8,
+          font,
+          color: rgb(74, 74, 74)
+        });
+      }
+      if (pricingPdfConfig.facebook) {
+        page.drawText(pricingPdfConfig.facebook, {
+          x: margin + socialSpacing,
+          y: footerY,
+          size: 8,
+          font,
+          color: rgb(74, 74, 74)
+        });
+      }
+      if (pricingPdfConfig.instagram) {
+        page.drawText(pricingPdfConfig.instagram, {
+          x: margin + socialSpacing * 2,
+          y: footerY,
+          size: 8,
+          font,
+          color: rgb(74, 74, 74)
+        });
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      toast.success('PDF des tarifs ouvert dans un nouvel onglet');
+    } catch (error) {
+      console.error('Erreur génération PDF tarifs:', error);
+      toast.error('Erreur lors de la génération du PDF tarifs');
     }
   };
 
@@ -818,12 +1460,35 @@ export default function AdminPage() {
                   ))}
                 </select>
               </div>
-              <button
-                onClick={() => setShowAddPriceModal(true)}
-                className="btn-gold w-full md:w-auto"
-              >
-                + Ajouter un tarif
-              </button>
+              <div className="flex flex-col md:flex-row gap-3">
+                <button
+                  onClick={() => setShowAddPriceModal(true)}
+                  className="btn-gold w-full md:w-auto"
+                >
+                  + Ajouter un tarif
+                </button>
+                <button
+                  onClick={() => setShowCategoryOrderModal(true)}
+                  className="w-full md:w-auto px-4 py-2 border border-[#D4AF37] text-[#1A1A1A] rounded-lg hover:bg-[#F9F7F2]"
+                >
+                  <FontAwesomeIcon icon={faCog} className="mr-2" />
+                  Gérer catégories
+                </button>
+                <button
+                  onClick={handlePreviewPricesPdf}
+                  className="w-full md:w-auto px-4 py-2 bg-[#D4AF37] text-white rounded-lg hover:bg-[#C4991F]"
+                >
+                  <FontAwesomeIcon icon={faFilePdf} className="mr-2" />
+                  Visualiser le tarif
+                </button>
+                <button
+                  onClick={handleExportPricesPdf}
+                  className="w-full md:w-auto px-4 py-2 border border-[#D4AF37] text-[#1A1A1A] rounded-lg hover:bg-[#F9F7F2]"
+                >
+                  <FontAwesomeIcon icon={faFilePdf} className="mr-2" />
+                  Exporter PDF
+                </button>
+              </div>
             </div>
 
             {/* Add Price Modal */}
@@ -938,6 +1603,78 @@ export default function AdminPage() {
               </div>
             )}
 
+            {/* Category Order & Selection Modal */}
+            {showCategoryOrderModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+                  <h2 className="text-2xl font-bold mb-6 text-[#1A1A1A]">Gérer les catégories</h2>
+                  
+                  {/* Selection controls */}
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={handleSelectAllCategories}
+                      className="flex-1 px-3 py-2 text-sm bg-[#D4AF37] text-white rounded-lg hover:bg-[#C4991F]"
+                    >
+                      Tout sélectionner
+                    </button>
+                    <button
+                      onClick={handleDeselectAllCategories}
+                      className="flex-1 px-3 py-2 text-sm border border-[#D4AF37] text-[#1A1A1A] rounded-lg hover:bg-[#F9F7F2]"
+                    >
+                      Tout désélectionner
+                    </button>
+                  </div>
+
+                  {/* Category list with drag and selection */}
+                  <div className="space-y-2 mb-6">
+                    {categoryOrder.map((category, index) => (
+                      <div
+                        key={category}
+                        className="flex items-center gap-3 p-3 border border-[#E8DCCA] rounded-lg hover:bg-[#F9F7F2]"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedCategoriesForPdf.includes(category)}
+                          onChange={() => handleToggleCategorySelection(category)}
+                          className="w-4 h-4 cursor-pointer"
+                        />
+                        <span className="flex-1 text-[#1A1A1A]">{category}</span>
+                        <div className="flex gap-1">
+                          {index > 0 && (
+                            <button
+                              onClick={() => handleMoveCategory(index, 'up')}
+                              className="px-2 py-1 text-xs border border-[#D4AF37] text-[#D4AF37] rounded hover:bg-[#D4AF37] hover:text-white"
+                              title="Monter"
+                            >
+                              ↑
+                            </button>
+                          )}
+                          {index < categoryOrder.length - 1 && (
+                            <button
+                              onClick={() => handleMoveCategory(index, 'down')}
+                              className="px-2 py-1 text-xs border border-[#D4AF37] text-[#D4AF37] rounded hover:bg-[#D4AF37] hover:text-white"
+                              title="Descendre"
+                            >
+                              ↓
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowCategoryOrderModal(false)}
+                      className="flex-1 px-4 py-2 bg-[#D4AF37] text-white rounded-lg hover:bg-[#C4991F]"
+                    >
+                      Fermer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Prices Table */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
@@ -964,7 +1701,17 @@ export default function AdminPage() {
                             <td className="px-4 py-3"><input type="number" step="0.01" value={editForm.priceEur || ''} onChange={(e) => setEditForm({...editForm, priceEur: parseFloat(e.target.value) || null})} className="w-20 px-2 py-1 border border-[#E8DCCA] rounded text-sm" /></td>
                             <td className="px-4 py-3"><input type="number" value={editForm.durationMin || ''} onChange={(e) => setEditForm({...editForm, durationMin: parseInt(e.target.value) || null})} className="w-20 px-2 py-1 border border-[#E8DCCA] rounded text-sm" /></td>
                             <td className="px-4 py-3"><input type="text" value={editForm.note || ''} onChange={(e) => setEditForm({...editForm, note: e.target.value || null})} className="w-full px-2 py-1 border border-[#E8DCCA] rounded text-sm" /></td>
-                            <td className="px-4 py-3"><input type="checkbox" checked={editForm.isActive} onChange={(e) => setEditForm({...editForm, isActive: e.target.checked})} className="w-4 h-4" /></td>
+                            <td className="px-4 py-3">
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={editForm.isActive} 
+                                  onChange={(e) => setEditForm({...editForm, isActive: e.target.checked})} 
+                                  className="w-5 h-5 cursor-pointer accent-[#D4AF37]" 
+                                />
+                                <span className="text-xs text-[#4A4A4A]">{editForm.isActive ? 'Actif' : 'Inactif'}</span>
+                              </label>
+                            </td>
                             <td className="px-4 py-3"><input type="number" value={editForm.sortOrder} onChange={(e) => setEditForm({...editForm, sortOrder: parseInt(e.target.value)})} className="w-16 px-2 py-1 border border-[#E8DCCA] rounded text-sm" /></td>
                             <td className="px-4 py-3"><div className="flex gap-2"><button onClick={handleSaveEdit} className="text-green-600 hover:text-green-800 text-sm"><FontAwesomeIcon icon={faCheck} /></button><button onClick={handleCancelEdit} className="text-red-600 hover:text-red-800 text-sm"><FontAwesomeIcon icon={faXmark} /></button></div></td>
                           </>
