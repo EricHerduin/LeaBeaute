@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import api, { API } from '../lib/apiClient';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faHouse, faXmark, faInfoCircle, faFilePdf, faEnvelope, faCalendarPlus, faUserEdit, faCheckCircle, faCog } from '@fortawesome/free-solid-svg-icons';
@@ -8,8 +8,7 @@ import AdminDashboardHome from './AdminDashboardHome';
 import logoLeaBeaute from '../assets/photos/logos/logo16-9_1.png';
 import { pricingPdfConfig } from '../lib/pricingPdfConfig';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const axios = api;
 
 // Fonction pour traduire les statuts des cartes cadeaux
 const translateStatus = (status) => {

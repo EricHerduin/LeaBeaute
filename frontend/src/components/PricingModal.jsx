@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import axios from 'axios';
+import api, { API } from '../lib/apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const axios = api;
 
 export default function PricingModal({ open, onClose, initialCategories = null }) {
   const [prices, setPrices] = useState([]);
@@ -103,11 +102,11 @@ export default function PricingModal({ open, onClose, initialCategories = null }
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
         ref={modalRef}
-        className="max-w-5xl h-[90vh] flex flex-col p-0 overflow-hidden"
+        className="w-[96vw] sm:w-[92vw] md:w-[90vw] lg:w-[900px] max-w-[900px] h-[92vh] sm:h-[85vh] max-h-[92vh] flex flex-col p-0 overflow-hidden"
         onWheel={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-white z-10 border-b border-[#E8DCCA] p-6">
+        <div className="bg-white z-10 border-b border-[#E8DCCA] p-4 sm:p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-3xl font-bold text-[#1A1A1A]">Nos tarifs</h2>
             <button
@@ -150,7 +149,7 @@ export default function PricingModal({ open, onClose, initialCategories = null }
         </div>
 
         {/* Content */}
-        <div ref={contentRef} className="flex-1 overflow-y-auto p-6 min-h-0">
+        <div ref={contentRef} className="flex-1 overflow-y-auto p-4 sm:p-6 min-h-0 overscroll-contain touch-pan-y">
           {loading ? (
             <div className="flex items-center justify-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#D4AF37] border-t-transparent"></div>
@@ -221,7 +220,7 @@ export default function PricingModal({ open, onClose, initialCategories = null }
         </div>
 
         {/* Footer */}
-        <div className="bg-[#F9F7F2] border-t border-[#E8DCCA] p-6 flex-shrink-0">
+        <div className="bg-[#F9F7F2] border-t border-[#E8DCCA] p-4 sm:p-6 flex-shrink-0">
           <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
             <p className="text-sm text-[#808080]">
               Pour toute information complémentaire, n'hésitez pas à nous contacter

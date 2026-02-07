@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api, { API } from '../lib/apiClient';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -13,8 +13,7 @@ import {
   faTicket
 } from '@fortawesome/free-solid-svg-icons';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const axios = api;
 
 // Fonction pour traduire les statuts des cartes cadeaux
 const translateStatus = (status) => {

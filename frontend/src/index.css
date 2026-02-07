@@ -78,3 +78,8 @@ html {
 .btn-gold {
   @apply bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 rounded-full px-8 py-4;
 }
+
+[role="dialog"] .btn-secondary,
+[role="dialog"] .btn-gold {
+  @apply text-[11px] px-4 py-2 whitespace-nowrap;
+}

@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { loadStripe } from '@stripe/stripe-js';
-import axios from 'axios';
+import api, { API } from '../lib/apiClient';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const axios = api;
 
 const stripePromise = loadStripe('pk_test_51QeoMFJ5BKpSEjx1HgPPFHyJFD4oIuPTLk97bWFpXCfsmUTgbPt1Xwk5HZnK4ydZGkZD3FZb5ysqGRWqU0r3J7uj00iJBnxQFh');
 

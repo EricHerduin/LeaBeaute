@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import api, { API } from '../lib/apiClient';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,8 +19,7 @@ import {
   faTriangleExclamation
 } from '@fortawesome/free-solid-svg-icons';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const axios = api;
 
 export default function GiftCardSuccess() {
   const [searchParams] = useSearchParams();

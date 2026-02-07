@@ -58,9 +58,9 @@ export default function LandingPage() {
       <div className="overflow-hidden bg-white">
         <Navigation onShowPricing={handleShowPricing} />
         <Hero onShowPricing={handleShowPricing} />
-        <Services />
-        <GuinotSection />
-        <LPGSection />
+        <Services onShowPricing={handleShowPricing} />
+        <GuinotSection onShowPricing={handleShowPricing} />
+        <LPGSection onShowPricing={handleShowPricing} />
         <CoachingTeaser />
         <GiftCards />
         <Contact />
@@ -69,8 +69,9 @@ export default function LandingPage() {
       </div>
       {showPricing && (
         <PricingModal
+          open={showPricing}
           onClose={() => setShowPricing(false)}
-          categories={pricingCategories}
+          initialCategories={pricingCategories}
         />
       )}
     </>

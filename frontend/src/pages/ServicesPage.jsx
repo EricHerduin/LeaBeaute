@@ -108,11 +108,11 @@ export default function ServicesPage() {
                     {service.techniquesText}
                   </p>
                 </div>
-                <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                  <a href="tel:0233214819" className="btn-gold inline-flex items-center justify-center text-xs px-6 py-3">
+                <div className="mt-8 flex flex-col gap-2 max-w-sm">
+                  <a href="tel:0233214819" className="btn-gold inline-flex items-center justify-center text-[11px] px-4 py-2 whitespace-nowrap w-full">
                     Prendre rendez-vous
                   </a>
-                  <button onClick={() => openPricing(service.pricingCategories)} className="btn-secondary text-xs px-6 py-3">
+                  <button onClick={() => openPricing(service.pricingCategories)} className="btn-secondary text-[11px] px-4 py-2 whitespace-nowrap w-full">
                     Voir les tarifs
                   </button>
                 </div>
