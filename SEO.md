@@ -192,7 +192,6 @@ serve -s build
 
 Pour toute question SEO :
 - Google Search Console : https://search.google.com/search-console
-- Support Emergent : support@emergentagent.com
 
 ## 📅 Calendrier de maintenance
 

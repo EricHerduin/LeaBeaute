@@ -4,7 +4,7 @@ export default function SEO({
   title = "Léa Beauté Valognes - Institut de Beauté et Bien-être",
   description = "Institut de beauté à Valognes (50). Soins Guinot, épilations, LPG, manucure, pédicure, extensions de cils, accompagnement nutrition. Prenez RDV au 02 33 21 48 19.",
   keywords = "institut beauté Valognes, Guinot, épilation, LPG, manucure, pédicure, soins visage, accompagnement nutrition, chrononutrition, extensions cils, Manche 50",
-  image = "https://customer-assets.emergentagent.com/job_2c5a61ba-d41e-4013-9ecc-f1a07917e6f6/artifacts/hpgw4x9j_logo16-9_1.png",
+  image = "https://lea-beaute-valognes.fr/assets/photos/logos/logo16-9_1.png",
   url = "https://lea-beaute-valognes.fr",
   type = "website"
 }) {

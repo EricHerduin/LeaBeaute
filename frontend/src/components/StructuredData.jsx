@@ -5,7 +5,7 @@ export default function StructuredData() {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
     "name": "Léa Beauté",
-    "image": "https://customer-assets.emergentagent.com/job_2c5a61ba-d41e-4013-9ecc-f1a07917e6f6/artifacts/hpgw4x9j_logo16-9_1.png",
+    "image": "https://lea-beaute-valognes.fr/assets/photos/logos/logo16-9_1.png",
     "description": "Institut de beauté à Valognes proposant des soins Guinot, épilations, LPG, manucure, pédicure, extensions de cils et accompagnement nutrition.",
     "telephone": "+33233214819",
     "email": "contact@lea-beaute-valognes.fr",
@@ -124,7 +124,7 @@ export default function StructuredData() {
     "@type": "Organization",
     "name": "Léa Beauté",
     "url": "https://lea-beaute-valognes.fr",
-    "logo": "https://customer-assets.emergentagent.com/job_2c5a61ba-d41e-4013-9ecc-f1a07917e6f6/artifacts/hpgw4x9j_logo16-9_1.png",
+    "logo": "https://lea-beaute-valognes.fr/assets/photos/logos/logo16-9_1.png",
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+33233214819",

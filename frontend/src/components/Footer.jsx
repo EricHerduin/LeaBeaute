@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import Logo from '../assets/photos/logos/logo16-9_1.png';
 
 export default function Footer({ onShowPricing }) {
   return (
@@ -8,7 +9,7 @@ export default function Footer({ onShowPricing }) {
           {/* Logo & Info */}
           <div>
             <img
-              src="https://customer-assets.emergentagent.com/job_2c5a61ba-d41e-4013-9ecc-f1a07917e6f6/artifacts/hpgw4x9j_logo16-9_1.png"
+              src={Logo}
               alt="Léa Beauté Valognes"
               className="h-24 md:h-28 w-auto mb-6"
             />

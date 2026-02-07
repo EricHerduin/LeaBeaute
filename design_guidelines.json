@@ -4,7 +4,7 @@
     "tone": "Elegant, Luxurious, Intimate, Professional",
     "archetype": "Jewel & Luxury (Light Variant)",
     "theme_mode": "light",
-    "logo_url": "https://customer-assets.emergentagent.com/job_2c5a61ba-d41e-4013-9ecc-f1a07917e6f6/artifacts/hpgw4x9j_logo16-9_1.png"
+    "logo_url": "https://lea-beaute-valognes.fr/assets/photos/logos/logo16-9_1.png"
   },
   "typography": {
     "headings": {
@@ -103,7 +103,7 @@
     "facial_treatment": "https://images.unsplash.com/photo-1761718210055-e83ca7e2c9ad?crop=entropy&cs=srgb&fm=jpg&q=85",
     "nutrition_coaching": "https://images.unsplash.com/photo-1543362905-bddfadc3d44f?crop=entropy&cs=srgb&fm=jpg&q=85",
     "massage_room": "https://images.unsplash.com/photo-1765745518673-b562b7304a53?crop=entropy&cs=srgb&fm=jpg&q=85",
-    "logo": "https://customer-assets.emergentagent.com/job_2c5a61ba-d41e-4013-9ecc-f1a07917e6f6/artifacts/hpgw4x9j_logo16-9_1.png"
+    "logo": "https://lea-beaute-valognes.fr/assets/photos/logos/logo16-9_1.png"
   },
   "instructions_to_main_agent": [
     "Use 'Playfair Display' for all headings (h1-h4). Import it from Google Fonts.",

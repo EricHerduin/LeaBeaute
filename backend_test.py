@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 
 class BeautyInstituteAPITester:
-    def __init__(self, base_url="https://institut-lea.preview.emergentagent.com"):
+    def __init__(self, base_url="https://lea-beaute-valognes.fr"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.admin_token = None
