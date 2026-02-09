@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star } from 'lucide-react';
-
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+import { API } from '../lib/apiClient';
 
 const Testimonials = () => {
   const [items, setItems] = useState([]);
@@ -19,7 +18,7 @@ const Testimonials = () => {
 
   const fetchTestimonials = async () => {
     try {
-      const response = await fetch(`${BACKEND_URL}/api/testimonials?limit=6`);
+      const response = await fetch(`${API}/testimonials?limit=6`);
       if (!response.ok) throw new Error('Erreur chargement avis');
       const data = await response.json();
       setItems(Array.isArray(data.items) ? data.items : []);
@@ -48,7 +47,7 @@ const Testimonials = () => {
     setMessage(null);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/testimonials`, {
+      const response = await fetch(`${API}/testimonials`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

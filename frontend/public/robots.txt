@@ -4,4 +4,4 @@ Allow: /
 Disallow: /admin
 
 # Sitemaps
-Sitemap: https://lea-beaute-valognes.fr/sitemap.xml
+Sitemap: https://demo-client.htagfacility.fr/sitemap.xml

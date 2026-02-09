@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import api, { API } from '../lib/apiClient';
+import api from '../lib/apiClient';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -38,7 +38,7 @@ export default function GiftCardSuccess() {
 
     const fetchGiftCard = async () => {
       try {
-        const response = await axios.get(`${API}/gift-cards/status/${sessionId}`);
+        const response = await axios.get(`/gift-cards/status/${sessionId}`);
         
         if (response.data.status === 'complete' && response.data.gift_card) {
           setGiftCard(response.data.gift_card);

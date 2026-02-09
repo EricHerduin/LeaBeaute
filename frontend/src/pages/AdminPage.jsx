@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import api, { API } from '../lib/apiClient';
+import api from '../lib/apiClient';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faHouse, faXmark, faInfoCircle, faFilePdf, faEnvelope, faCalendarPlus, faUserEdit, faCheckCircle, faCog } from '@fortawesome/free-solid-svg-icons';
@@ -116,7 +116,7 @@ export default function AdminPage() {
   const fetchGiftCards = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/gift-cards/all`, {
+      const response = await axios.get('/gift-cards/all', {
         headers: { Authorization: token }
       });
       setGiftCards(response.data);
@@ -131,7 +131,7 @@ export default function AdminPage() {
   const fetchCoupons = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/coupons/all`, {
+      const response = await axios.get('/coupons/all', {
         headers: { Authorization: token }
       });
       setCoupons(response.data);
@@ -160,7 +160,7 @@ export default function AdminPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(`${API}/admin/login`, { password });
+      const response = await axios.post('/admin/login', { password });
       if (response.data.success) {
         setToken(response.data.token);
         setIsAuthenticated(true);
@@ -186,7 +186,7 @@ export default function AdminPage() {
   const fetchPrices = async (authToken) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/prices/all`, {
+      const response = await axios.get('/prices/all', {
         headers: { Authorization: authToken }
       });
       setPrices(response.data);
@@ -247,7 +247,7 @@ export default function AdminPage() {
     }
 
     try {
-      await axios.post(`${API}/prices`, {
+      await axios.post('/prices', {
         category: newPriceForm.category,
         name: newPriceForm.name,
         priceEur: newPriceForm.priceEur ? parseFloat(newPriceForm.priceEur) : null,
@@ -280,7 +280,7 @@ export default function AdminPage() {
 
   const handleSaveEdit = async () => {
     try {
-      await axios.put(`${API}/prices/${editingId}`, editForm, {
+      await axios.put(`/prices/${editingId}`, editForm, {
         headers: { Authorization: token }
       });
       toast.success('Tarif mis à jour');
@@ -300,7 +300,7 @@ export default function AdminPage() {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce tarif ?')) return;
     
     try {
-      await axios.delete(`${API}/prices/${id}`, {
+      await axios.delete(`/prices/${id}`, {
         headers: { Authorization: token }
       });
       toast.success('Tarif supprimé');
