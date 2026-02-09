@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Quote, ExternalLink } from 'lucide-react';
+import { API } from '../lib/apiClient';
 
 const GoogleReviews = () => {
   const [reviewsData, setReviewsData] = useState(null);
@@ -10,7 +11,7 @@ const GoogleReviews = () => {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/google-reviews');
+        const response = await fetch(`${API}/google-reviews`);
         if (!response.ok) {
           // Erreur API - ne pas afficher le composant
           setError('API not configured');

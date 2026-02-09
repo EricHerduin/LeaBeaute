@@ -96,7 +96,7 @@ Inscrire l'entreprise sur :
 
 ### Google Search Console
 1. Aller sur https://search.google.com/search-console
-2. Ajouter la propriété : https://lea-beaute-valognes.fr
+2. Ajouter la propriété : https://demo-client.htagfacility.fr
 3. Soumettre le sitemap.xml
 4. Vérifier l'indexation
 
@@ -176,11 +176,11 @@ Inscrire l'entreprise sur :
 
 ```bash
 # Tester le SEO
-npx lighthouse https://lea-beaute-valognes.fr --view
+npx lighthouse https://demo-client.htagfacility.fr --view
 
 # Vérifier les erreurs
-curl https://lea-beaute-valognes.fr/robots.txt
-curl https://lea-beaute-valognes.fr/sitemap.xml
+curl https://demo-client.htagfacility.fr/robots.txt
+curl https://demo-client.htagfacility.fr/sitemap.xml
 
 # Test de vitesse
 npm run build

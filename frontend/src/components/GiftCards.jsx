@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { loadStripe } from '@stripe/stripe-js';
-import api, { API } from '../lib/apiClient';
+import api from '../lib/apiClient';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
@@ -67,7 +67,7 @@ export default function GiftCards() {
     setCouponValidating(true);
     try {
       const response = await axios.post(
-        `${API}/coupons/validate?code=${encodeURIComponent(couponCode.trim())}`
+        `/coupons/validate?code=${encodeURIComponent(couponCode.trim())}`
       );
 
       if (response.data.valid) {
@@ -149,7 +149,7 @@ export default function GiftCards() {
     setLoading(true);
     try {
       const originUrl = window.location.origin;
-      const response = await axios.post(`${API}/gift-cards/create-checkout`, {
+      const response = await axios.post('/gift-cards/create-checkout', {
         amount: selectedAmount,
         origin_url: originUrl,
         buyer_firstname: formData.buyer_firstname,
