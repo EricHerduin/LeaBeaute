@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from './ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import api, { API } from '../lib/apiClient';
+import api from '../lib/apiClient';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const axios = api;
@@ -65,7 +65,7 @@ export default function PricingModal({ open, onClose, initialCategories = null }
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${API}/prices`);
+      const response = await axios.get('/prices');
       setPrices(response.data);
     } catch (error) {
       console.error('Error fetching prices:', error);

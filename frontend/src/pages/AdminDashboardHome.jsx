@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import api, { API } from '../lib/apiClient';
+import api from '../lib/apiClient';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -86,7 +86,7 @@ export default function AdminDashboardHome({
 
     setVerifyLoading(true);
     try {
-      const response = await axios.post(`${API}/gift-cards/search`, null, {
+      const response = await axios.post('/gift-cards/search', null, {
         params: {
           query: verifyQuery.trim(),
           search_type: verifyType
@@ -118,7 +118,7 @@ export default function AdminDashboardHome({
     setRedeemLoading(true);
     try {
       const response = await axios.post(
-        `${API}/gift-cards/${giftCardId}/redeem`,
+        `/gift-cards/${giftCardId}/redeem`,
         {},
         { headers: { Authorization: adminToken } }
       );
@@ -157,7 +157,7 @@ export default function AdminDashboardHome({
         sortOrder: 0
       };
 
-      await axios.post(`${API}/prices`, priceData, {
+      await axios.post('/prices', priceData, {
         headers: { Authorization: adminToken }
       });
 
@@ -197,7 +197,7 @@ export default function AdminDashboardHome({
         maxUses: newCoupon.maxUses ? parseInt(newCoupon.maxUses) : null
       };
 
-      await axios.post(`${API}/coupons`, couponData, {
+      await axios.post('/coupons', couponData, {
         headers: { Authorization: adminToken }
       });
 

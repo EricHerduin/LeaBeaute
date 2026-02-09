@@ -63,8 +63,7 @@ Avant de commencer, vous aurez besoin de :
    - Référents du site web :
      * http://localhost:3000/*
      * http://localhost:8000/*
-     * https://lea-beaute-valognes.fr/*
-     * https://www.lea-beaute-valognes.fr/*
+    * https://demo-client.htagfacility.fr/*
 5. Enregistrer
 ```
 
