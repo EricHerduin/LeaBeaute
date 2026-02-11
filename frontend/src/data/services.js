@@ -1,11 +1,18 @@
 import lpgImage from '../assets/photos/prestations/lpg.jpg';
 import uvImage from '../assets/photos/prestations/uv.jpg';
 import soinsVisageImage from '../assets/photos/prestations/soins_visage.jpg';
+import epilationImage from '../assets/photos/prestations/epilation.jpg';
+import extensionCilsImage from '../assets/photos/prestations/extensions_cils.jpg';
+import mainsPiedsImage from '../assets/photos/prestations/soins_mains_et_pieds.jpg';
+import maquillageImage from '../assets/photos/prestations/maquillage.jpg';
+import soinsVisage2image from '../assets/photos/prestations/soins_visage_1.jpg';
+import nutritionImage from '../assets/photos/prestations/Chrono nutrition.png';
+
 
 export const services = [
   {
     id: 'epilations',
-    imageSrc: uvImage,
+    imageSrc: epilationImage,
     imageAlt: "Épilations (sourcils, lèvres, maillot, jambes)",
     fallbackLetter: 'E',
     title: 'Épilations',
@@ -17,7 +24,7 @@ export const services = [
   },
   {
     id: 'soins-visage-guinot',
-    imageSrc: soinsVisageImage,
+    imageSrc: soinsVisage2image,
     imageAlt: 'Soins visage Guinot',
     fallbackLetter: 'G',
     title: 'Soins visage Guinot',
@@ -41,7 +48,7 @@ export const services = [
   },
   {
     id: 'extensions-cils',
-    imageSrc: uvImage,
+    imageSrc: extensionCilsImage,
     imageAlt: 'Extensions de cils',
     fallbackLetter: 'C',
     title: 'Extensions de cils',
@@ -53,7 +60,7 @@ export const services = [
   },
   {
     id: 'mains-pieds',
-    imageSrc: lpgImage,
+    imageSrc: mainsPiedsImage,
     imageAlt: 'Mains et pieds',
     fallbackLetter: 'M',
     title: 'Mains & Pieds',
@@ -65,7 +72,7 @@ export const services = [
   },
   {
     id: 'maquillage',
-    imageSrc: uvImage,
+    imageSrc: maquillageImage,
     imageAlt: 'Maquillage',
     fallbackLetter: 'Q',
     title: 'Maquillage',
@@ -89,7 +96,7 @@ export const services = [
   },
   {
     id: 'accompagnement-nutrition',
-    imageSrc: uvImage,
+    imageSrc: nutritionImage,
     imageAlt: 'Accompagnement nutrition - Chrononutrition',
     fallbackLetter: 'A',
     title: 'Accompagnement nutrition',

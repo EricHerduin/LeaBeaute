@@ -12,7 +12,7 @@ import { services } from '../data/services';
 
 function ServiceVisual({ src, alt, fallbackLetter }) {
   return (
-    <div className="relative w-16 h-16">
+    <div className="relative w-30 h-30">
       <div className="absolute inset-0 rounded-full border border-[#D4AF37]/35" />
       <div className="absolute inset-[3px] rounded-full border border-[#D4AF37]/20" />
       <div className="absolute inset-[6px] rounded-full overflow-hidden bg-[#F7F4EC]">
@@ -65,7 +65,7 @@ export default function Services({ onShowPricing }) {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.05, duration: 0.6 }}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.05 }}
                   className="service-card rounded-2xl text-left"
                   data-testid={`service-${index}`}
                   aria-label={`En savoir plus sur ${service.title}`}
