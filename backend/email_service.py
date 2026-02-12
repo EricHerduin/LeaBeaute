@@ -190,14 +190,14 @@ def generate_gift_card_email_html(
                     </div>
                     <div class="detail-row">
                         <span class="detail-label">Durée de validité :</span>
-                        <span class="detail-value"><strong>6 mois</strong></span>
+                        <span class="detail-value"><strong>2 ans</strong></span>
                     </div>
                 </div>
                 
                 <div class="info">
                     <strong>ℹ️ Conditions d'utilisation :</strong>
                     <ul>
-                        <li>Valable 6 mois à partir de la date d'achat</li>
+                        <li>Valable 2 ans à partir de la date d'achat</li>
                         <li>Utilisable sur toutes les prestations de l'institut</li>
                         <li>Non remboursable et non transférable</li>
                         <li>À présenter en version papier ou numérique</li>

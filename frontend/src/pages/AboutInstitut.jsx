@@ -1,13 +1,43 @@
 
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import { motion } from 'framer-motion';
+import videoVitrine from '../assets/videos/video_vitrine.mp4';
 
 export default function AboutInstitut() {
   const [showPricing, setShowPricing] = useState(false);
+  const videoRef = useRef(null);
+  const videoWrapperRef = useRef(null);
+
+  useEffect(() => {
+    if (!videoWrapperRef.current) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const video = videoRef.current;
+        if (!video) {
+          return;
+        }
+
+        if (entry.isIntersecting) {
+          video.currentTime = 0;
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    observer.observe(videoWrapperRef.current);
+
+    return () => observer.disconnect();
+  }, []);
   return (
     <div className="min-h-screen bg-white">
       <Navigation onShowPricing={() => setShowPricing(true)} />
@@ -49,21 +79,23 @@ export default function AboutInstitut() {
       {/* Équipe Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {/* Léa */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="glass-card p-8 rounded-2xl flex flex-col items-center text-center"
+              className="glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full"
             >
               <img src={require('../assets/photos/Equipe/Lea.jpg')} alt="Léa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" />
               <h3 className="text-2xl font-bold text-[#1A1A1A] mb-1">Léa</h3>
-              <span className="text-sm text-[#D4AF37] font-medium mb-2">Responsable de l'institut</span>
-              <p className="text-[#4A4A4A] mb-2">Spécialité : Conseil &amp; Soins Visage</p>
-              <p className="text-[#808080] text-sm mb-2">Fondatrice de l'institut, Léa est animée par la passion de l'esthétique depuis plus de 15 ans. Véritable experte du soin visage, elle met un point d'honneur à personnaliser chaque diagnostic et à créer une relation de confiance avec ses clientes. Toujours à l'écoute, elle aime partager ses conseils pour révéler la beauté naturelle de chacune. Maman de deux filles, elle sait combien il est important de s'accorder du temps pour soi et transmet cette philosophie à toute l'équipe.</p>
-              <p className="text-[#D4AF37] text-xs italic">"Ce que j'aime le plus ? Voir une cliente repartir apaisée, le sourire aux lèvres, et savoir qu'elle a pris soin d'elle."</p>
+              <div className="min-h-[52px] mb-2">
+                <span className="block text-sm text-[#D4AF37] font-medium">Spécialité : Conseil &amp; Soins Visage</span>
+                <p className="text-[#4A4A4A] text-sm">Responsable de l'institut</p>
+              </div>
+              <p className="text-[#808080] text-sm mb-4 flex-1">Fondatrice de l'institut, Léa est animée par la passion de l'esthétique depuis plus de 15 ans. Véritable experte du soin visage, elle met un point d'honneur à personnaliser chaque diagnostic et à créer une relation de confiance avec ses clientes. Toujours à l'écoute, elle aime partager ses conseils pour révéler la beauté naturelle de chacune. Maman de deux filles, elle sait combien il est important de s'accorder du temps pour soi et transmet cette philosophie à toute l'équipe.</p>
+              <p className="text-[#D4AF37] text-xs italic mt-auto">"Ce que j'aime le plus ? Voir une cliente repartir apaisée, le sourire aux lèvres, et savoir qu'elle a pris soin d'elle."</p>
             </motion.div>
             {/* Maryssa */}
             <motion.div
@@ -71,13 +103,16 @@ export default function AboutInstitut() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1, duration: 0.6 }}
-              className="glass-card p-8 rounded-2xl flex flex-col items-center text-center"
+              className="glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full"
             >
               <img src={require('../assets/photos/Equipe/Maryssa.jpg')} alt="Maryssa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" />
               <h3 className="text-2xl font-bold text-[#1A1A1A] mb-1">Maryssa</h3>
-              <span className="text-sm text-[#D4AF37] font-medium mb-2">Spécialité : Ongles &amp; Extensions de cils</span>
-              <p className="text-[#4A4A4A] mb-2">Créative et minutieuse, Maryssa sublime vos mains et votre regard avec passion. Elle maîtrise l'art du nail art, des extensions de cils et des poses les plus tendances. Toujours à la recherche de nouveautés, elle se forme régulièrement pour proposer des prestations innovantes et personnalisées. Sa bonne humeur et son sens du détail font d'elle une alliée précieuse pour sublimer votre féminité.</p>
-              <p className="text-[#D4AF37] text-xs italic">"J'adore voir le regard de mes clientes s'illuminer après une pose d'ongles ou d'extensions réussie !"</p>
+              <div className="min-h-[52px] mb-2">
+                <span className="block text-sm text-[#D4AF37] font-medium">Spécialité : Ongles &amp; Extensions de cils</span>
+                <p className="text-[#4A4A4A] text-sm">Esthéticienne</p>
+              </div>
+              <p className="text-[#4A4A4A] text-sm mb-4 flex-1">Créative et minutieuse, Maryssa sublime vos mains et votre regard avec passion. Elle maîtrise l'art du nail art, des extensions de cils et des poses les plus tendances. Toujours à la recherche de nouveautés, elle se forme régulièrement pour proposer des prestations innovantes et personnalisées. Sa bonne humeur et son sens du détail font d'elle une alliée précieuse pour sublimer votre féminité.</p>
+              <p className="text-[#D4AF37] text-xs italic mt-auto">"J'adore voir le regard de mes clientes s'illuminer après une pose d'ongles ou d'extensions réussie !"</p>
             </motion.div>
             {/* Maélise */}
             <motion.div
@@ -85,13 +120,18 @@ export default function AboutInstitut() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.2, duration: 0.6 }}
-              className="glass-card p-8 rounded-2xl flex flex-col items-center text-center"
+              className="glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full"
             >
-              <img src={require('../assets/photos/Equipe/Maelise.jpg')} alt="Maélise" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" />
+              <div className="w-40 h-40 rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2] overflow-hidden">
+                <img src={require('../assets/photos/Equipe/Maelise.jpg')} alt="Maélise" className="w-full h-full object-cover object-[center_80%] scale-140" />
+              </div>
               <h3 className="text-2xl font-bold text-[#1A1A1A] mb-1">Maélise</h3>
-              <span className="text-sm text-[#D4AF37] font-medium mb-2">Spécialité : Modelages du corps</span>
-              <p className="text-[#4A4A4A] mb-2">Douce et attentive, Maélise vous invite à la détente grâce à ses modelages relaxants et personnalisés. Spécialiste des techniques de massage bien-être, elle adapte chaque séance à vos besoins du moment : relaxation profonde, soulagement des tensions, ou simple parenthèse cocooning. Son objectif : que vous repartiez ressourcée, détendue et le corps léger.</p>
-              <p className="text-[#D4AF37] text-xs italic">"Le massage, c'est offrir un voyage sensoriel et un vrai moment pour soi, loin du stress du quotidien."</p>
+              <div className="min-h-[52px] mb-2">
+                <span className="block text-sm text-[#D4AF37] font-medium">Spécialité : Modelages du corps</span>
+                <p className="text-[#4A4A4A] text-sm">Esthéticienne</p>
+              </div>
+              <p className="text-[#4A4A4A] text-sm mb-4 flex-1">Douce et attentive, Maélise vous invite à la détente grâce à ses modelages relaxants et personnalisés. Spécialiste des techniques de massage bien-être, elle adapte chaque séance à vos besoins du moment : relaxation profonde, soulagement des tensions, ou simple parenthèse cocooning. Son objectif : que vous repartiez ressourcée, détendue et le corps léger.</p>
+              <p className="text-[#D4AF37] text-xs italic mt-auto">"Le massage, c'est offrir un voyage sensoriel et un vrai moment pour soi, loin du stress du quotidien."</p>
             </motion.div>
           </div>
         </div>
@@ -105,6 +145,23 @@ export default function AboutInstitut() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
+            <div className="mb-10">
+              <div
+                ref={videoWrapperRef}
+                className="relative rounded-3xl overflow-hidden border border-[#E8DCCA] shadow-xl"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#F3E5AB]/60 via-transparent to-[#D4AF37]/10" aria-hidden="true" />
+                <video
+                  className="relative w-full aspect-video object-cover"
+                  src={videoVitrine}
+                  ref={videoRef}
+                  preload="metadata"
+                  muted
+                  playsInline
+                />
+              </div>
+              <p className="text-sm text-[#808080] mt-3 text-center">Un aperçu de l'ambiance à l'institut</p>
+            </div>
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-[#1A1A1A]">Notre philosophie</h2>
             <p className="text-lg text-[#4A4A4A] mb-6 leading-relaxed">
               Au cœur de notre métier, il y a le contact humain, l’écoute et la sincérité. Nous croyons que chaque femme mérite de se sentir belle, écoutée et valorisée. Notre objectif : que chaque visite soit un moment de détente, de reconnexion à soi et de confiance retrouvée.<br/>
@@ -135,8 +192,17 @@ export default function AboutInstitut() {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            className="relative"
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-[#1A1A1A]">Nos points forts</h2>
+            <div className="w-56 h-56 md:w-64 md:h-64 rounded-2xl overflow-hidden shadow-lg border border-[#E8DCCA] opacity-75 md:float-right md:ml-6 mb-4 mx-auto md:mx-0">
+              <img
+                src={require('../assets/photos/Equipe/Equipe.jpg')}
+                alt="Equipe Lea Beaute"
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            </div>
             <ul className="list-disc list-inside mb-6 text-left text-[#4A4A4A] max-w-xl mx-auto">
               <li>Soins du visage Guinot : résultats visibles dès la première séance (<Link to="/guinot" className="text-[#D4AF37] underline">découvrir</Link>). Diagnostic personnalisé, protocoles innovants, conseils adaptés à chaque peau.</li>
               <li>Épilation semi-définitive à la lumière pulsée : pour une peau douce durablement, en toute sécurité.</li>

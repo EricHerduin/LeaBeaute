@@ -54,7 +54,7 @@ export default function Hero({ onShowPricing }) {
             <button
               onClick={onShowPricing}
               data-testid="hero-pricing-btn"
-              className="glass-light text-white border border-white/40 hover:border-[#D4AF37] hover:bg-[#D4AF37]/20 transition-all duration-300 rounded-full px-8 py-4 text-sm uppercase tracking-widest font-medium"
+              className="rounded-full px-8 py-4 text-sm uppercase tracking-widest font-medium border border-[#D4AF37]/90 text-white bg-white/50 backdrop-blur ring-1 ring-white/70 hover:bg-white/50 hover:border-[#D4AF37] hover:text-white hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
             >
               Découvrir nos tarifs
             </button>

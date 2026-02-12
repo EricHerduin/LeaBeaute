@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import soinVisageImage from '../assets/photos/prestations/soins_visage_1.jpg';
 
 export default function GuinotSection({ onShowPricing }) {
   const navigate = useNavigate();
@@ -76,7 +77,7 @@ export default function GuinotSection({ onShowPricing }) {
           >
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
               <img
-                src="https://images.unsplash.com/photo-1761718210055-e83ca7e2c9ad?crop=entropy&cs=srgb&fm=jpg&q=85"
+                src={soinVisageImage}
                 alt="Soin visage Guinot"
                 className="w-full h-[500px] object-cover"
               />

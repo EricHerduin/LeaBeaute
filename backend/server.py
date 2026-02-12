@@ -517,7 +517,7 @@ async def get_gift_card_status(session_id: str):
         if payment_status == "paid" and transaction.get("payment_status") != "paid":
             gift_card_id = transaction["gift_card_id"]
             code = generate_gift_code()
-            expires_at = datetime.now(timezone.utc) + timedelta(days=180)  # 6 months
+            expires_at = datetime.now(timezone.utc) + timedelta(days=730)  # 2 years
             
             # Finalize coupon usage if present
             if transaction.get("coupon_token"):

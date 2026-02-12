@@ -31,7 +31,7 @@ export default function GiftCards() {
     personal_message: ''
   });
 
-  const amounts = [15, 20, 30, 50];
+  const amounts = [20, 50, 100, 200];
 
   const handleAmountSelect = (amount) => {
     setSelectedAmount(amount);
@@ -201,7 +201,7 @@ export default function GiftCards() {
             Cartes <span className="gold-gradient-text italic">cadeaux</span>
           </h2>
           <p className="text-lg md:text-xl text-[#4A4A4A] max-w-3xl mx-auto leading-relaxed">
-            Offrez un moment de détente et de beauté avec nos cartes cadeaux valables 6 mois
+            Offrez un moment de détente et de beauté avec nos cartes cadeaux valables 2 ans
           </p>
         </motion.div>
 
@@ -444,7 +444,7 @@ export default function GiftCards() {
                   <svg className="w-6 h-6 text-[#D4AF37] mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>Valable 6 mois à partir de la date d'achat</span>
+                  <span>Valable 2 ans à partir de la date d'achat</span>
                 </li>
                 <li className="flex items-start">
                   <svg className="w-6 h-6 text-[#D4AF37] mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">

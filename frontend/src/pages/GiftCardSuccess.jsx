@@ -140,7 +140,7 @@ export default function GiftCardSuccess() {
       page.drawText('Montant', { x: rightX, y: startY, size: 11, font, color: muted });
       page.drawText(`${displayAmount}€`, { x: rightX, y: startY - 28, size: 24, font: fontBold, color: goldDark });
       page.drawText(`Valide jusqu'au : ${formatDate(displayExpiresAt)}`, { x: rightX, y: startY - 50, size: 10, font, color: muted });
-      page.drawText('Durée : 6 mois', { x: rightX, y: startY - 64, size: 10, font, color: muted });
+      page.drawText('Durée : 2 ans', { x: rightX, y: startY - 64, size: 10, font, color: muted });
 
       const codeBoxY = startY - 118;
       const codeBoxHeight = 62;
@@ -226,7 +226,7 @@ export default function GiftCardSuccess() {
         font: fontBold,
         color: text
       });
-      page.drawText('• Valable 6 mois à partir de la date d’achat', {
+      page.drawText('• Valable 2 ans à partir de la date d’achat', {
         x: margin + 12,
         y: conditionsY + 28,
         size: 10,
@@ -499,7 +499,7 @@ export default function GiftCardSuccess() {
               </div>
               <div>
                 <p className="text-[#808080] text-sm mb-2">Durée de validité</p>
-                <p className="font-bold text-[#1A1A1A]">6 mois</p>
+                <p className="font-bold text-[#1A1A1A]">2 ans</p>
               </div>
               {giftCard.recipient_name && (
                 <div className="col-span-2">
@@ -528,7 +528,7 @@ export default function GiftCardSuccess() {
               <ul className="space-y-2 text-[#1A1A1A]">
                 <li className="flex items-start">
                   <span className="mr-3"><FontAwesomeIcon icon={faCheck} /></span>
-                  <span>Valable 6 mois à partir de la date d'achat</span>
+                  <span>Valable 2 ans à partir de la date d'achat</span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-3"><FontAwesomeIcon icon={faCheck} /></span>
