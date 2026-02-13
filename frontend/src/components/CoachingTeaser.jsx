@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import chronoNutritionImage from '../assets/photos/prestations/chrononutrition _1.jpg';
 
 export default function CoachingTeaser() {
   const navigate = useNavigate();
@@ -68,7 +69,7 @@ export default function CoachingTeaser() {
           >
             <div className="relative rounded-3xl overflow-hidden shadow-2xl">
               <img
-                src="https://images.unsplash.com/photo-1543362905-bddfadc3d44f?crop=entropy&cs=srgb&fm=jpg&q=85"
+                src={chronoNutritionImage}
                 alt="Accompagnement nutrition"
                 className="w-full h-[500px] object-cover"
               />

@@ -1177,7 +1177,13 @@ async def get_google_reviews():
     api_key = os.environ.get('GOOGLE_PLACES_API_KEY')
     
     if not place_id or not api_key:
-        raise HTTPException(status_code=500, detail="Google Places API not configured")
+        logger.warning("Google Places API not configured (missing GOOGLE_PLACE_ID or GOOGLE_PLACES_API_KEY)")
+        return {
+            "name": "Léa Beauté",
+            "rating": 4.8,
+            "user_ratings_total": 0,
+            "reviews": []
+        }
     
     try:
         async with httpx.AsyncClient() as client:
@@ -1196,7 +1202,13 @@ async def get_google_reviews():
             
             if data.get('status') != 'OK':
                 logger.error(f"Google Places API error: {data.get('status')}")
-                raise HTTPException(status_code=500, detail=f"Google API error: {data.get('status')}")
+                return {
+                    "name": "Léa Beauté",
+                    "rating": 4.8,
+                    "user_ratings_total": 0,
+                    "reviews": []
+                }
+            
             
             result = data.get('result', {})
             
