@@ -10,6 +10,7 @@ from typing import List, Optional, Dict
 import uuid
 from datetime import datetime, timezone, timedelta
 import stripe
+from stripe import error as stripe_error
 import secrets
 import string
 import httpx
@@ -297,6 +298,8 @@ async def update_price(item_id: str, update: PriceItemUpdate, authorization: str
         raise HTTPException(status_code=404, detail="Price item not found")
     
     updated_item = await db.price_items.find_one({"id": item_id}, {"_id": 0})
+    if not updated_item:
+        raise HTTPException(status_code=404, detail="Price item not found")
     return PriceItem(**updated_item)
 
 @api_router.delete("/prices/{item_id}")
@@ -416,7 +419,7 @@ async def create_gift_card_checkout(request: CreateCheckoutRequest):
                     'currency': 'eur',
                     'product_data': {
                         'name': f'Carte cadeau Léa Beauté {request.amount}€',
-                        'description': 'Carte cadeau valable 6 mois',
+                        'description': 'Carte cadeau valable 2 ans',
                     },
                     'unit_amount': int(final_amount * 100),  # amount in cents (after discount)
                 },
@@ -429,7 +432,7 @@ async def create_gift_card_checkout(request: CreateCheckoutRequest):
                 'gift_card_id': gift_card.id,
                 'amount_eur': str(final_amount),
                 'original_amount_eur': str(request.amount),
-                'coupon_code': coupon_data['code'] if coupon_data else None
+                'coupon_code': coupon_data['code'] if coupon_data else ""
             }
         )
         
@@ -458,7 +461,7 @@ async def create_gift_card_checkout(request: CreateCheckoutRequest):
         
         return {"url": session.url, "session_id": session.id}
     
-    except stripe.error.StripeError as e:
+    except stripe_error.StripeError as e:
         logger.error(f"Stripe error: {str(e)}")
         # Clean up if Stripe fails
         await db.gift_cards.delete_one({"id": gift_card.id})
@@ -562,6 +565,8 @@ async def get_gift_card_status(session_id: str):
             
             # Fetch the updated gift card
             gift_card = await db.gift_cards.find_one({"id": gift_card_id}, {"_id": 0})
+            if not gift_card:
+                raise HTTPException(status_code=500, detail="Gift card not found after payment")
             
             # Send email with gift card info
             buyer_name = f"{gift_card['buyer_firstname']} {gift_card['buyer_lastname']}"
@@ -587,7 +592,7 @@ async def get_gift_card_status(session_id: str):
             "gift_card": None
         }
     
-    except stripe.error.StripeError as e:
+    except stripe_error.StripeError as e:
         logger.error(f"Stripe error: {str(e)}")
         raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
     except Exception as e:
@@ -607,7 +612,7 @@ async def stripe_webhook(request: Request):
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError as e:
+    except stripe_error.SignatureVerificationError as e:
         raise HTTPException(status_code=400, detail="Invalid signature")
     
     try:
@@ -751,7 +756,7 @@ async def list_gift_cards(authorization: str = Header(None)):
     if authorization != os.environ.get('ADMIN_PASSWORD'):
         raise HTTPException(status_code=401, detail="Unauthorized")
     
-    gift_cards = await db.gift_cards.find({}, {"_id": 0}).to_list(None)
+    gift_cards = await db.gift_cards.find({}, {"_id": 0}).to_list(2000)
     return sorted(gift_cards, key=lambda x: x.get('createdAt', ''), reverse=True)
 
 @api_router.get("/gift-cards/all")
@@ -819,10 +824,10 @@ async def activate_gift_card(gift_card_id: str, authorization: str = Header(None
         raise HTTPException(status_code=400, detail="Only pending gift cards can be activated")
 
     # Generate unique code
-    code = generate_gift_card_code()
+    code = generate_gift_code()
     
-    # Set expiry to 1 year from now
-    expiry_date = datetime.now(timezone.utc) + timedelta(days=365)
+    # Set expiry to 2 years from now
+    expiry_date = datetime.now(timezone.utc) + timedelta(days=730)
 
     await db.gift_cards.update_one(
         {"id": gift_card_id},
@@ -907,22 +912,14 @@ async def resend_gift_card_email(gift_card_id: str, authorization: str = Header(
     if not gift_card.get("code"):
         raise HTTPException(status_code=400, detail="Gift card must have a code before sending email")
 
-    # Generate email HTML
-    email_html = generate_gift_card_email_html(
-        recipient_name=gift_card.get("recipient_name", ""),
+    # Send email
+    success = await send_gift_card_email(
+        to_email=gift_card["buyer_email"],
+        recipient_name=gift_card.get("recipient_name", "") or f"{gift_card['buyer_firstname']} {gift_card['buyer_lastname']}",
         gift_card_code=gift_card["code"],
         amount=gift_card["amountEur"],
         expires_at=gift_card.get("expiresAt", ""),
         buyer_name=f"{gift_card['buyer_firstname']} {gift_card['buyer_lastname']}"
-    )
-
-    # Send email
-    success = await send_gift_card_email(
-        to_email=gift_card["buyer_email"],
-        buyer_name=f"{gift_card['buyer_firstname']} {gift_card['buyer_lastname']}",
-        code=gift_card["code"],
-        amount=gift_card["amountEur"],
-        html_content=email_html
     )
 
     if not success:
@@ -988,7 +985,7 @@ async def create_coupon(coupon: CouponCreate, authorization: str = Header(None))
 async def get_coupons(authorization: str = Header(None)):
     """Get all coupons (admin only)"""
     verify_admin(authorization)
-    coupons = await db.coupons.find({}, {"_id": 0}).to_list(None)
+    coupons = await db.coupons.find({}, {"_id": 0}).to_list(2000)
     return sorted(coupons, key=lambda x: x.get('createdAt', ''), reverse=True)
 
 @api_router.get("/coupons/all")
@@ -1271,7 +1268,7 @@ async def update_business_hours(hours: dict, authorization: str = Header(None)):
         raise HTTPException(status_code=401, detail="Unauthorized")
     
     # Prepare data for database
-    db_data = {"_id": "main"}
+    db_data: Dict[str, object] = {"_id": "main"}
     
     # Validate and convert the hours dict
     for day in range(7):
