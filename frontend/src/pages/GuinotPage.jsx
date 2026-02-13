@@ -4,6 +4,14 @@ import { motion } from 'framer-motion';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
+import hydradermieImage from '../assets/photos/prestations/hydradermie1000_1.jpg'
+import hydradermieLiftImage from '../assets/photos/prestations/soin-hydradermie-lift.jpg'
+import ageSummumImage from '../assets/photos/prestations/soin-age-summum_1.jpg'
+import hydrapeelingImage from '../assets/photos/prestations/soin-hydra-peeling_1.jpg'
+import detoxygeneImage from '../assets/photos/prestations/soin-detoxygene_1.jpg'
+import cabineImage from '../assets/photos/prestations/cabine.png'
+import cabine1Image from '../assets/photos/prestations/cabine_1.webp'
+import soinGuinotImage from '../assets/photos/prestations/soin-guinot.jpg'
 
 export default function GuinotPage() {
   const [showPricing, setShowPricing] = useState(false);
@@ -30,7 +38,7 @@ export default function GuinotPage() {
             </div>
           </div>
           <div className="rounded-2xl overflow-hidden shadow-lg">
-            <img src="/assets/photos/Institut_devanture.jpg" alt="Soin visage en institut" className="w-full h-auto object-cover" />
+            <img src={soinGuinotImage} alt="Soin visage en institut" className="w-full h-auto object-cover" />
           </div>
         </div>
       </section>
@@ -39,7 +47,7 @@ export default function GuinotPage() {
       <section className="py-20 bg-[#F9F7F2]">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid gap-10 md:grid-cols-2 items-center">
           <div className="rounded-2xl overflow-hidden shadow-lg order-2 md:order-1">
-            <img src="/assets/photos/Equipe/Lea.jpg" alt="Gestuelle de soin visage" className="w-full h-auto object-cover" />
+            <img src={cabine1Image} alt="Gestuelle de soin visage" className="w-full h-auto object-cover" />
           </div>
           <div className="order-1 md:order-2">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-[#1A1A1A]">L'expertise institut, le confort en plus</h2>
@@ -122,13 +130,13 @@ export default function GuinotPage() {
               className="grid md:grid-cols-2 gap-12 items-center"
             >
               <div className="rounded-3xl overflow-hidden shadow-2xl">
-                <img src="/assets/photos/Equipe/Maelise.jpg" alt="Hydradermie" className="w-full h-[400px] object-cover" />
+                <img src={hydradermieImage} alt="Hydradermie" className="w-full h-[400px] object-cover" />
               </div>
               <div>
                 <div className="mb-4">
                   <span className="inline-block px-3 py-1 bg-[#D4AF37]/15 rounded-full text-xs font-semibold text-[#D4AF37] uppercase tracking-wide">Soin signature</span>
                 </div>
-                <h3 className="text-3xl font-bold mb-4 text-[#1A1A1A]">Hydradermie</h3>
+                <h3 className="text-3xl font-bold mb-4 text-[#1A1A1A]">Hydradermie 1000</h3>
                 <p className="text-lg text-[#4A4A4A] mb-4 leading-relaxed">
                   Un soin signature, choisi lorsque l'on souhaite une prise en charge complète et une orientation claire vers l'éclat et le confort.
                 </p>
@@ -148,13 +156,13 @@ export default function GuinotPage() {
               className="grid md:grid-cols-2 gap-12 items-center"
             >
               <div className="rounded-3xl overflow-hidden shadow-2xl order-2 md:order-1">
-                <img src="/assets/photos/Equipe/Maryssa.jpg" alt="Hydradermie Lift" className="w-full h-[400px] object-cover" />
+                <img src={hydradermieLiftImage} alt="Hydradermie 1000 Lift" className="w-full h-[400px] object-cover" />
               </div>
               <div className="order-1 md:order-2">
                 <div className="mb-4">
                   <span className="inline-block px-3 py-1 bg-[#D4AF37]/15 rounded-full text-xs font-semibold text-[#D4AF37] uppercase tracking-wide">Fermeté & Tonicité</span>
                 </div>
-                <h3 className="text-3xl font-bold mb-4 text-[#1A1A1A]">Hydradermie Lift</h3>
+                <h3 className="text-3xl font-bold mb-4 text-[#1A1A1A]">Hydradermie 1000 Lift</h3>
                 <p className="text-lg text-[#4A4A4A] mb-4 leading-relaxed">
                   Une approche orientée fermeté et tonicité, lorsque la priorité est la tenue des traits et la sensation de peau plus "tonique".
                 </p>
@@ -174,7 +182,7 @@ export default function GuinotPage() {
               className="grid md:grid-cols-2 gap-12 items-center"
             >
               <div className="rounded-3xl overflow-hidden shadow-2xl">
-                <img src="/assets/photos/Institut_devanture.jpg" alt="Age Summum" className="w-full h-[400px] object-cover" />
+                <img src= {ageSummumImage} alt="Age Summum" className="w-full h-[400px] object-cover" />
               </div>
               <div>
                 <div className="mb-4">
@@ -200,7 +208,7 @@ export default function GuinotPage() {
               className="grid md:grid-cols-2 gap-12 items-center"
             >
               <div className="rounded-3xl overflow-hidden shadow-2xl order-2 md:order-1">
-                <img src="/assets/photos/Equipe/Lea.jpg" alt="Hydra Peeling" className="w-full h-[400px] object-cover" />
+                <img src= {hydrapeelingImage} alt="Hydra Peeling" className="w-full h-[400px] object-cover" />
               </div>
               <div className="order-1 md:order-2">
                 <div className="mb-4">
@@ -226,7 +234,7 @@ export default function GuinotPage() {
               className="grid md:grid-cols-2 gap-12 items-center"
             >
               <div className="rounded-3xl overflow-hidden shadow-2xl">
-                <img src="/assets/photos/Equipe/Maryssa.jpg" alt="Eye Lift" className="w-full h-[400px] object-cover" />
+                <img src= {ageSummumImage} alt="Eye Lift" className="w-full h-[400px] object-cover" />
               </div>
               <div>
                 <div className="mb-4">
@@ -252,7 +260,7 @@ export default function GuinotPage() {
               className="grid md:grid-cols-2 gap-12 items-center"
             >
               <div className="rounded-3xl overflow-hidden shadow-2xl order-2 md:order-1">
-                <img src="/assets/photos/Equipe/Maelise.jpg" alt="Détoxygène" className="w-full h-[400px] object-cover" />
+                <img src= {detoxygeneImage} alt="Détoxygène" className="w-full h-[400px] object-cover" />
               </div>
               <div className="order-1 md:order-2">
                 <div className="mb-4">
@@ -287,7 +295,7 @@ export default function GuinotPage() {
             <p className="text-base text-[#4A4A4A]/80">L'essentiel : repartir avec une direction claire, et une sensation de soin "complet", sans improvisation.</p>
           </div>
           <div className="rounded-2xl overflow-hidden shadow-lg">
-            <img src="/assets/photos/Institut_devanture.jpg" alt="Cabine de soin visage" className="w-full h-auto object-cover" />
+            <img src={cabineImage} alt="Cabine de soin visage" className="w-full h-auto object-cover" />
           </div>
         </div>
       </section>

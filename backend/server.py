@@ -143,6 +143,13 @@ class TestimonialCreate(BaseModel):
     service: Optional[str] = None
     allowDisplay: bool = True
 
+class BusinessHours(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    # Days 0-6 represent Sunday-Saturday
+    # Each day can be:
+    # - None (closed)
+    # - {"open": "HH:MM", "close": "HH:MM"}
+
 # ============ SEED DATA ============
 
 PRICE_ITEMS_SEED = [
@@ -1224,6 +1231,62 @@ async def get_google_reviews():
     except Exception as e:
         logger.error(f"Error fetching Google reviews: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# ============ BUSINESS HOURS ENDPOINTS ============
+
+@api_router.get("/business-hours")
+async def get_business_hours():
+    """Get current business hours"""
+    business_hours = await db.business_hours.find_one({"_id": "main"})
+    if not business_hours:
+        # Return default business hours if not found
+        return {
+            "0": None,  # Sunday - closed
+            "1": {"open": "14:00", "close": "18:30"},  # Monday
+            "2": {"open": "09:00", "close": "18:30"},  # Tuesday
+            "3": None,  # Wednesday - closed
+            "4": {"open": "09:00", "close": "18:30"},  # Thursday
+            "5": {"open": "09:00", "close": "18:30"},  # Friday
+            "6": {"open": "09:00", "close": "16:00"},  # Saturday
+        }
+    business_hours.pop("_id", None)
+    return business_hours
+
+@api_router.post("/business-hours")
+async def update_business_hours(hours: dict, authorization: str = Header(None)):
+    """Update business hours (admin only)"""
+    if authorization != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    # Prepare data for database
+    db_data = {"_id": "main"}
+    
+    # Validate and convert the hours dict
+    for day in range(7):
+        day_str = str(day)
+        if day_str in hours:
+            if hours[day_str] is None:
+                db_data[day_str] = None
+            else:
+                # Validate format
+                if isinstance(hours[day_str], dict) and "open" in hours[day_str] and "close" in hours[day_str]:
+                    db_data[day_str] = {
+                        "open": hours[day_str]["open"],
+                        "close": hours[day_str]["close"]
+                    }
+                else:
+                    raise HTTPException(status_code=400, detail=f"Invalid format for day {day}")
+        else:
+            db_data[day_str] = None
+    
+    # Save to database
+    await db.business_hours.update_one(
+        {"_id": "main"},
+        {"$set": db_data},
+        upsert=True
+    )
+    
+    return {"success": True}
 
 # Include router
 app.include_router(api_router)

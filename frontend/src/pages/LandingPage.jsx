@@ -10,6 +10,7 @@ import GiftCards from '../components/GiftCards';
 import CoachingTeaser from '../components/CoachingTeaser';
 import Contact from '../components/Contact';
 import GoogleReviews from '../components/GoogleReviews';
+import OpeningHours from '../components/OpeningHours';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
 import SEO from '../components/SEO';
@@ -65,6 +66,11 @@ export default function LandingPage() {
         <GiftCards />
         <Contact />
         <GoogleReviews />
+        <section className="py-16 md:py-24 bg-gradient-to-b from-white to-[#F9F7F2]">
+          <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-center">
+            <OpeningHours fullWidth={false} showStatus={true} />
+          </div>
+        </section>
         <Footer onShowPricing={handleShowPricing} />
       </div>
       {showPricing && (

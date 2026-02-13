@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
+import OpeningHours from '../components/OpeningHours';
 import { motion } from 'framer-motion';
 import videoVitrine from '../assets/videos/video_vitrine.mp4';
 
@@ -217,7 +218,11 @@ export default function AboutInstitut() {
           </motion.div>
         </div>
       </section>
-
+      <section className="py-16 md:py-24 bg-gradient-to-b from-white to-[#F9F7F2]">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-center">
+          <OpeningHours fullWidth={false} showStatus={true} />
+        </div>
+      </section>
       <Footer onShowPricing={() => setShowPricing(true)} />
     </div>
   );

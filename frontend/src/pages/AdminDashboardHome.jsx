@@ -10,8 +10,10 @@ import {
   faGift,
   faList,
   faMagnifyingGlass,
-  faTicket
+  faTicket,
+  faClock
 } from '@fortawesome/free-solid-svg-icons';
+import BusinessHoursManager from '../components/BusinessHoursManager';
 
 const axios = api;
 
@@ -50,6 +52,7 @@ export default function AdminDashboardHome({
   const [redeemModal, setRedeemModal] = useState(false);
   const [priceModal, setPriceModal] = useState(false);
   const [couponModal, setCouponModal] = useState(false);
+  const [businessHoursModal, setBusinessHoursModal] = useState(false);
 
   const [verifyQuery, setVerifyQuery] = useState('');
   const [verifyType, setVerifyType] = useState('code');
@@ -297,10 +300,10 @@ export default function AdminDashboardHome({
             onClick={() => setCouponModal(true)}
           />
           <SquareButton
-            icon={<FontAwesomeIcon icon={faList} />}
-            label="Tous les Tarifs"
+            icon={<FontAwesomeIcon icon={faClock} />}
+            label="Horaires"
             color="gold"
-            onClick={onNavigatePrices}
+            onClick={() => setBusinessHoursModal(true)}
           />
         </div>
       </motion.div>
@@ -754,6 +757,13 @@ export default function AdminDashboardHome({
           </motion.div>
         </motion.div>
       )}
+
+      {/* Business Hours Manager */}
+      <BusinessHoursManager 
+        adminToken={adminToken}
+        isOpen={businessHoursModal}
+        onClose={() => setBusinessHoursModal(false)}
+      />
     </div>
   );
 }

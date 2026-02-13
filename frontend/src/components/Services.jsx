@@ -87,19 +87,19 @@ export default function Services({ onShowPricing }) {
                   </span>
                 </motion.button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl bg-white p-0 overflow-hidden">
-                <div className="grid md:grid-cols-2">
-                  <div className="bg-[#F9F7F2] p-6">
+              <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto bg-white p-4 md:p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2">
+                  <div className="bg-[#F9F7F2] p-4 md:p-6">
                     <img
                       src={service.imageSrc}
                       alt={service.imageAlt}
-                      className="w-full h-48 object-cover rounded-xl shadow-md"
+                      className="w-full h-40 md:h-48 object-cover rounded-xl shadow-md"
                       loading="lazy"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}
                     />
-                    <div className="mt-6 flex items-center gap-4">
+                    <div className="mt-4 md:mt-6 flex items-center gap-4">
                       <ServiceVisual
                         src={service.imageSrc}
                         alt={service.imageAlt}
@@ -111,7 +111,7 @@ export default function Services({ onShowPricing }) {
                       </div>
                     </div>
                   </div>
-                  <div className="p-6">
+                  <div className="p-4 md:p-6">
                     <DialogHeader className="text-left">
                       <DialogTitle className="text-2xl font-bold text-[#1A1A1A]">
                         {service.title}
@@ -120,16 +120,16 @@ export default function Services({ onShowPricing }) {
                         {service.description}
                       </DialogDescription>
                     </DialogHeader>
-                    <p className="mt-4 text-[#4A4A4A] leading-relaxed">
+                    <p className="mt-3 md:mt-4 text-[#4A4A4A] leading-relaxed">
                       {service.details}
                     </p>
-                    <div className="mt-6">
-                      <p className="text-sm uppercase tracking-widest text-[#1A1A1A]/60 mb-3">Techniques</p>
+                    <div className="mt-4 md:mt-6">
+                      <p className="text-sm uppercase tracking-widest text-[#1A1A1A]/60 mb-2 md:mb-3">Techniques</p>
                       <p className="text-[#4A4A4A] leading-relaxed">
                         {service.techniquesText}
                       </p>
                     </div>
-                    <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                    <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
                       <a
                         href="tel:0233214819"
                         className="btn-gold inline-flex items-center justify-center"
