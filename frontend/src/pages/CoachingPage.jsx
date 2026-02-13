@@ -3,7 +3,7 @@ import { useState } from 'react';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
-import nutritionImage from '../assets/photos/prestations/Chrono nutrition.png' 
+import nutritionImage from '../assets/photos/prestations/chrononutrition_4.jpg' 
 
 export default function CoachingPage() {
   const [showPricing, setShowPricing] = useState(false);

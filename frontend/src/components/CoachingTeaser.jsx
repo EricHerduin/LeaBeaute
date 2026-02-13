@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import chronoNutritionImage from '../assets/photos/prestations/chrononutrition _1.jpg';
+import chronoNutritionImage from '../assets/photos/prestations/chrononutrition_3.jpg';
 
 export default function CoachingTeaser() {
   const navigate = useNavigate();
