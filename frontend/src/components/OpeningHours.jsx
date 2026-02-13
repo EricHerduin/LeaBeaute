@@ -1,40 +1,47 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { getOpeningStatus, BUSINESS_HOURS } from '../data/businessHours';
+import api from '../lib/apiClient';
 
 const dayLabels = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
 const formatTime = (time) => {
-  if (typeof time === 'string') {
-    return time;
-  }
-
-  if (typeof time === 'number') {
-    const hours = Math.floor(time);
-    const minutes = Math.round((time - hours) * 60);
-    return minutes > 0 ? `${hours}h${String(minutes).padStart(2, '0')}` : `${hours}h`;
-  }
-
-  return '';
+  if (!time) return '';
+  const [hours, minutes] = time.split(':');
+  return `${hours}h${minutes}`;
 };
 
 export default function OpeningHours({ fullWidth = false, showStatus = true }) {
   const [status, setStatus] = useState(null);
+  const [generalHours, setGeneralHours] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    const updateStatus = () => {
-      setStatus(getOpeningStatus());
-      setCurrentTime(new Date());
+    const fetchHours = async () => {
+      try {
+        setLoading(true);
+        const [statusRes, hoursRes] = await Promise.all([
+          api.get('/business-hours/status'),
+          api.get('/business-hours')
+        ]);
+        
+        setStatus(statusRes.data);
+        setGeneralHours(hoursRes.data);
+        setCurrentTime(new Date());
+      } catch (error) {
+        console.error('Erreur chargement horaires:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    updateStatus();
-    const interval = setInterval(updateStatus, 60000);
+    fetchHours();
+    const interval = setInterval(fetchHours, 60000); // Mise à jour chaque minute
 
     return () => clearInterval(interval);
   }, []);
 
-  if (!status) return null;
+  if (loading || !generalHours) return null;
 
   const containerClass = fullWidth 
     ? 'w-full' 
@@ -51,7 +58,7 @@ export default function OpeningHours({ fullWidth = false, showStatus = true }) {
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl md:text-3xl font-bold text-[#1A1A1A] mb-2">Horaires d'ouverture</h2>
-        {showStatus && (
+        {showStatus && status && (
           <div className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-full ${status.status === 'open' ? 'bg-green-500' : 'bg-red-500'}`}></div>
             <span className={`text-sm font-semibold ${status.status === 'open' ? 'text-green-600' : 'text-red-600'}`}>
@@ -59,16 +66,15 @@ export default function OpeningHours({ fullWidth = false, showStatus = true }) {
             </span>
           </div>
         )}
-        {status.secondaryMessage && (
-          <p className="text-sm text-[#4A4A4A] mt-2">{status.secondaryMessage}</p>
-        )}
       </div>
 
       {/* Horaires */}
       <div className="space-y-3">
         {dayLabels.map((day, index) => {
-          const hours = BUSINESS_HOURS[index];
-          const isClosed = !hours;
+          // Convert index to key: 0=sunday, 1=monday, etc.
+          const dayKey = String(index);
+          const dayHours = generalHours[dayKey];
+          const isClosed = !dayHours || !dayHours.open || !dayHours.close;
           const isToday = currentTime.getDay() === index;
 
           return (
@@ -92,7 +98,7 @@ export default function OpeningHours({ fullWidth = false, showStatus = true }) {
                   ? 'text-[#D4AF37]' 
                   : 'text-[#1A1A1A]'
               }`}>
-                {isClosed ? 'Fermé' : `${formatTime(hours.open)} - ${formatTime(hours.close)}`}
+                {isClosed ? 'Fermé' : `${formatTime(dayHours?.open)} - ${formatTime(dayHours?.close)}`}
               </span>
             </div>
           );

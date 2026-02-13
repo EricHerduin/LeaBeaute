@@ -144,12 +144,40 @@ class TestimonialCreate(BaseModel):
     service: Optional[str] = None
     allowDisplay: bool = True
 
-class BusinessHours(BaseModel):
+class DailyHours(BaseModel):
+    """Horaires pour un jour"""
+    open: Optional[str] = None  # HH:MM format
+    close: Optional[str] = None  # HH:MM format
+    isClosed: bool = False
+
+class BusinessHoursGeneral(BaseModel):
+    """Horaires généraux par jour de la semaine"""
     model_config = ConfigDict(extra="allow")
-    # Days 0-6 represent Sunday-Saturday
-    # Each day can be:
-    # - None (closed)
-    # - {"open": "HH:MM", "close": "HH:MM"}
+    monday: Optional[DailyHours] = None
+    tuesday: Optional[DailyHours] = None
+    wednesday: Optional[DailyHours] = None
+    thursday: Optional[DailyHours] = None
+    friday: Optional[DailyHours] = None
+    saturday: Optional[DailyHours] = None
+    sunday: Optional[DailyHours] = None
+
+class BusinessHoursException(BaseModel):
+    """Exception pour une date ou période spécifique"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    startDate: str  # YYYY-MM-DD
+    endDate: Optional[str] = None  # YYYY-MM-DD (si None = date unique)
+    hours: Optional[DailyHours] = None  # Si None = fermé ce jour/période
+    reason: Optional[str] = None  # Ex: "Vacances annuelles", "Journée portes ouvertes"
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class Holiday(BaseModel):
+    """Jour férié"""
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    date: str  # YYYY-MM-DD
+    name: str
+    isClosed: bool = True
+    hours: Optional[DailyHours] = None
+    createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # ============ SEED DATA ============
 
@@ -1243,59 +1271,217 @@ async def get_google_reviews():
 
 # ============ BUSINESS HOURS ENDPOINTS ============
 
+# Horaires généraux
 @api_router.get("/business-hours")
-async def get_business_hours():
-    """Get current business hours"""
-    business_hours = await db.business_hours.find_one({"_id": "main"})
-    if not business_hours:
-        # Return default business hours if not found
-        return {
-            "0": None,  # Sunday - closed
+async def get_all_business_hours():
+    """Get all business hours data (general + exceptions + holidays) - UNIFIED ENDPOINT"""
+    general = await db.business_hours_general.find_one({"_id": "main"})
+    
+    if not general:
+        general = {
+            "0": {"open": None, "close": None},  # Sunday - closed
             "1": {"open": "14:00", "close": "18:30"},  # Monday
             "2": {"open": "09:00", "close": "18:30"},  # Tuesday
-            "3": None,  # Wednesday - closed
+            "3": {"open": None, "close": None},  # Wednesday
             "4": {"open": "09:00", "close": "18:30"},  # Thursday
             "5": {"open": "09:00", "close": "18:30"},  # Friday
-            "6": {"open": "09:00", "close": "16:00"},  # Saturday
+            "6": {"open": "09:00", "close": "16:00"}  # Saturday
         }
-    business_hours.pop("_id", None)
-    return business_hours
+    else:
+        general.pop("_id", None)
+    
+    return general
 
 @api_router.post("/business-hours")
-async def update_business_hours(hours: dict, authorization: str = Header(None)):
-    """Update business hours (admin only)"""
+async def update_all_business_hours(data: dict, authorization: str = Header(None)):
+    """Update general business hours - receives dict with day as keys"""
     if authorization != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Unauthorized")
     
-    # Prepare data for database
-    db_data: Dict[str, object] = {"_id": "main"}
-    
-    # Validate and convert the hours dict
-    for day in range(7):
-        day_str = str(day)
-        if day_str in hours:
-            if hours[day_str] is None:
-                db_data[day_str] = None
-            else:
-                # Validate format
-                if isinstance(hours[day_str], dict) and "open" in hours[day_str] and "close" in hours[day_str]:
-                    db_data[day_str] = {
-                        "open": hours[day_str]["open"],
-                        "close": hours[day_str]["close"]
-                    }
-                else:
-                    raise HTTPException(status_code=400, detail=f"Invalid format for day {day}")
-        else:
-            db_data[day_str] = None
-    
-    # Save to database
-    await db.business_hours.update_one(
+    doc = {"_id": "main", **data}
+    await db.business_hours_general.update_one(
         {"_id": "main"},
-        {"$set": db_data},
+        {"$set": doc},
         upsert=True
     )
+    return {"success": True}
+
+# Exceptions (dates/périodes spécifiques)
+@api_router.get("/business-hours/exceptions")
+async def get_exceptions():
+    """Get all business hours exceptions"""
+    cursor = db.business_hours_exceptions.find({}, {"_id": 0}).sort("date", 1)
+    exceptions = await cursor.to_list(None)
+    return exceptions
+
+@api_router.post("/business-hours/exceptions")
+async def create_exception(data: dict, authorization: str = Header(None)):
+    """Create business hours exception (admin only)"""
+    if authorization != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    # Ensure required fields
+    if "date" not in data:
+        raise HTTPException(status_code=400, detail="date field required")
+    
+    doc = {
+        "date": data["date"],
+        "isOpen": data.get("isOpen", True),
+        "startTime": data.get("startTime"),
+        "endTime": data.get("endTime"),
+        "reason": data.get("reason", "")
+    }
+    
+    await db.business_hours_exceptions.update_one(
+        {"date": data["date"]},
+        {"$set": doc},
+        upsert=True
+    )
+    return {"success": True}
+
+@api_router.delete("/business-hours/exceptions/{date}")
+async def delete_exception(date: str, authorization: str = Header(None)):
+    """Delete business hours exception (admin only)"""
+    if authorization != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    result = await db.business_hours_exceptions.delete_one({"date": date})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Exception not found")
     
     return {"success": True}
+
+# Jours fériés
+@api_router.get("/business-hours/holidays")
+async def get_holidays():
+    """Get all holidays"""
+    cursor = db.business_hours_holidays.find({}, {"_id": 0}).sort("date", 1)
+    holidays = await cursor.to_list(None)
+    return holidays
+
+@api_router.post("/business-hours/holidays")
+async def create_or_update_holiday(data: dict, authorization: str = Header(None)):
+    """Create or update holiday (admin only)"""
+    if authorization != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    if "date" not in data or "name" not in data:
+        raise HTTPException(status_code=400, detail="date and name fields required")
+    
+    doc = {
+        "date": data["date"],
+        "name": data["name"],
+        "isClosed": data.get("isClosed", True)
+    }
+    
+    await db.business_hours_holidays.update_one(
+        {"date": data["date"]},
+        {"$set": doc},
+        upsert=True
+    )
+    return {"success": True}
+
+@api_router.delete("/business-hours/holidays/{date}")
+async def delete_holiday(date: str, authorization: str = Header(None)):
+    """Delete holiday (admin only)"""
+    if authorization != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    result = await db.business_hours_holidays.delete_one({"date": date})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Holiday not found")
+    
+    return {"success": True}
+
+# Statut courant
+@api_router.get("/business-hours/status")
+async def get_opening_status():
+    """Get current opening status (combines all rules)"""
+    from datetime import datetime as dt
+    
+    today = dt.now().date()
+    today_str = today.isoformat()
+    day_index = today.weekday()
+    # Convert Monday=0 to our convention: Sunday=0
+    day_key = str((day_index + 1) % 7)
+    
+    # 1. Vérifier si c'est un jour férié
+    holiday = await db.business_hours_holidays.find_one({"date": today_str})
+    if holiday:
+        if holiday.get("isClosed"):
+            return {
+                "status": "closed",
+                "message": f"Fermé - {holiday.get('name')}",
+                "hours": None
+            }
+    
+    # 2. Vérifier s'il y a une exception pour cette date
+    exception = await db.business_hours_exceptions.find_one({"date": today_str})
+    if exception:
+        if not exception.get("isOpen"):
+            return {
+                "status": "closed",
+                "message": f"Fermé - {exception.get('reason', 'Exception')}",
+                "hours": None
+            }
+        else:
+            return {
+                "status": "open" if is_currently_open({
+                    "open": exception.get("startTime"),
+                    "close": exception.get("endTime")
+                }) else "closed",
+                "message": f"Horaires modifiés - {exception.get('reason', 'Exception')}",
+                "hours": {
+                    "open": exception.get("startTime"),
+                    "close": exception.get("endTime")
+                }
+            }
+    
+    # 3. Utiliser les horaires généraux du jour
+    general_hours = await db.business_hours_general.find_one({"_id": "main"})
+    if not general_hours:
+        general_hours = {}
+    
+    day_hours = general_hours.get(day_key, {})
+    
+    if not day_hours or not day_hours.get("open") or not day_hours.get("close"):
+        return {
+            "status": "closed",
+            "message": "Fermé aujourd'hui",
+            "hours": None
+        }
+    
+    return {
+        "status": "open" if is_currently_open(day_hours) else "closed",
+        "message": "Ouvert" if is_currently_open(day_hours) else "Fermé",
+        "hours": day_hours
+    }
+
+def is_currently_open(hours: Optional[Dict]) -> bool:
+    """Check if currently open based on hours"""
+    if not hours:
+        return False
+    
+    from datetime import datetime as dt
+    now = dt.now()
+    
+    open_time = hours.get("open")
+    close_time = hours.get("close")
+    
+    if not open_time or not close_time:
+        return False
+    
+    try:
+        open_hour, open_min = map(int, str(open_time).split(":"))
+        close_hour, close_min = map(int, str(close_time).split(":"))
+        
+        current_minutes = now.hour * 60 + now.minute
+        open_minutes = open_hour * 60 + open_min
+        close_minutes = close_hour * 60 + close_min
+        
+        return open_minutes <= current_minutes < close_minutes
+    except:
+        return False
 
 # Include router
 app.include_router(api_router)
