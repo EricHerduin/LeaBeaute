@@ -15,11 +15,14 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
   const [saving, setSaving] = useState(false);
 
   // Form states for exceptions
+  const [exceptionMode, setExceptionMode] = useState('single'); // 'single' ou 'range'
   const [exceptionDate, setExceptionDate] = useState('');
-  const [exceptionOpen, setExceptionOpen] = useState(true);
+  const [exceptionEndDate, setExceptionEndDate] = useState('');
+  const [exceptionOpen, setExceptionOpen] = useState(false);
   const [exceptionStartTime, setExceptionStartTime] = useState('09:00');
   const [exceptionEndTime, setExceptionEndTime] = useState('18:30');
   const [exceptionReason, setExceptionReason] = useState('');
+  const [editingException, setEditingException] = useState(null);
 
   // Form states for holidays
   const [holidayDate, setHolidayDate] = useState('');
@@ -88,29 +91,77 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
       toast.error('Veuillez sélectionner une date');
       return;
     }
+
+    if (exceptionMode === 'range' && !exceptionEndDate) {
+      toast.error('Veuillez sélectionner une date de fin');
+      return;
+    }
+
+    if (exceptionOpen && (!exceptionStartTime || !exceptionEndTime)) {
+      toast.error('Veuillez sélectionner les horaires');
+      return;
+    }
+
     try {
       setSaving(true);
-      await api.post('/business-hours/exceptions', {
+      const payload = {
         date: exceptionDate,
+        endDate: exceptionMode === 'range' ? exceptionEndDate : undefined,
         isOpen: exceptionOpen,
         startTime: exceptionOpen ? exceptionStartTime : null,
         endTime: exceptionOpen ? exceptionEndTime : null,
         reason: exceptionReason
-      }, {
+      };
+
+      if (editingException) {
+        // Édition : supprimer l'ancienne et créer la nouvelle
+        await api.delete(`/business-hours/exceptions/${editingException}`, {
+          headers: { 'Authorization': adminToken }
+        });
+      }
+
+      await api.post('/business-hours/exceptions', payload, {
         headers: { 'Authorization': adminToken }
       });
-      toast.success('Exception ajoutée');
+
+      toast.success(editingException ? 'Exception modifiée' : 'Exception ajoutée');
+      
+      // Réinitialiser
       setExceptionDate('');
+      setExceptionEndDate('');
       setExceptionReason('');
-      setExceptionOpen(true);
+      setExceptionOpen(false);
+      setExceptionMode('single');
+      setEditingException(null);
+      
       await fetchData();
-      await invalidateCache(); // Forcer la mise à jour du cache
+      await invalidateCache();
     } catch (error) {
       console.error('Erreur:', error);
-      toast.error('Impossible d\'ajouter l\'exception');
+      toast.error('Impossible de sauvegarder l\'exception');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleEditException = (exc) => {
+    setExceptionDate(exc.date);
+    setExceptionEndDate(exc.endDate || '');
+    setExceptionMode(exc.endDate && exc.date !== exc.endDate ? 'range' : 'single');
+    setExceptionOpen(exc.isOpen);
+    setExceptionStartTime(exc.startTime || '09:00');
+    setExceptionEndTime(exc.endTime || '18:30');
+    setExceptionReason(exc.reason || '');
+    setEditingException(exc.date);
+  };
+
+  const handleCancelEdit = () => {
+    setExceptionDate('');
+    setExceptionEndDate('');
+    setExceptionReason('');
+    setExceptionOpen(false);
+    setExceptionMode('single');
+    setEditingException(null);
   };
 
   const handleDeleteException = async (date) => {
@@ -280,17 +331,64 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
             {activeTab === 'exceptions' && (
               <div className="space-y-6">
                 <div className="border border-[#E8DCCA] rounded-lg p-4">
-                  <h3 className="font-semibold text-[#1A1A1A] mb-4">Ajouter une Exception</h3>
+                  <h3 className="font-semibold text-[#1A1A1A] mb-4">
+                    {editingException ? 'Éditer Exception' : 'Ajouter une Exception'}
+                  </h3>
                   <div className="space-y-4">
+                    {/* Mode Toggle: Single Day vs Period */}
                     <div>
-                      <label className="text-sm text-[#4A4A4A] block mb-1">Date</label>
-                      <input
-                        type="date"
-                        value={exceptionDate}
-                        onChange={(e) => setExceptionDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                      />
+                      <label className="text-sm text-[#4A4A4A] block mb-2 font-semibold">Type:</label>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setExceptionMode('single')}
+                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                            exceptionMode === 'single'
+                              ? 'bg-[#D4AF37] text-white'
+                              : 'border border-[#E8DCCA] text-[#4A4A4A] hover:bg-[#F5F0E8]'
+                          }`}
+                        >
+                          Jour isolé
+                        </button>
+                        <button
+                          onClick={() => setExceptionMode('range')}
+                          className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+                            exceptionMode === 'range'
+                              ? 'bg-[#D4AF37] text-white'
+                              : 'border border-[#E8DCCA] text-[#4A4A4A] hover:bg-[#F5F0E8]'
+                          }`}
+                        >
+                          Période (du...au...)
+                        </button>
+                      </div>
                     </div>
+
+                    {/* Date fields */}
+                    <div className={exceptionMode === 'range' ? 'grid grid-cols-2 gap-4' : ''}>
+                      <div>
+                        <label className="text-sm text-[#4A4A4A] block mb-1">
+                          {exceptionMode === 'range' ? 'Date de début' : 'Date'}
+                        </label>
+                        <input
+                          type="date"
+                          value={exceptionDate}
+                          onChange={(e) => setExceptionDate(e.target.value)}
+                          className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                        />
+                      </div>
+                      {exceptionMode === 'range' && (
+                        <div>
+                          <label className="text-sm text-[#4A4A4A] block mb-1">Date de fin</label>
+                          <input
+                            type="date"
+                            value={exceptionEndDate}
+                            onChange={(e) => setExceptionEndDate(e.target.value)}
+                            className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Status Toggle */}
                     <div className="flex items-center gap-4">
                       <label className="font-semibold text-[#1A1A1A]">Statut:</label>
                       <button
@@ -304,6 +402,8 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                         {exceptionOpen ? 'Ouvert' : 'Fermé'}
                       </button>
                     </div>
+
+                    {/* Opening/Closing Times (shown when exception is Open) */}
                     {exceptionOpen && (
                       <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -326,6 +426,8 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                         </div>
                       </div>
                     )}
+
+                    {/* Reason */}
                     <div>
                       <label className="text-sm text-[#4A4A4A] block mb-1">Raison (optionnel)</label>
                       <input
@@ -336,13 +438,29 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                         className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                       />
                     </div>
-                    <button
-                      onClick={handleAddException}
-                      disabled={saving}
-                      className="w-full px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
-                    >
-                      {saving ? 'Ajout...' : 'Ajouter l\'Exception'}
-                    </button>
+
+                    {/* Submit and Cancel buttons */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleAddException}
+                        disabled={saving}
+                        className="flex-1 px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                      >
+                        {saving 
+                          ? (editingException ? 'Modification...' : 'Ajout...') 
+                          : (editingException ? 'Modifier l\'Exception' : 'Ajouter l\'Exception')
+                        }
+                      </button>
+                      {editingException && (
+                        <button
+                          onClick={handleCancelEdit}
+                          disabled={saving}
+                          className="flex-1 px-6 py-2 border border-[#E8DCCA] text-[#4A4A4A] rounded-lg hover:bg-[#F5F0E8] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                        >
+                          Annuler
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -352,24 +470,45 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                   {exceptions.length === 0 ? (
                     <p className="text-[#4A4A4A]">Aucune exception enregistrée</p>
                   ) : (
-                    exceptions.map((exc, idx) => (
-                      <div key={idx} className="border border-[#E8DCCA] rounded-lg p-3 flex justify-between items-center">
-                        <div>
-                          <p className="font-semibold text-[#1A1A1A]">{exc.date}</p>
-                          <p className="text-sm text-[#4A4A4A]">
-                            {exc.isOpen ? `${exc.startTime} - ${exc.endTime}` : 'Fermé'}
-                            {exc.reason && ` (${exc.reason})`}
-                          </p>
+                    exceptions.map((exc, idx) => {
+                      // Format date range or single date
+                      const formatDate = (dateStr) => {
+                        const date = new Date(dateStr + 'T00:00:00');
+                        return date.toLocaleDateString('fr-FR', { weekday: 'short', month: 'short', day: 'numeric' });
+                      };
+                      
+                      const dateRange = exc.endDate && exc.endDate !== exc.date
+                        ? `du ${formatDate(exc.date)} au ${formatDate(exc.endDate)}`
+                        : formatDate(exc.date);
+                      
+                      return (
+                        <div key={idx} className="border border-[#E8DCCA] rounded-lg p-3 flex justify-between items-start gap-3">
+                          <div className="flex-1">
+                            <p className="font-semibold text-[#1A1A1A]">{dateRange}</p>
+                            <p className="text-sm text-[#4A4A4A]">
+                              {exc.isOpen ? `${exc.startTime} - ${exc.endTime}` : 'Fermé'}
+                              {exc.reason && ` • ${exc.reason}`}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditException(exc)}
+                              disabled={saving}
+                              className="px-3 py-1 bg-[#D4AF37] text-white rounded-lg hover:bg-[#C5A028] disabled:opacity-50 transition-all text-sm font-medium"
+                            >
+                              Éditer
+                            </button>
+                            <button
+                              onClick={() => handleDeleteException(exc.date)}
+                              disabled={saving}
+                              className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 transition-all text-sm font-medium"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => handleDeleteException(exc.date)}
-                          disabled={saving}
-                          className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 transition-all"
-                        >
-                          Supprimer
-                        </button>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>

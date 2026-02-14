@@ -1311,7 +1311,7 @@ async def update_all_business_hours(data: dict, authorization: str = Header(None
 async def get_exceptions():
     """Get all business hours exceptions"""
     cursor = db.business_hours_exceptions.find({}, {"_id": 0}).sort("date", 1)
-    exceptions = await cursor.to_list(None)
+    exceptions = await cursor.to_list(length=10000)
     return exceptions
 
 @api_router.post("/business-hours/exceptions")
@@ -1326,6 +1326,7 @@ async def create_exception(data: dict, authorization: str = Header(None)):
     
     doc = {
         "date": data["date"],
+        "endDate": data.get("endDate"),
         "isOpen": data.get("isOpen", True),
         "startTime": data.get("startTime"),
         "endTime": data.get("endTime"),
@@ -1356,7 +1357,7 @@ async def delete_exception(date: str, authorization: str = Header(None)):
 async def get_holidays():
     """Get all holidays"""
     cursor = db.business_hours_holidays.find({}, {"_id": 0}).sort("date", 1)
-    holidays = await cursor.to_list(None)
+    holidays = await cursor.to_list(length=10000)
     return holidays
 
 @api_router.post("/business-hours/holidays")

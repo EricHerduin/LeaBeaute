@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import api from '../lib/apiClient';
+import { getExceptionForDate } from '../data/businessHours';
+import OpeningStatus from './OpeningStatus';
 
 const dayLabels = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
@@ -10,7 +12,7 @@ const formatTime = (time) => {
   return `${hours}h${minutes}`;
 };
 
-export default function OpeningHours({ fullWidth = false, showStatus = true }) {
+export default function OpeningHours({ fullWidth = false, showStatus = true, showShortReopen = false, onClosedPeriodChange }) {
   const [status, setStatus] = useState(null);
   const [generalHours, setGeneralHours] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +43,35 @@ export default function OpeningHours({ fullWidth = false, showStatus = true }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Vérification période de fermeture
+  const today = new Date();
+  const exception = getExceptionForDate(today);
+  const isClosedPeriod = exception && !exception.isOpen && exception.endDate && today.toISOString().split('T')[0] >= exception.date && today.toISOString().split('T')[0] <= exception.endDate;
+
+  // Message bandeau (reprend la logique businessHours.js)
+  let closedBannerMessage = null;
+  if (isClosedPeriod) {
+    const startLabel = new Date(exception.date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const endLabel = new Date(exception.endDate + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const reopenDate = new Date(exception.endDate + 'T00:00:00');
+    reopenDate.setDate(reopenDate.getDate() + 1);
+    const reopenLabel = reopenDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    let reopenTime = exception.startTime;
+    if (!reopenTime) {
+      // Optionnel : chercher l'heure d'ouverture normale
+      // ...
+    }
+    closedBannerMessage = `Institut fermé du ${startLabel} au ${endLabel} — Réouverture le ${reopenLabel}${reopenTime ? ' à ' + reopenTime : ''}`;
+  }
+
+  // Remonter l'info au parent
+  useEffect(() => {
+    if (onClosedPeriodChange) {
+      onClosedPeriodChange(isClosedPeriod, closedBannerMessage);
+    }
+    // eslint-disable-next-line
+  }, [isClosedPeriod, closedBannerMessage]);
+
   if (loading || !generalHours) return null;
 
   const containerClass = fullWidth 
@@ -59,12 +90,7 @@ export default function OpeningHours({ fullWidth = false, showStatus = true }) {
       <div className="mb-6">
         <h2 className="text-2xl md:text-3xl font-bold text-[#1A1A1A] mb-2">Horaires d'ouverture</h2>
         {showStatus && status && (
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${status.status === 'open' ? 'bg-green-500' : 'bg-red-500'}`}></div>
-            <span className={`text-sm font-semibold ${status.status === 'open' ? 'text-green-600' : 'text-red-600'}`}>
-              {status.message}
-            </span>
-          </div>
+          <OpeningStatus isScrolled={false} showShortReopen={isClosedPeriod} />
         )}
       </div>
 

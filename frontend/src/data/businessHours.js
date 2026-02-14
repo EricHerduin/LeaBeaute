@@ -36,54 +36,48 @@ export const invalidateCache = async () => {
 
 /**
  * Récupère les horaires du backend et met à jour le cache
+ * Force le rechargement si forceRefresh = true
  */
-export const fetchBusinessHoursFromBackend = async () => {
+export const fetchBusinessHoursFromBackend = async (forceRefresh = false) => {
   try {
     const now = Date.now();
     
-    // N'actualiser que si le cache est trop vieux
-    if (now - businessHoursCache.lastFetch < CACHE_DURATION) {
+    // N'actualiser que si le cache est trop vieux (sauf si forceRefresh)
+    if (!forceRefresh && now - businessHoursCache.lastFetch < CACHE_DURATION) {
       console.log('[BusinessHours] Cache valide, pas de fetch');
       return businessHoursCache;
     }
 
     console.log('[BusinessHours] Fetching data from backend...');
 
-    const [hoursRes, exceptionsRes, holidaysRes, statusRes] = await Promise.all([
-      api.get('/business-hours').catch((err) => {
+    const [hoursRes, exceptionsRes, holidaysRes] = await Promise.all([
+      api.get('business-hours').catch((err) => {
         console.error('[BusinessHours] Error fetching business-hours:', err.message);
         return { data: null };
       }),
-      api.get('/business-hours/exceptions').catch((err) => {
+      api.get('business-hours/exceptions').catch((err) => {
         console.error('[BusinessHours] Error fetching exceptions:', err.message);
         return { data: [] };
       }),
-      api.get('/business-hours/holidays').catch((err) => {
+      api.get('business-hours/holidays').catch((err) => {
         console.error('[BusinessHours] Error fetching holidays:', err.message);
         return { data: [] };
-      }),
-      api.get('/business-hours/status').catch((err) => {
-        console.error('[BusinessHours] Error fetching status:', err.message);
-        return { data: null };
-      }),
+      })
     ]);
+    console.log('[DEBUG][fetchBusinessHoursFromBackend] exceptionsRes =', exceptionsRes);
 
     // Mettre à jour le cache avec les vraies données
     if (hoursRes.data) {
       businessHoursCache.generalHours = hoursRes.data;
       console.log('[BusinessHours] Updated generalHours:', hoursRes.data);
     }
-    if (exceptionsRes.data) {
+    if (exceptionsRes.data && Array.isArray(exceptionsRes.data)) {
       businessHoursCache.exceptions = exceptionsRes.data;
       console.log('[BusinessHours] Updated exceptions:', exceptionsRes.data);
     }
-    if (holidaysRes.data) {
+    if (holidaysRes.data && Array.isArray(holidaysRes.data)) {
       businessHoursCache.holidays = holidaysRes.data;
       console.log('[BusinessHours] Updated holidays:', holidaysRes.data);
-    }
-    if (statusRes.data) {
-      businessHoursCache.status = statusRes.data;
-      console.log('[BusinessHours] Updated status:', statusRes.data);
     }
     
     businessHoursCache.lastFetch = now;
@@ -185,6 +179,65 @@ const formatNextOpenMessage = (nextOpenTime) => {
   return `Ouvre ${dayLabel} à ${timeLabel}`;
 };
 
+/**
+ * Retourne le message secondaire quand on est fermé
+ * Si demain est exceptionnellement fermé, affiche ce message au lieu du prochain jour d'ouverture
+ */
+const getClosedSecondaryMessage = (startDate) => {
+  const tomorrow = new Date(startDate);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  // Vérifier si demain est exceptionnellement fermé
+  const tomorrowException = getExceptionForDate(tomorrow);
+  if (tomorrowException && !tomorrowException.isOpen) {
+    // C'est une fermeture exceptionnelle
+    const endDate = tomorrowException.endDate || tomorrowException.date;
+    
+    // Si c'est un jour unique (date === endDate)
+    if (tomorrowException.date === endDate) {
+      return `Fermeture exceptionnelle demain`;
+    }
+    
+    // C'est une plage
+    const endDateObj = new Date(endDate + 'T00:00:00');
+    const reopenDate = new Date(endDateObj);
+    reopenDate.setDate(reopenDate.getDate() + 1);
+    
+    // Chercher l'heure de réouverture
+    const reopenException = getExceptionForDate(reopenDate);
+    let reopenTime = null;
+    
+    if (reopenException && reopenException.isOpen && reopenException.startTime) {
+      reopenTime = formatTime(reopenException.startTime);
+    } else {
+      const dayHours = getHoursForDay(reopenDate.getDay());
+      if (dayHours && dayHours.open) {
+        reopenTime = formatTime(dayHours.open);
+      }
+    }
+    
+    const startLabel = new Date(tomorrowException.date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const endLabel = endDateObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const reopenLabel = reopenDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    
+    if (reopenTime) {
+      return `Institut fermé du ${startLabel} au ${endLabel}\nRéouverture le ${reopenLabel} à ${reopenTime}`;
+    } else {
+      return `Institut fermé du ${startLabel} au ${endLabel}\nRéouverture le ${reopenLabel}`;
+    }
+  }
+  
+  // Vérifier si demain est un jour férié
+  if (isHoliday(tomorrow)) {
+    const holiday = businessHoursCache.holidays.find((h) => h.date === tomorrow.toISOString().split('T')[0]);
+    return `${holiday?.name || 'Jour férié'} demain`;
+  }
+  
+  // Sinon retourner le prochain jour d'ouverture
+  const nextOpenTime = getNextOpenDay(startDate);
+  return formatNextOpenMessage(nextOpenTime);
+};
+
 // ============================================================
 // Fonctions Publiques
 // ============================================================
@@ -198,11 +251,23 @@ export const isHoliday = (date) => {
 };
 
 /**
- * Récupère une exception pour une date donnée
+ * Récupère une exception pour une date donnée (jour unique ou plage)
  */
 export const getExceptionForDate = (date) => {
   const dateStr = date.toISOString().split('T')[0];
-  return businessHoursCache.exceptions.find((e) => e.date === dateStr);
+  console.log('[DEBUG][getExceptionForDate] businessHoursCache.exceptions =', businessHoursCache.exceptions);
+  // Chercher une exception qui couvre cette date
+  const found = businessHoursCache.exceptions.find((e) => {
+    const startDate = e.date;
+    const endDate = e.endDate || e.date; // Si pas d'endDate, c'est un jour unique
+    return dateStr >= startDate && dateStr <= endDate;
+  });
+  if (found) {
+    console.log('[DEBUG][getExceptionForDate] Exception trouvée pour', dateStr, ':', found);
+  } else {
+    console.log('[DEBUG][getExceptionForDate] Aucune exception pour', dateStr);
+  }
+  return found;
 };
 
 /**
@@ -227,33 +292,31 @@ export const getOpeningStatus = () => {
 
   // Vérifier si c'est un jour férié
   if (isHoliday(now)) {
-    const nextOpenTime = getNextOpenDay(now);
     const holiday = businessHoursCache.holidays.find((h) => h.date === dateStr);
     return {
       status: 'closed',
       message: `Fermé - ${holiday?.name || 'Jour férié'}`,
-      secondaryMessage: formatNextOpenMessage(nextOpenTime),
-      nextOpenTime,
+      secondaryMessage: getClosedSecondaryMessage(now),
+      nextOpenTime: getNextOpenDay(now),
     };
   }
 
   // Vérifier s'il y a une exception pour aujourd'hui
   const exception = getExceptionForDate(now);
   if (exception) {
+    // Si la période couvre aujourd'hui ET isOpen: false, on affiche toujours fermé (aucun horaire d'ouverture ne doit être affiché)
     if (!exception.isOpen) {
-      // Fermé ce jour
-      const nextOpenTime = getNextOpenDay(now);
       return {
         status: 'closed',
         message: `Fermé - ${exception.reason || 'Fermeture exceptionnelle'}`,
-        secondaryMessage: formatNextOpenMessage(nextOpenTime),
-        nextOpenTime,
+        secondaryMessage: null, // Ne jamais afficher d'horaire d'ouverture
+        nextOpenTime: getNextOpenDay(now),
       };
-    } else {
-      // Horaires modifiés ce jour
+    }
+    // Si la période couvre aujourd'hui ET isOpen: true (modification horaires), on affiche les horaires modifiés
+    else if (exception.isOpen) {
       const openMinutes = parseTimeToMinutes(exception.startTime);
       const closeMinutes = parseTimeToMinutes(exception.endTime);
-
       if (openMinutes !== null && closeMinutes !== null) {
         if (currentTimeInMinutes >= openMinutes && currentTimeInMinutes < closeMinutes) {
           return {
@@ -286,18 +349,24 @@ export const getOpeningStatus = () => {
         }
       }
     }
+    // Si exception mais pas d'horaires modifiés, on ne doit jamais tomber sur les horaires généraux
+    return {
+      status: 'closed',
+      message: 'Fermé actuellement',
+      secondaryMessage: getClosedSecondaryMessage(now),
+      nextOpenTime: getNextOpenDay(now),
+    };
   }
 
   // Utiliser les horaires généraux du jour
   const todayHours = getHoursForDay(currentDay);
 
   if (!todayHours || !todayHours.open || !todayHours.close) {
-    const nextOpenTime = getNextOpenDay(now);
     return {
       status: 'closed',
       message: 'Fermé actuellement',
-      secondaryMessage: formatNextOpenMessage(nextOpenTime),
-      nextOpenTime,
+      secondaryMessage: getClosedSecondaryMessage(now),
+      nextOpenTime: getNextOpenDay(now),
     };
   }
 
@@ -339,12 +408,11 @@ export const getOpeningStatus = () => {
   }
 
   // Si c'est après la fermeture
-  const nextOpenTime = getNextOpenDay(now);
   return {
     status: 'closed',
     message: 'Fermé actuellement',
-    secondaryMessage: formatNextOpenMessage(nextOpenTime),
-    nextOpenTime,
+    secondaryMessage: getClosedSecondaryMessage(now),
+    nextOpenTime: getNextOpenDay(now),
   };
 };
 
@@ -443,6 +511,67 @@ export const getTodayAndNextDayHours = () => {
   }
 
   return { today, tomorrow: tmrw };
+};
+/**
+ * Teste le statut d'ouverture pour une date spécifique (pour debug)
+ * Usage: getOpeningStatusForDate(new Date(2026, 1, 14))
+ */
+export const getOpeningStatusForDate = (testDate) => {
+  const dateStr = testDate.toISOString().split('T')[0];
+  const dayIndex = testDate.getDay();
+  
+  console.log(`[DEBUG] Testing date: ${dateStr} (${['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][dayIndex]})`);
+  console.log(`[DEBUG] Exceptions in cache:`, businessHoursCache.exceptions);
+  console.log(`[DEBUG] Holidays in cache:`, businessHoursCache.holidays);
+  
+  // Vérifier si c'est un jour férié
+  if (isHoliday(testDate)) {
+    console.log(`[DEBUG] Is holiday: YES`);
+    const holiday = businessHoursCache.holidays.find((h) => h.date === dateStr);
+    return {
+      status: 'closed',
+      message: `Fermé - ${holiday?.name || 'Jour férié'}`,
+      secondaryMessage: getClosedSecondaryMessage(testDate),
+      nextOpenTime: getNextOpenDay(testDate),
+    };
+  }
+
+  // Vérifier s'il y a une exception pour ce jour
+  const exception = getExceptionForDate(testDate);
+  console.log(`[DEBUG] Exception found:`, exception);
+  
+  if (exception) {
+    if (!exception.isOpen) {
+      console.log(`[DEBUG] Exception: CLOSED`);
+      return {
+        status: 'closed',
+        message: `Fermé - ${exception.reason || 'Fermeture exceptionnelle'}`,
+        secondaryMessage: getClosedSecondaryMessage(testDate),
+        nextOpenTime: getNextOpenDay(testDate),
+      };
+    }
+  }
+
+  // Horaires généraux
+  const dayHours = getHoursForDay(dayIndex);
+  console.log(`[DEBUG] Day hours:`, dayHours);
+  
+  if (!dayHours || !dayHours.open || !dayHours.close) {
+    console.log(`[DEBUG] Closed (no hours for this day)`);
+    return {
+      status: 'closed',
+      message: 'Fermé actuellement',
+      secondaryMessage: getClosedSecondaryMessage(testDate),
+      nextOpenTime: getNextOpenDay(testDate),
+    };
+  }
+
+  return {
+    status: 'open',
+    message: 'Ouvert',
+    secondaryMessage: `De ${formatTime(dayHours.open)} à ${formatTime(dayHours.close)}`,
+    nextOpenTime: null,
+  };
 };
 
 // Export du cache pour accès direct si nécessaire

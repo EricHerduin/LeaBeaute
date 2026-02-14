@@ -14,10 +14,15 @@ import OpeningHours from '../components/OpeningHours';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
 import SEO from '../components/SEO';
+import ExceptionBanner from '../components/ExceptionBanner';
+import { getOpeningStatus } from '../data/businessHours';
 
 export default function LandingPage() {
   const [showPricing, setShowPricing] = useState(false);
   const [pricingCategories, setPricingCategories] = useState(null);
+  const [exceptionBanner, setExceptionBanner] = useState(null);
+  const [isClosedPeriod, setIsClosedPeriod] = useState(false);
+  const [closedBannerMessage, setClosedBannerMessage] = useState(null);
 
   const handleShowPricing = (categories) => {
     setPricingCategories(Array.isArray(categories) && categories.length > 0 ? categories : null);
@@ -47,6 +52,25 @@ export default function LandingPage() {
   const scale = useTransform(scrollYProgress, [0, 0.3], [1, 0.95]);
   const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
 
+  useEffect(() => {
+    const updateBanner = () => {
+      const status = getOpeningStatus();
+      if (status.secondaryMessage && status.secondaryMessage.includes('Institut fermé du')) {
+        setExceptionBanner(status.secondaryMessage.replace(/\n/g, ' '));
+      } else {
+        setExceptionBanner(null);
+      }
+    };
+    updateBanner();
+    const interval = setInterval(updateBanner, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleClosedPeriodChange = (isClosed, message) => {
+    setIsClosedPeriod(isClosed);
+    setClosedBannerMessage(isClosed ? message : null);
+  };
+
   return (
     <>
       <SEO 
@@ -55,9 +79,9 @@ export default function LandingPage() {
         keywords="institut beauté Valognes, Guinot, épilation, LPG, manucure, pédicure, soins visage, accompagnement nutrition, chrononutrition, extensions cils, Manche 50"
         url="https://demo-client.htagfacility.fr"
       />
-      
       <div className="overflow-hidden bg-white">
         <Navigation onShowPricing={handleShowPricing} />
+        {isClosedPeriod && closedBannerMessage && <ExceptionBanner message={closedBannerMessage} />}
         <Hero onShowPricing={handleShowPricing} />
         <Services onShowPricing={handleShowPricing} />
         <GuinotSection onShowPricing={handleShowPricing} />
@@ -68,7 +92,7 @@ export default function LandingPage() {
         <GoogleReviews />
         <section className="py-16 md:py-24 bg-gradient-to-b from-white to-[#F9F7F2]">
           <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-center">
-            <OpeningHours fullWidth={false} showStatus={true} />
+            <OpeningHours fullWidth={false} showStatus={true} showShortReopen={isClosedPeriod} onClosedPeriodChange={handleClosedPeriodChange} />
           </div>
         </section>
         <Footer onShowPricing={handleShowPricing} />

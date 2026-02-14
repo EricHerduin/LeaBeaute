@@ -16,8 +16,26 @@ import AdminPage from './pages/AdminPage';
 import AboutInstitut from './pages/AboutInstitut';
 import ServicesPage from './pages/ServicesPage';
 import NotFound from './pages/NotFound';
+import { getOpeningStatus } from './data/businessHours';
+import { useState, useEffect } from 'react';
 
 function App() {
+  const [exceptionBanner, setExceptionBanner] = useState(null);
+
+  useEffect(() => {
+    const updateBanner = () => {
+      const status = getOpeningStatus();
+      if (status.secondaryMessage && status.secondaryMessage.includes('Institut fermé du')) {
+        setExceptionBanner(status.secondaryMessage.replace(/\n/g, ' '));
+      } else {
+        setExceptionBanner(null);
+      }
+    };
+    updateBanner();
+    const interval = setInterval(updateBanner, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <HelmetProvider>
       <StructuredData />
@@ -38,7 +56,7 @@ function App() {
         </Routes>
       </BrowserRouter>
       <CookieConsent />
-      <Toaster position="top-right" richColors />
+      <Toaster richColors position="top-center" />
     </HelmetProvider>
   );
 }

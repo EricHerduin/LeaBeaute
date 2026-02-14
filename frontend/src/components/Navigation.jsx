@@ -3,11 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Logo from '../assets/photos/logos/logo16-9_1.png';
 import OpeningStatus from './OpeningStatus';
+import ExceptionBanner from './ExceptionBanner';
+import { getOpeningStatus } from '../data/businessHours';
 
 export default function Navigation({ onShowPricing }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const [exceptionBanner, setExceptionBanner] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,6 +18,20 @@ export default function Navigation({ onShowPricing }) {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const updateBanner = () => {
+      const status = getOpeningStatus();
+      if (status.secondaryMessage && status.secondaryMessage.includes('Institut fermé du')) {
+        setExceptionBanner(status.secondaryMessage.replace(/\n/g, ' '));
+      } else {
+        setExceptionBanner(null);
+      }
+    };
+    updateBanner();
+    const interval = setInterval(updateBanner, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   const scrollToSection = (id) => {
@@ -45,154 +62,157 @@ export default function Navigation({ onShowPricing }) {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 before:content-[''] before:absolute before:inset-0 before:rounded-b-2xl before:pointer-events-none before:z-[-1] ${
-      isScrolled
-        ? 'bg-white/40 backdrop-blur shadow-lg before:bg-none'
-        : 'bg-[#222]/40 before:bg-gradient-to-b before:from-black/60 before:to-transparent'
-    }`}>
-      <div className="max-w-8xl mx-auto px-6 md:px-12 relative">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3" data-testid="nav-logo" onClick={handleHomeClick}>
-            <img
-              src={Logo}
-              alt="Léa Beauté Valognes"
-              className="h-18 w-auto"
-            />
-          </Link>
+    <>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 before:content-[''] before:absolute before:inset-0 before:rounded-b-2xl before:pointer-events-none before:z-[-1] ${
+        isScrolled
+          ? 'bg-white/40 backdrop-blur shadow-lg before:bg-none'
+          : 'bg-[#222]/40 before:bg-gradient-to-b before:from-black/60 before:to-transparent'
+      }`}>
+        <div className="max-w-8xl mx-auto px-6 md:px-12 relative">
+          <div className="flex items-center justify-between h-20">
+            {/* Logo */}
+            <Link to="/" className="flex items-center space-x-3" data-testid="nav-logo" onClick={handleHomeClick}>
+              <img
+                src={Logo}
+                alt="Léa Beauté Valognes"
+                className="h-18 w-auto"
+              />
+            </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
-            
-            <Link
-              to="/a-propos-institut"
-              className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
-            >
-              À propos
-            </Link>
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
+              <Link
+                to="/a-propos-institut"
+                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+              >
+                À propos
+              </Link>
+              <button
+                onClick={() => scrollToSection('services')}
+                data-testid="nav-services"
+                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+              >
+                Prestations
+              </button>
+              <Link
+                to="/guinot"
+                data-testid="nav-guinot"
+                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+              >
+                Guinot
+              </Link>
+              <button
+                onClick={() => scrollToSection('lpg')}
+                data-testid="nav-lpg"
+                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+              >
+                LPG
+              </button>
+              <button
+                onClick={() => scrollToSection('cartes-cadeaux')}
+                data-testid="nav-giftcards"
+                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+              >
+                Cartes cadeaux
+              </button>
+              <Link
+                to="/accompagnement-nutrition"
+                data-testid="nav-coaching"
+                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+              >
+                Accompagnement Nutrition
+              </Link>
+              <a
+                href="tel:0233214819"
+                data-testid="nav-call"
+                className={`btn-gold text-sm ${isScrolled ? '' : 'text-[#D4AF37] hover:text-white'}`}
+              >
+                Prendre rendez-vous
+              </a>
+              <OpeningStatus isScrolled={isScrolled} />
+            </div>
+
+            {/* Mobile Menu Button */}
             <button
-              onClick={() => scrollToSection('services')}
-              data-testid="nav-services"
-              className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              data-testid="mobile-menu-btn"
+              className="md:hidden p-2"
             >
-              Prestations
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {isMobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
             </button>
-            <Link
-              to="/guinot"
-              data-testid="nav-guinot"
-              className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
-            >
-              Guinot
-            </Link>
-            <button
-              onClick={() => scrollToSection('lpg')}
-              data-testid="nav-lpg"
-              className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
-            >
-              LPG
-            </button>
-            <button
-              onClick={() => scrollToSection('cartes-cadeaux')}
-              data-testid="nav-giftcards"
-              className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
-            >
-              Cartes cadeaux
-            </button>
-            <Link
-              to="/accompagnement-nutrition"
-              data-testid="nav-coaching"
-              className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
-            >
-              Accompagnement Nutrition
-            </Link>
-            <a
-              href="tel:0233214819"
-              data-testid="nav-call"
-              className={`btn-gold text-sm ${isScrolled ? '' : 'text-[#D4AF37] hover:text-white'}`}
-            >
-              Prendre rendez-vous
-            </a>
-            <OpeningStatus isScrolled={isScrolled} />
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            data-testid="mobile-menu-btn"
-            className="md:hidden p-2"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {isMobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="md:hidden pb-6 space-y-4"
+            >
+              <Link
+                to="/a-propos-institut"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+              >
+                À propos
+              </Link>
+
+              <button
+                onClick={() => scrollToSection('services')}
+                className="block w-full text-left py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+              >
+                Prestations
+              </button>
+
+              <Link
+                to="/guinot"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+              >
+                Guinot
+              </Link>
+
+              <button
+                onClick={() => scrollToSection('lpg')}
+                className="block w-full text-left py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+              >
+                LPG
+              </button>
+
+              <button
+                onClick={() => scrollToSection('cartes-cadeaux')}
+                className="block w-full text-left py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+              >
+                Cartes cadeaux
+              </button>
+
+              <Link
+                to="/accompagnement-nutrition"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+              >
+                Accompagnement Nutrition
+              </Link>
+
+              <a
+                href="tel:0233214819"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="btn-gold w-full text-sm"
+              >
+                Prendre rendez-vous
+              </a>
+            </motion.div>
+          )}
         </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="md:hidden pb-6 space-y-4"
-          >
-            <Link
-              to="/a-propos-institut"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
-            >
-              À propos
-            </Link>
-
-            <button
-              onClick={() => scrollToSection('services')}
-              className="block w-full text-left py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
-            >
-              Prestations
-            </button>
-
-            <Link
-              to="/guinot"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
-            >
-              Guinot
-            </Link>
-
-            <button
-              onClick={() => scrollToSection('lpg')}
-              className="block w-full text-left py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
-            >
-              LPG
-            </button>
-
-            <button
-              onClick={() => scrollToSection('cartes-cadeaux')}
-              className="block w-full text-left py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
-            >
-              Cartes cadeaux
-            </button>
-
-            <Link
-              to="/accompagnement-nutrition"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
-            >
-              Accompagnement Nutrition
-            </Link>
-
-            <a
-              href="tel:0233214819"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="btn-gold w-full text-sm"
-            >
-              Prendre rendez-vous
-            </a>
-          </motion.div>
-        )}
-      </div>
-    </nav>
+        {exceptionBanner && <ExceptionBanner message={exceptionBanner} />}
+      </nav>
+      
+    </>
   );
 }
