@@ -259,19 +259,12 @@ export const isHoliday = (date) => {
  */
 export const getExceptionForDate = (date) => {
   const dateStr = date.toISOString().split('T')[0];
-  console.log('[DEBUG][getExceptionForDate] businessHoursCache.exceptions =', businessHoursCache.exceptions);
   // Chercher une exception qui couvre cette date
-  const found = businessHoursCache.exceptions.find((e) => {
+  return businessHoursCache.exceptions.find((e) => {
     const startDate = e.date;
     const endDate = e.endDate || e.date; // Si pas d'endDate, c'est un jour unique
     return dateStr >= startDate && dateStr <= endDate;
   });
-  if (found) {
-    console.log('[DEBUG][getExceptionForDate] Exception trouvée pour', dateStr, ':', found);
-  } else {
-    console.log('[DEBUG][getExceptionForDate] Aucune exception pour', dateStr);
-  }
-  return found;
 };
 
 /**

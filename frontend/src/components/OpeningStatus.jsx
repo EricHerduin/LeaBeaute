@@ -11,9 +11,7 @@ export default function OpeningStatus({ isScrolled, showShortReopen }) {
     const loadStatus = async () => {
       try {
         await waitForInitialization();
-        const debug = getOpeningStatus();
-        console.log('[DEBUG][OpeningStatus] getOpeningStatus:', debug);
-        setStatus(debug);
+        setStatus(getOpeningStatus());
       } catch (error) {
         console.error('[OpeningStatus] Error loading status:', error);
         setStatus(getOpeningStatus());

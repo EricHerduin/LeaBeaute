@@ -144,7 +144,7 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
         )}
       </div>
 
-      {/* Horaires */}
+      {/* Affichage des horaires avec gestion des exceptions */}
       <div className="space-y-3">
         {dayLabels.map((day, index) => {
           const dayKey = String(index);
@@ -152,45 +152,30 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
           const isClosed = !dayHours || !dayHours.open || !dayHours.close;
           const isToday = currentTime.getDay() === index;
           // Calcul de la date du jour affiché (année/mois/jour corrects)
-          const now = new Date();
-          now.setHours(0,0,0,0);
-          const weekStart = new Date(now);
-          weekStart.setDate(now.getDate() - now.getDay());
-          const dateObj = new Date(weekStart);
-          dateObj.setDate(weekStart.getDate() + index);
-          const todayDate = new Date(); todayDate.setHours(0,0,0,0);
-          const isFutureOrToday = dateObj.getTime() >= todayDate.getTime();
+          const today = new Date(); today.setHours(0,0,0,0);
+          const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay());
+          const dateObj = new Date(weekStart); dateObj.setDate(weekStart.getDate() + index);
 
-          // On veut barrer tous les jours à venir couverts par une exception de fermeture, uniquement si le jour est normalement ouvert
-          const allExceptions = getCache().exceptions || [];
-          let isExceptionClosed = false;
-          let exceptionForDay = null;
-          for (const ex of allExceptions) {
-            const start = new Date(ex.date + 'T00:00:00');
-            const end = new Date((ex.endDate || ex.date) + 'T00:00:00');
-            if (dateObj.getTime() >= start.getTime() && dateObj.getTime() <= end.getTime() && !ex.isOpen && dateObj.getTime() >= todayDate.getTime()) {
-              isExceptionClosed = true;
-              exceptionForDay = ex;
-              break;
-            }
-          }
-
-          let info = null;
+          // Recherche exception couvrant ce jour
+          const exception = getExceptionForDate(dateObj);
           let horaires = `${formatTime(dayHours?.open)} - ${formatTime(dayHours?.close)}`;
-          let annotation = null;
-          let horairesModifies = null;
 
+          // Cas 1 : Jour habituellement fermé
           if (isClosed) {
-            info = 'Fermé';
             horaires = <span className="text-[#999]">Fermé</span>;
-          } else if (isExceptionClosed && !isClosed) {
-            // Barrer uniquement si le jour est normalement ouvert
-            info = 'Fermé';
+          }
+          // Cas 2 : Jour à venir ou aujourd'hui, dans période d'exception, habituellement ouvert
+          else if (
+            exception && !exception.isOpen && dateObj.getTime() >= today.getTime() && dateObj.getTime() <= new Date(exception.endDate + 'T00:00:00').getTime()
+          ) {
             horaires = <span className="line-through text-[#999]">{horaires}</span>;
-          } else if (exceptionForDay && exceptionForDay.isOpen) {
-            info = null;
-            annotation = <span className="text-xs text-[#C5A028] mr-2">horaire modifié</span>;
-            horairesModifies = `${formatTime(exceptionForDay.startTime)} - ${formatTime(exceptionForDay.endTime)}`;
+          }
+          // Cas 3 : Jour passé dans période d'exception, habituellement ouvert
+          else if (
+            exception && !exception.isOpen && dateObj.getTime() < today.getTime() && dateObj.getTime() >= new Date(exception.date + 'T00:00:00').getTime()
+          ) {
+            // Affichage normal (horaires habituels)
+            // Rien à changer
           }
 
           return (
@@ -206,14 +191,13 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
             >
               <span className={`font-medium ${isToday ? 'text-[#1A1A1A]' : 'text-[#4A4A4A]'}`}>{day}</span>
               <span className={`text-sm font-semibold ${
-                info === 'Fermé' || isClosed
+                isClosed
                   ? 'text-[#999]' 
                   : isToday 
                   ? 'text-[#D4AF37]' 
                   : 'text-[#1A1A1A]'
               } flex items-center`}>
-                {annotation}
-                {horairesModifies ? horairesModifies : horaires}
+                {horaires}
               </span>
             </div>
           );
