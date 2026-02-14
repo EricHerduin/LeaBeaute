@@ -1,15 +1,37 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { fetchBusinessHoursFromBackend, getOpeningStatus } from '../data/businessHours';
+import OpeningHours from './OpeningHours';
 
 export default function Contact() {
-  const hours = [
-    { day: 'Lundi', hours: '14:00–18:30' },
-    { day: 'Mardi', hours: '09:00–18:30' },
-    { day: 'Mercredi', hours: 'Fermé' },
-    { day: 'Jeudi', hours: '09:00–18:30' },
-    { day: 'Vendredi', hours: '09:00–18:30' },
-    { day: 'Samedi', hours: '09:00–16:00' },
-    { day: 'Dimanche', hours: 'Fermé' }
-  ];
+  const [hours, setHours] = useState([]);
+  const [status, setStatus] = useState(null);
+  const [isClosedPeriod, setIsClosedPeriod] = useState(false);
+
+  useEffect(() => {
+    const fetchHours = async () => {
+      const data = await fetchBusinessHoursFromBackend();
+      // Adapter le format pour l'affichage
+      const days = [
+        'Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'
+      ];
+      const result = days.map((day, idx) => {
+        const h = data.generalHours[idx] || {};
+        return {
+          day,
+          hours: h.open && h.close ? `${h.open}–${h.close}` : 'Fermé'
+        };
+      });
+      setHours(result);
+      setStatus(getOpeningStatus());
+    };
+    fetchHours();
+  }, []);
+
+  const handleClosedPeriodChange = (isClosed, message) => {
+    setIsClosedPeriod(isClosed);
+    // setClosedBannerMessage n'existe pas, la gestion du bandeau est assurée par OpeningHours
+  };
 
   return (
     <section id="contact" className="py-24 md:py-32 bg-[#F9F7F2]">
@@ -77,34 +99,15 @@ export default function Contact() {
             </div>
           </motion.div>
 
-          {/* Hours */}
+          {/* Business Hours */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
+            className="flex-1"
           >
-            <div className="glass-card p-8 rounded-2xl">
-              <h3 className="text-2xl font-bold mb-6 text-[#1A1A1A]">Horaires d'ouverture</h3>
-              <div className="space-y-3">
-                {hours.map((item, index) => (
-                  <div
-                    key={index}
-                    className={`flex justify-between items-center py-3 border-b border-[#E8DCCA] last:border-0 ${
-                      item.hours === 'Fermé' ? 'opacity-50' : ''
-                    }`}
-                    data-testid={`hours-${item.day.toLowerCase()}`}
-                  >
-                    <span className="font-medium text-[#1A1A1A]">{item.day}</span>
-                    <span className={`${
-                      item.hours === 'Fermé' ? 'text-[#808080]' : 'text-[#D4AF37] font-semibold'
-                    }`}>
-                      {item.hours}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <OpeningHours fullWidth={true} showStatus={true} showShortReopen={isClosedPeriod} onClosedPeriodChange={handleClosedPeriodChange} />
           </motion.div>
         </div>
       </div>

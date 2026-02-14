@@ -147,7 +147,11 @@ const parseTimeToMinutes = (time) => {
 
 const formatTime = (time) => {
   if (typeof time === 'string') {
-    return time;
+    const [h, m] = time.split(':');
+    if (m && m !== '00') {
+      return `${h}h${m}`;
+    }
+    return `${h}h`;
   }
 
   if (typeof time === 'number') {
@@ -306,11 +310,36 @@ export const getOpeningStatus = () => {
   if (exception) {
     // Si la période couvre aujourd'hui ET isOpen: false, on affiche toujours fermé (aucun horaire d'ouverture ne doit être affiché)
     if (!exception.isOpen) {
+      // Calculer la date de réouverture (lendemain de endDate)
+      const endDateObj = new Date((exception.endDate || exception.date) + 'T00:00:00');
+      const reopenDate = new Date(endDateObj);
+      reopenDate.setDate(reopenDate.getDate() + 1);
+      // Chercher l'heure de réouverture
+      let reopenTime = null;
+      const reopenException = getExceptionForDate(reopenDate);
+      if (reopenException && reopenException.isOpen && reopenException.startTime) {
+        reopenTime = formatTime(reopenException.startTime);
+      } else {
+        const dayHours = getHoursForDay(reopenDate.getDay());
+        if (dayHours && dayHours.open) {
+          reopenTime = formatTime(dayHours.open);
+        }
+      }
+      // Utiliser le vrai prochain jour ouvert (nextOpenTime)
+      const nextOpen = getNextOpenDay(now);
+      let secondaryMessage = '';
+      if (nextOpen) {
+        const label = nextOpen.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+        const heure = `${nextOpen.getHours()}h${String(nextOpen.getMinutes()).padStart(2, '0')}`;
+        secondaryMessage = `Réouverture le ${label} à ${heure}`;
+      } else {
+        secondaryMessage = 'Réouverture prochainement';
+      }
       return {
         status: 'closed',
         message: `Fermé - ${exception.reason || 'Fermeture exceptionnelle'}`,
-        secondaryMessage: null, // Ne jamais afficher d'horaire d'ouverture
-        nextOpenTime: getNextOpenDay(now),
+        secondaryMessage,
+        nextOpenTime: nextOpen,
       };
     }
     // Si la période couvre aujourd'hui ET isOpen: true (modification horaires), on affiche les horaires modifiés
