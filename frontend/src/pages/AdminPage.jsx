@@ -1377,7 +1377,7 @@ export default function AdminPage() {
       </div>
 
       {/* Tabs */}
-      <div className="sticky top-[73px] z-40 bg-white border-b border-[#E8DCCA]">
+      <div className="sticky top-18.25 z-40 bg-white border-b border-[#E8DCCA]">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex gap-8">
             <button

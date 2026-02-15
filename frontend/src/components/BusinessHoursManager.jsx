@@ -320,7 +320,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                 <button
                   onClick={handleSaveGeneral}
                   disabled={saving}
-                  className="w-full px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold mt-6"
+                  className="w-full px-6 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold mt-6"
                 >
                   {saving ? 'Sauvegarde...' : 'Sauvegarder les Horaires'}
                 </button>
@@ -444,7 +444,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                       <button
                         onClick={handleAddException}
                         disabled={saving}
-                        className="flex-1 px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                        className="flex-1 px-6 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
                       >
                         {saving 
                           ? (editingException ? 'Modification...' : 'Ajout...') 
@@ -542,7 +542,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                     <button
                       onClick={handleAddHoliday}
                       disabled={saving}
-                      className="w-full px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                      className="w-full px-6 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
                     >
                       {saving ? 'Ajout...' : 'Ajouter le Jour Férié'}
                     </button>

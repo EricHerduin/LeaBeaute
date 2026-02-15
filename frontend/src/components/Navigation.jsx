@@ -66,7 +66,7 @@ export default function Navigation({ onShowPricing }) {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 before:content-[''] before:absolute before:inset-0 before:rounded-b-2xl before:pointer-events-none before:z-[-1] ${
         isScrolled
           ? 'bg-white/40 backdrop-blur shadow-lg before:bg-none'
-          : 'bg-[#222]/40 before:bg-gradient-to-b before:from-black/60 before:to-transparent'
+          : 'bg-[#222]/40 before:bg-linear-to-b before:from-black/60 before:to-transparent'
       }`}>
         <div className="max-w-8xl mx-auto px-6 md:px-12 relative">
           <div className="flex items-center justify-between h-20">

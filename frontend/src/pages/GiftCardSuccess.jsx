@@ -473,11 +473,11 @@ export default function GiftCardSuccess() {
             </div>
 
             {/* Gift Card Display */}
-            <div className="bg-gradient-to-br from-[#F9F7F2] to-[#EDE7D9] border-4 border-[#D4AF37] rounded-2xl p-8 md:p-12 text-center mb-8 shadow-lg gc-code">
+            <div className="bg-linear-to-br from-[#F9F7F2] to-[#EDE7D9] border-4 border-[#D4AF37] rounded-2xl p-8 md:p-12 text-center mb-8 shadow-lg gc-code">
               <p className="text-sm uppercase tracking-widest text-[#808080] mb-4">
                 Code de votre carte
               </p>
-              <p className="text-4xl md:text-5xl font-bold font-mono text-[#1A1A1A] mb-6 tracking-wide gc-code-value">
+                <p className="text-4xl md:text-5xl font-bold font-mono text-[#1A1A1A] mb-6 tracking-wide gc-code-value">
                 {giftCard.code}
               </p>
               <p className="text-[#808080]">À présenter lors de votre visite</p>

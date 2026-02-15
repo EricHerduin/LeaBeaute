@@ -141,7 +141,7 @@ const GoogleReviews = () => {
   const writeReviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
 
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-amber-50/30">
+    <section className="py-20 bg-linear-to-b from-white to-amber-50/30">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <motion.div
@@ -188,7 +188,7 @@ const GoogleReviews = () => {
           {reviewCards.map((card, idx) => (
             <div
               key={idx}
-              className="min-w-[320px] max-w-xs flex-shrink-0 snap-center transition-transform duration-300 hover:scale-105 hover:shadow-2xl"
+              className="min-w-[320px] max-w-xs shrink-0 snap-center transition-transform duration-300 hover:scale-105 hover:shadow-2xl"
             >
               {card}
             </div>
@@ -206,7 +206,7 @@ const GoogleReviews = () => {
             href={writeReviewUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-full font-medium hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-full font-medium hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                       className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-full font-medium hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
           >
             Laisser un avis Google

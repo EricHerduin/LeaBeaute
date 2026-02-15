@@ -220,7 +220,7 @@ export default function GiftCards() {
                 data-testid={`gift-card-${amount}`}
                 className={`p-8 rounded-2xl transition-all duration-300 ${
                   selectedAmount === amount && !showForm
-                    ? 'bg-gradient-to-br from-[#D4AF37] to-[#C5A028] text-white shadow-xl'
+                    ? 'bg-linear-to-br from-[#D4AF37] to-[#C5A028] text-white shadow-xl'
                     : 'glass-card text-[#1A1A1A] hover:shadow-lg'
                 }`}
               >
@@ -235,7 +235,7 @@ export default function GiftCards() {
               transition={{ delay: amounts.length * 0.1, duration: 0.5 }}
               className={`p-6 rounded-2xl transition-all duration-300 ${
                 customAmount && showForm
-                  ? 'bg-gradient-to-br from-[#D4AF37] to-[#C5A028] text-white shadow-xl'
+                  ? 'bg-linear-to-br from-[#D4AF37] to-[#C5A028] text-white shadow-xl'
                   : 'glass-card text-[#1A1A1A] hover:shadow-lg'
               }`}
             >
@@ -441,25 +441,25 @@ export default function GiftCards() {
               <h3 className="text-xl font-bold mb-4 text-[#1A1A1A]">Informations</h3>
               <ul className="space-y-3 text-[#4A4A4A]">
                 <li className="flex items-start">
-                  <svg className="w-6 h-6 text-[#D4AF37] mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6 text-[#D4AF37] mr-3 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span>Valable 2 ans à partir de la date d'achat</span>
                 </li>
                 <li className="flex items-start">
-                  <svg className="w-6 h-6 text-[#D4AF37] mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6 text-[#D4AF37] mr-3 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span>Utilisable sur toutes les prestations de l'institut</span>
                 </li>
                 <li className="flex items-start">
-                  <svg className="w-6 h-6 text-[#D4AF37] mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6 text-[#D4AF37] mr-3 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span>Non remboursable</span>
                 </li>
                 <li className="flex items-start">
-                  <svg className="w-6 h-6 text-[#D4AF37] mr-3 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-6 h-6 text-[#D4AF37] mr-3 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <span>Paiement sécurisé par Stripe</span>

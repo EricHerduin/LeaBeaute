@@ -211,7 +211,7 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
         </p>
         <a 
           href="/contact"
-          className="inline-block px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md transition-all text-sm font-semibold"
+            className="inline-block px-4 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md transition-all text-sm font-semibold"
         >
           Prendre rendez-vous
         </a>

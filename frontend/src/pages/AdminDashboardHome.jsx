@@ -238,7 +238,7 @@ export default function AdminDashboardHome({
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={onClick}
-        className={`w-32 h-32 rounded-2xl bg-gradient-to-br ${colorClasses[color]} text-white shadow-md transition-all duration-300 flex flex-col items-center justify-center gap-2 p-4`}
+        className={`w-32 h-32 rounded-2xl bg-linear-to-br ${colorClasses[color]} text-white shadow-md transition-all duration-300 flex flex-col items-center justify-center gap-2 p-4`}
       >
         <div className="text-4xl">{icon}</div>
         <div className="text-sm font-semibold text-center">{label}</div>
@@ -247,7 +247,7 @@ export default function AdminDashboardHome({
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-[#F9F7F2] to-[#FBF9F4] p-8 overflow-auto">
+    <div className="w-full h-full bg-linear-to-br from-[#F9F7F2] to-[#FBF9F4] p-8 overflow-auto">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -326,7 +326,7 @@ export default function AdminDashboardHome({
           </div>
           <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">Cartes Cadeaux</h3>
           <p className="text-[#4A4A4A] text-sm">Gérer et suivre vos cartes cadeau</p>
-          <button className="mt-4 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md transition-all">
+          <button className="mt-4 px-4 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md transition-all">
             Accéder →
           </button>
         </motion.div>
@@ -342,7 +342,7 @@ export default function AdminDashboardHome({
           </div>
           <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">Tarifs Complets</h3>
           <p className="text-[#4A4A4A] text-sm">Consulter et modifier tous les tarifs</p>
-          <button className="mt-4 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md transition-all">
+          <button className="mt-4 px-4 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md transition-all">
             Accéder →
           </button>
         </motion.div>
@@ -358,7 +358,7 @@ export default function AdminDashboardHome({
           </div>
           <h3 className="text-xl font-bold text-[#1A1A1A] mb-2">Coupons</h3>
           <p className="text-[#4A4A4A] text-sm">Gérer les codes de réduction</p>
-          <button className="mt-4 px-4 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md transition-all">
+          <button className="mt-4 px-4 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md transition-all">
             Accéder →
           </button>
         </motion.div>
@@ -424,7 +424,7 @@ export default function AdminDashboardHome({
               <button
                 onClick={handleVerify}
                 disabled={verifyLoading || !verifyQuery.trim()}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                className="w-full px-6 py-3 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
               >
                 {verifyLoading ? 'Recherche...' : 'Rechercher'}
               </button>
@@ -637,7 +637,7 @@ export default function AdminDashboardHome({
               <button
                 onClick={handleAddPrice}
                 disabled={priceLoading}
-                className="flex-1 px-6 py-2 bg-gradient-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                className="flex-1 px-6 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
               >
                 {priceLoading ? 'Ajout...' : 'Ajouter'}
               </button>
@@ -743,7 +743,7 @@ export default function AdminDashboardHome({
               <button
                 onClick={handleAddCoupon}
                 disabled={couponLoading}
-                className="flex-1 px-6 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                className="flex-1 px-6 py-2 bg-linear-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
               >
                 {couponLoading ? 'Création...' : 'Créer'}
               </button>
