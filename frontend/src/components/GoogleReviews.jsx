@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import '../styles/custom-scrollbar-hide.css';
 import { motion } from 'framer-motion';
 import { Star, Quote, ExternalLink } from 'lucide-react';
 import { API } from '../lib/apiClient';
@@ -49,7 +50,7 @@ const GoogleReviews = () => {
 
   if (loading) {
     return (
-      <section className="py-20 bg-gradient-to-b from-white to-amber-50/30">
+      <section className="py-20 bg-linear-to-b from-white to-amber-50/30">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center">
             <div className="inline-block w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
@@ -76,6 +77,7 @@ const GoogleReviews = () => {
         viewport={{ once: true }}
         transition={{ delay: index * 0.1 }}
         className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
+        style={{ height: '420px', minHeight: '420px', maxHeight: '420px' }}
       >
         {/* Quote Icon */}
         <Quote className="w-8 h-8 text-amber-500/20 mb-4" />
@@ -97,7 +99,7 @@ const GoogleReviews = () => {
               className="w-12 h-12 rounded-full object-cover"
             />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold">
+            <div className="w-12 h-12 rounded-full bg-linear-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-semibold">
               {review.author?.charAt(0)}
             </div>
           )}
@@ -178,9 +180,19 @@ const GoogleReviews = () => {
           </div>
         </motion.div>
 
-        {/* Reviews Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {reviewCards}
+        {/* Carrousel horizontal moderne avec snap et animation */}
+        <div
+          className="flex gap-6 overflow-x-auto py-4 scroll-smooth snap-x snap-mandatory custom-scrollbar-hide"
+          style={{ scrollBehavior: 'smooth' }}
+        >
+          {reviewCards.map((card, idx) => (
+            <div
+              key={idx}
+              className="min-w-[320px] max-w-xs flex-shrink-0 snap-center transition-transform duration-300 hover:scale-105 hover:shadow-2xl"
+            >
+              {card}
+            </div>
+          ))}
         </div>
 
         {/* CTA to leave a review */}
@@ -195,6 +207,7 @@ const GoogleReviews = () => {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-full font-medium hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+                      className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-full font-medium hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
           >
             Laisser un avis Google
             <Star className="w-5 h-5 fill-white" />

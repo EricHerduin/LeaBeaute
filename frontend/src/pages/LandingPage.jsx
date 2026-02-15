@@ -90,11 +90,7 @@ export default function LandingPage() {
         <GiftCards />
         <Contact />
         <GoogleReviews />
-        <section className="py-16 md:py-24 bg-gradient-to-b from-white to-[#F9F7F2]">
-          <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-center">
-            <OpeningHours fullWidth={false} showStatus={true} showShortReopen={isClosedPeriod} onClosedPeriodChange={handleClosedPeriodChange} />
-          </div>
-        </section>
+        
         <Footer onShowPricing={handleShowPricing} />
       </div>
       {showPricing && (
