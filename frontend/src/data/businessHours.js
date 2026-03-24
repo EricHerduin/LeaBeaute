@@ -3,6 +3,26 @@
 // ============================================================
 import api from '../lib/apiClient';
 
+const getBusinessHoursStore = () => {
+  if (typeof window === 'undefined') {
+    return {
+      cache: null,
+      initializationPromise: null,
+      inFlightFetchPromise: null,
+    };
+  }
+
+  if (!window.__leaBusinessHoursStore) {
+    window.__leaBusinessHoursStore = {
+      cache: null,
+      initializationPromise: null,
+      inFlightFetchPromise: null,
+    };
+  }
+
+  return window.__leaBusinessHoursStore;
+};
+
 // Cache des données récupérées du backend
 let businessHoursCache = {
   generalHours: {
@@ -21,8 +41,7 @@ let businessHoursCache = {
   isInitialized: false, // Flag pour savoir si les vraies données ont été chargées
 };
 
-const CACHE_DURATION = 15000; // 15 secondes - plus de réactivité
-let initializationPromise = null; // Promise pour l'init
+const CACHE_DURATION = 3600000; // 1 heure
 
 /**
  * Force la mise à jour immédiate du cache
@@ -39,54 +58,73 @@ export const invalidateCache = async () => {
  * Force le rechargement si forceRefresh = true
  */
 export const fetchBusinessHoursFromBackend = async (forceRefresh = false) => {
+  const store = getBusinessHoursStore();
+  if (store.cache) {
+    businessHoursCache = store.cache;
+  }
+
+  let inFlightFetchPromise = store.inFlightFetchPromise;
+
+  if (inFlightFetchPromise) {
+    return inFlightFetchPromise;
+  }
+
   try {
     const now = Date.now();
-    
+
     // N'actualiser que si le cache est trop vieux (sauf si forceRefresh)
     if (!forceRefresh && now - businessHoursCache.lastFetch < CACHE_DURATION) {
       console.log('[BusinessHours] Cache valide, pas de fetch');
       return businessHoursCache;
     }
 
-    console.log('[BusinessHours] Fetching data from backend...');
+    inFlightFetchPromise = (async () => {
+      console.log('[BusinessHours] Fetching data from backend...');
 
-    const [hoursRes, exceptionsRes, holidaysRes] = await Promise.all([
-      api.get('business-hours').catch((err) => {
-        console.error('[BusinessHours] Error fetching business-hours:', err.message);
-        return { data: null };
-      }),
-      api.get('business-hours/exceptions').catch((err) => {
-        console.error('[BusinessHours] Error fetching exceptions:', err.message);
-        return { data: [] };
-      }),
-      api.get('business-hours/holidays').catch((err) => {
-        console.error('[BusinessHours] Error fetching holidays:', err.message);
-        return { data: [] };
-      })
-    ]);
-    console.log('[DEBUG][fetchBusinessHoursFromBackend] exceptionsRes =', exceptionsRes);
+      const [hoursRes, exceptionsRes, holidaysRes] = await Promise.all([
+        api.get('business-hours').catch((err) => {
+          console.error('[BusinessHours] Error fetching business-hours:', err.message);
+          return { data: null };
+        }),
+        api.get('business-hours/exceptions').catch((err) => {
+          console.error('[BusinessHours] Error fetching exceptions:', err.message);
+          return { data: [] };
+        }),
+        api.get('business-hours/holidays').catch((err) => {
+          console.error('[BusinessHours] Error fetching holidays:', err.message);
+          return { data: [] };
+        })
+      ]);
+      console.log('[DEBUG][fetchBusinessHoursFromBackend] exceptionsRes =', exceptionsRes);
 
-    // Mettre à jour le cache avec les vraies données
-    if (hoursRes.data) {
-      businessHoursCache.generalHours = hoursRes.data;
-      console.log('[BusinessHours] Updated generalHours:', hoursRes.data);
-    }
-    if (exceptionsRes.data && Array.isArray(exceptionsRes.data)) {
-      businessHoursCache.exceptions = exceptionsRes.data;
-      console.log('[BusinessHours] Updated exceptions:', exceptionsRes.data);
-    }
-    if (holidaysRes.data && Array.isArray(holidaysRes.data)) {
-      businessHoursCache.holidays = holidaysRes.data;
-      console.log('[BusinessHours] Updated holidays:', holidaysRes.data);
-    }
-    
-    businessHoursCache.lastFetch = now;
-    businessHoursCache.isInitialized = true;
-    console.log('[BusinessHours] Cache updated successfully');
-    return businessHoursCache;
+      if (hoursRes.data) {
+        businessHoursCache.generalHours = hoursRes.data;
+        console.log('[BusinessHours] Updated generalHours:', hoursRes.data);
+      }
+      if (exceptionsRes.data && Array.isArray(exceptionsRes.data)) {
+        businessHoursCache.exceptions = exceptionsRes.data;
+        console.log('[BusinessHours] Updated exceptions:', exceptionsRes.data);
+      }
+      if (holidaysRes.data && Array.isArray(holidaysRes.data)) {
+        businessHoursCache.holidays = holidaysRes.data;
+        console.log('[BusinessHours] Updated holidays:', holidaysRes.data);
+      }
+
+      businessHoursCache.lastFetch = Date.now();
+      businessHoursCache.isInitialized = true;
+      store.cache = businessHoursCache;
+      console.log('[BusinessHours] Cache updated successfully');
+      return businessHoursCache;
+    })();
+
+    store.inFlightFetchPromise = inFlightFetchPromise;
+
+    return await inFlightFetchPromise;
   } catch (error) {
     console.error('[BusinessHours] Unexpected error:', error);
     return businessHoursCache;
+  } finally {
+    store.inFlightFetchPromise = null;
   }
 };
 
@@ -95,35 +133,23 @@ export const fetchBusinessHoursFromBackend = async (forceRefresh = false) => {
  * À appeler avant d'utiliser les données pour la première fois
  */
 export const waitForInitialization = async () => {
+  const store = getBusinessHoursStore();
+  if (store.cache) {
+    businessHoursCache = store.cache;
+  }
+
   if (businessHoursCache.isInitialized) {
     console.log('[BusinessHours] Already initialized');
     return businessHoursCache;
   }
   
-  if (!initializationPromise) {
+  if (!store.initializationPromise) {
     console.log('[BusinessHours] Starting initialization...');
-    initializationPromise = fetchBusinessHoursFromBackend();
+    store.initializationPromise = fetchBusinessHoursFromBackend();
   }
   
-  return initializationPromise;
+  return store.initializationPromise;
 };
-
-// Initialiser au chargement du module
-if (typeof window !== 'undefined') {
-  console.log('[BusinessHours] Module loaded, starting initialization');
-  initializationPromise = fetchBusinessHoursFromBackend();
-  
-  // Puis rafraîchir régulièrement
-  const intervalId = setInterval(async () => {
-    const now = Date.now();
-    if (now - businessHoursCache.lastFetch >= CACHE_DURATION) {
-      await fetchBusinessHoursFromBackend();
-    }
-  }, 5000); // Vérifier toutes les 5 secondes si le cache est expiré
-  
-  // Stopper le monitoring si le window est unload
-  window.addEventListener('beforeunload', () => clearInterval(intervalId));
-}
 
 // ============================================================
 // Fonctions Utilitaires

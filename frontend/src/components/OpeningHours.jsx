@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import api from '../lib/apiClient';
-import { getExceptionForDate, getCache } from '../data/businessHours';
+import { getExceptionForDate, getCache, getOpeningStatus, waitForInitialization } from '../data/businessHours';
 import OpeningStatus from './OpeningStatus';
 
 const dayLabels = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
@@ -22,13 +21,10 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
     const fetchHours = async () => {
       try {
         setLoading(true);
-        const [statusRes, hoursRes] = await Promise.all([
-          api.get('/business-hours/status'),
-          api.get('/business-hours')
-        ]);
-        
-        setStatus(statusRes.data);
-        setGeneralHours(hoursRes.data);
+        await waitForInitialization();
+        const cache = getCache();
+        setStatus(getOpeningStatus());
+        setGeneralHours(cache.generalHours);
         setCurrentTime(new Date());
       } catch (error) {
         console.error('Erreur chargement horaires:', error);
@@ -38,9 +34,6 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
     };
 
     fetchHours();
-    const interval = setInterval(fetchHours, 60000); // Mise à jour chaque minute
-
-    return () => clearInterval(interval);
   }, []);
 
   // Vérification période de fermeture

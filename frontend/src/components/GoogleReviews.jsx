@@ -4,6 +4,24 @@ import { motion } from 'framer-motion';
 import { Star, Quote, ExternalLink } from 'lucide-react';
 import { API } from '../lib/apiClient';
 
+const getGoogleReviewsStore = () => {
+  if (typeof window === 'undefined') {
+    return {
+      cache: null,
+      inFlightPromise: null,
+    };
+  }
+
+  if (!window.__leaGoogleReviewsStore) {
+    window.__leaGoogleReviewsStore = {
+      cache: null,
+      inFlightPromise: null,
+    };
+  }
+
+  return window.__leaGoogleReviewsStore;
+};
+
 const GoogleReviews = () => {
   const [reviewsData, setReviewsData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -11,15 +29,30 @@ const GoogleReviews = () => {
 
   useEffect(() => {
     const fetchReviews = async () => {
+      const store = getGoogleReviewsStore();
+
+      if (store.cache) {
+        setReviewsData(store.cache);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch(`${API}/google-reviews`);
-        if (!response.ok) {
-          // Erreur API - ne pas afficher le composant
-          setError('API not configured');
-          setLoading(false);
-          return;
+        if (!store.inFlightPromise) {
+          store.inFlightPromise = fetch(`${API}/google-reviews`)
+            .then(async (response) => {
+              if (!response.ok) {
+                throw new Error('API not configured');
+              }
+              return response.json();
+            })
+            .finally(() => {
+              store.inFlightPromise = null;
+            });
         }
-        const data = await response.json();
+
+        const data = await store.inFlightPromise;
+        store.cache = data;
         setReviewsData(data);
       } catch (err) {
         // Erreur réseau ou backend - ne pas afficher le composant

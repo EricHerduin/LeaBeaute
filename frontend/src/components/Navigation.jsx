@@ -11,6 +11,7 @@ export default function Navigation({ onShowPricing }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const [exceptionBanner, setExceptionBanner] = useState(null);
+  const BANNER_REFRESH_INTERVAL = 3600000;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,7 +31,7 @@ export default function Navigation({ onShowPricing }) {
       }
     };
     updateBanner();
-    const interval = setInterval(updateBanner, 30000);
+    const interval = setInterval(updateBanner, BANNER_REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, []);
 

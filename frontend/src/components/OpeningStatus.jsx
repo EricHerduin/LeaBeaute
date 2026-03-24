@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { getOpeningStatus, fetchBusinessHoursFromBackend, waitForInitialization } from '../data/businessHours';
+import { getOpeningStatus, waitForInitialization } from '../data/businessHours';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCircle } from '@fortawesome/free-solid-svg-icons';
 
 export default function OpeningStatus({ isScrolled, showShortReopen }) {
   const [status, setStatus] = useState(null);
+  const REFRESH_INTERVAL = 60000; // recalcul local chaque minute, sans requete reseau
 
   useEffect(() => {
     // Charger les données du backend immédiatement et attendre l'init
@@ -20,11 +21,10 @@ export default function OpeningStatus({ isScrolled, showShortReopen }) {
 
     loadStatus();
 
-    // Rafraîchir toutes les 30 secondes avec rechargement du backend
-    const interval = setInterval(async () => {
-      await fetchBusinessHoursFromBackend(true);
+    // Mettre a jour l'affichage localement sans refetch reseau
+    const interval = setInterval(() => {
       setStatus(getOpeningStatus());
-    }, 30000);
+    }, REFRESH_INTERVAL);
 
     return () => clearInterval(interval);
   }, []);

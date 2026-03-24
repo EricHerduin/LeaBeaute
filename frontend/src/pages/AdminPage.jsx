@@ -9,6 +9,9 @@ import logoLeaBeaute from '../assets/photos/logos/logo16-9_1.png';
 import { pricingPdfConfig } from '../lib/pricingPdfConfig';
 
 const axios = api;
+const INSTITUTE_ADDRESS = '7 Rue du Palais de Justice - 50700 Valognes';
+const INSTITUTE_PHONE = '02 33 21 48 19';
+const INSTITUTE_WEBSITE = 'https://leabeautevalognes.fr';
 
 // Fonction pour traduire les statuts des cartes cadeaux
 const translateStatus = (status) => {
@@ -37,12 +40,14 @@ export default function AdminPage() {
   const [prices, setPrices] = useState([]);
   const [filterCategory, setFilterCategory] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [priceSortMode, setPriceSortMode] = useState('categoryOrder');
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [showAddPriceModal, setShowAddPriceModal] = useState(false);
   const [showCategoryOrderModal, setShowCategoryOrderModal] = useState(false);
   const [selectedCategoriesForPdf, setSelectedCategoriesForPdf] = useState([]);
   const [categoryOrder, setCategoryOrder] = useState([]);
+  const [categoryPreferencesLoaded, setCategoryPreferencesLoaded] = useState(false);
   const [newPriceForm, setNewPriceForm] = useState({
     category: '',
     name: '',
@@ -91,26 +96,6 @@ export default function AdminPage() {
       fetchPrices(savedToken);
     }
   }, []);
-
-  // Load category preferences on mount and when prices change
-  useEffect(() => {
-    if (prices.length > 0) {
-      // Extract unique categories from prices
-      const allCategories = [...new Set(prices.map(p => p.category))].sort();
-      
-      // Load saved order and selection from localStorage
-      const savedOrder = localStorage.getItem('categoryOrder');
-      const savedSelection = localStorage.getItem('selectedCategoriesForPdf');
-      
-      if (savedOrder) {
-        setCategoryOrder(JSON.parse(savedOrder));
-        setSelectedCategoriesForPdf(JSON.parse(savedSelection) || allCategories);
-      } else {
-        setCategoryOrder(allCategories);
-        setSelectedCategoriesForPdf(allCategories);
-      }
-    }
-  }, [prices]);
 
   // Gift Cards functions
   const fetchGiftCards = useCallback(async () => {
@@ -198,10 +183,73 @@ export default function AdminPage() {
   };
 
   // Category management functions
-  const saveCategoryPreferences = (order, selected) => {
-    localStorage.setItem('categoryOrder', JSON.stringify(order));
-    localStorage.setItem('selectedCategoriesForPdf', JSON.stringify(selected));
-  };
+  const saveCategoryPreferences = useCallback(async (order, selected) => {
+    if (!token) return;
+
+    const response = await axios.put('/prices/category-preferences', {
+      categoryOrder: order,
+      selectedCategoriesForPdf: selected
+    }, {
+      headers: { Authorization: token }
+    });
+
+    setCategoryOrder(response.data.categoryOrder);
+    setSelectedCategoriesForPdf(response.data.selectedCategoriesForPdf);
+  }, [token]);
+
+  const loadCategoryPreferences = useCallback(async () => {
+    if (!token || prices.length === 0) return;
+
+    const allCategories = [...new Set(prices.map((p) => p.category).filter(Boolean))].sort();
+    const savedOrder = localStorage.getItem('categoryOrder');
+    const savedSelection = localStorage.getItem('selectedCategoriesForPdf');
+
+    try {
+      if (savedOrder) {
+        const parsedOrder = JSON.parse(savedOrder);
+        const validSavedOrder = parsedOrder.filter((category) => allCategories.includes(category));
+        const missingCategories = allCategories.filter((category) => !validSavedOrder.includes(category));
+        const nextCategoryOrder = [...validSavedOrder, ...missingCategories];
+        const parsedSelection = savedSelection ? JSON.parse(savedSelection) : nextCategoryOrder;
+        const nextSelectedCategories = parsedSelection.filter((category) => nextCategoryOrder.includes(category));
+
+        await saveCategoryPreferences(nextCategoryOrder, nextSelectedCategories);
+        localStorage.removeItem('categoryOrder');
+        localStorage.removeItem('selectedCategoriesForPdf');
+        return;
+      }
+
+      const response = await axios.get('/prices/category-preferences', {
+        headers: { Authorization: token }
+      });
+
+      const dbOrder = response.data.categoryOrder || [];
+      const dbSelected = response.data.selectedCategoriesForPdf || [];
+
+      if (dbOrder.length > 0) {
+        setCategoryOrder(dbOrder);
+        setSelectedCategoriesForPdf(dbSelected);
+        setCategoryPreferencesLoaded(true);
+        return;
+      }
+
+      await saveCategoryPreferences(allCategories, allCategories);
+    } catch (error) {
+      console.error('Erreur chargement préférences catégories:', error);
+      setCategoryOrder(allCategories);
+      setSelectedCategoriesForPdf(allCategories);
+    } finally {
+      setCategoryPreferencesLoaded(true);
+    }
+  }, [prices, saveCategoryPreferences, token]);
+
+  useEffect(() => {
+    setCategoryPreferencesLoaded(false);
+  }, [token]);
+
+  useEffect(() => {
+    loadCategoryPreferences();
+  }, [loadCategoryPreferences]);
 
   const handleMoveCategory = (index, direction) => {
     const newOrder = [...categoryOrder];
@@ -310,311 +358,322 @@ export default function AdminPage() {
     }
   };
 
-  const handleExportPricesPdf = async () => {
+  const buildPricesPdf = async () => {
+    // Filter by active status and selected categories
+    const activePrices = prices.filter((item) => {
+      const isActive = item.isActive !== false;
+      const isInSelectedCategory = selectedCategoriesForPdf.includes(item.category);
+      return isActive && isInSelectedCategory;
+    });
+
+    if (activePrices.length === 0) {
+      throw new Error('EMPTY_PRICES');
+    }
+
+    const grouped = activePrices.reduce((acc, item) => {
+      const category = item.category || 'Autres';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(item);
+      return acc;
+    }, {});
+
+    const orderList = categoryOrder.length > 0
+      ? categoryOrder
+      : (Array.isArray(pricingPdfConfig.categoryOrder) ? pricingPdfConfig.categoryOrder : []);
+    const normalizedOrder = orderList.map((item) => String(item).toLowerCase());
+    const getOrderIndex = (category) => normalizedOrder.indexOf(String(category).toLowerCase());
+
+    const categories = Object.keys(grouped).sort((a, b) => {
+      const indexA = getOrderIndex(a);
+      const indexB = getOrderIndex(b);
+      if (indexA !== -1 || indexB !== -1) {
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        if (indexA !== indexB) return indexA - indexB;
+      }
+      return a.localeCompare(b, 'fr');
+    });
+
+    categories.forEach((category) => {
+      grouped[category].sort((a, b) => {
+        const orderA = Number.isFinite(a.sortOrder) ? a.sortOrder : 0;
+        const orderB = Number.isFinite(b.sortOrder) ? b.sortOrder : 0;
+        if (orderA !== orderB) return orderA - orderB;
+        return (a.name || '').localeCompare(b.name || '', 'fr');
+      });
+    });
+
+    const pdfDoc = await PDFDocument.create();
+
+    const fetchBytes = async (url) => {
+      if (!url) return null;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Font fetch failed');
+      return await response.arrayBuffer();
+    };
+
+    let font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    let fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     try {
-      // Filter by active status and selected categories
-      const activePrices = prices.filter((item) => {
-        const isActive = item.isActive !== false;
-        const isInSelectedCategory = selectedCategoriesForPdf.includes(item.category);
-        return isActive && isInSelectedCategory;
-      });
-      
-      if (activePrices.length === 0) {
-        toast.error('Aucun tarif actif à exporter dans les catégories sélectionnées');
-        return;
+      const regularBytes = await fetchBytes(pricingPdfConfig.fonts?.regular);
+      const semiboldBytes = await fetchBytes(pricingPdfConfig.fonts?.semibold);
+      if (regularBytes && semiboldBytes) {
+        font = await pdfDoc.embedFont(regularBytes);
+        fontBold = await pdfDoc.embedFont(semiboldBytes);
       }
+    } catch (error) {
+      console.warn('Impossible de charger Montserrat, utilisation des polices par défaut.');
+    }
 
-      const grouped = activePrices.reduce((acc, item) => {
-        const category = item.category || 'Autres';
-        if (!acc[category]) acc[category] = [];
-        acc[category].push(item);
-        return acc;
-      }, {});
-
-      // Use the saved category order instead of pricingPdfConfig
-      const orderList = categoryOrder.length > 0 ? categoryOrder : (Array.isArray(pricingPdfConfig.categoryOrder) ? pricingPdfConfig.categoryOrder : []);
-      const normalizedOrder = orderList.map((item) => String(item).toLowerCase());
-
-      const getOrderIndex = (category) => normalizedOrder.indexOf(String(category).toLowerCase());
-
-      const categories = Object.keys(grouped).sort((a, b) => {
-        const indexA = getOrderIndex(a);
-        const indexB = getOrderIndex(b);
-        if (indexA !== -1 || indexB !== -1) {
-          if (indexA === -1) return 1;
-          if (indexB === -1) return -1;
-          if (indexA !== indexB) return indexA - indexB;
-        }
-        return a.localeCompare(b, 'fr');
-      });
-
-      categories.forEach((category) => {
-        grouped[category].sort((a, b) => {
-          const orderA = Number.isFinite(a.sortOrder) ? a.sortOrder : 0;
-          const orderB = Number.isFinite(b.sortOrder) ? b.sortOrder : 0;
-          if (orderA !== orderB) return orderA - orderB;
-          return (a.name || '').localeCompare(b.name || '', 'fr');
-        });
-      });
-
-      const pdfDoc = await PDFDocument.create();
-
-      const fetchBytes = async (url) => {
-        if (!url) return null;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Font fetch failed');
-        return await response.arrayBuffer();
-      };
-
-      let font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      let fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-      try {
-        const regularBytes = await fetchBytes(pricingPdfConfig.fonts?.regular);
-        const semiboldBytes = await fetchBytes(pricingPdfConfig.fonts?.semibold);
-        if (regularBytes && semiboldBytes) {
-          font = await pdfDoc.embedFont(regularBytes);
-          fontBold = await pdfDoc.embedFont(semiboldBytes);
-        }
-      } catch (error) {
-        console.warn('Impossible de charger Montserrat, utilisation des polices par défaut.');
+    let logoImage = null;
+    let logoDims = null;
+    try {
+      const logoResponse = await fetch(logoLeaBeaute);
+      if (!logoResponse.ok) {
+        throw new Error('Logo non trouvé');
       }
-
-      let logoImage = null;
-      let logoDims = null;
+      const logoBytes = await logoResponse.arrayBuffer();
       try {
-        const logoBytes = await fetch(logoLeaBeaute).then((res) => res.arrayBuffer());
         logoImage = await pdfDoc.embedPng(logoBytes);
-        const maxLogoWidth = 140;
-        const maxLogoHeight = 50;
-        const scale = Math.min(maxLogoWidth / logoImage.width, maxLogoHeight / logoImage.height);
-        logoDims = logoImage.scale(scale);
-      } catch (error) {
-        console.warn('Logo introuvable pour le PDF tarifs.');
+      } catch (pngError) {
+        logoImage = await pdfDoc.embedJpg(logoBytes);
+      }
+      const maxLogoWidth = 140;
+      const maxLogoHeight = 50;
+      const scale = Math.min(maxLogoWidth / logoImage.width, maxLogoHeight / logoImage.height);
+      logoDims = logoImage.scale(scale);
+    } catch (error) {
+      console.warn('Logo introuvable pour le PDF tarifs.');
+    }
+
+    const pageWidth = 595.28;
+    const pageHeight = 841.89;
+    const marginX = 40;
+    const marginTop = 70;
+    const footerHeight = 48;
+    const contentBottom = 30 + footerHeight;
+
+    const colors = {
+      gold: rgb(0.83, 0.69, 0.22),
+      goldDark: rgb(0.72, 0.56, 0.14),
+      text: rgb(0.12, 0.12, 0.12),
+      muted: rgb(0.4, 0.4, 0.4)
+    };
+
+    const drawRoundedRect = (page, x, y, width, height, radius, options) => {
+      const r = Math.min(radius, width / 2, height / 2);
+      const path = `M ${x + r} ${y} L ${x + width - r} ${y} A ${r} ${r} 0 0 1 ${x + width} ${y + r} L ${x + width} ${y + height - r} A ${r} ${r} 0 0 1 ${x + width - r} ${y + height} L ${x + r} ${y + height} A ${r} ${r} 0 0 1 ${x} ${y + height - r} L ${x} ${y + r} A ${r} ${r} 0 0 1 ${x + r} ${y} Z`;
+      page.drawSvgPath(path, options);
+    };
+
+    const drawFooter = (page) => {
+      const footerY = 24;
+      page.drawLine({
+        start: { x: marginX, y: footerY + 18 },
+        end: { x: pageWidth - marginX, y: footerY + 18 },
+        thickness: 1,
+        color: colors.gold
+      });
+      const footerLabel = pricingPdfConfig.footerLabel || 'Retrouvez-nous';
+      page.drawText(footerLabel, {
+        x: marginX,
+        y: footerY + 4,
+        size: 9,
+        font: fontBold,
+        color: colors.muted
+      });
+      const footerText = `${pricingPdfConfig.facebook}  |  ${pricingPdfConfig.instagram}  |  ${pricingPdfConfig.website}`;
+      const footerTextWidth = font.widthOfTextAtSize(footerText, 9);
+      page.drawText(footerText, {
+        x: (pageWidth - footerTextWidth) / 2,
+        y: footerY + 4,
+        size: 9,
+        font,
+        color: colors.muted
+      });
+    };
+
+    const drawHeader = (page) => {
+      const title = pricingPdfConfig.title || 'Tarifs';
+
+      if (logoImage && logoDims) {
+        const logoX = marginX;
+        const logoY = pageHeight - 25 - logoDims.height;
+        page.drawImage(logoImage, {
+          x: logoX,
+          y: logoY,
+          width: logoDims.width,
+          height: logoDims.height
+        });
       }
 
-      const pageWidth = 595.28;
-      const pageHeight = 841.89;
-      const marginX = 40;
-      const marginTop = 70;
-      const footerHeight = 48;
-      const contentBottom = 30 + footerHeight;
+      const titleWidth = fontBold.widthOfTextAtSize(title, 20);
+      const titleX = (pageWidth - titleWidth) / 2;
+      page.drawText(title, {
+        x: titleX,
+        y: pageHeight - 38,
+        size: 20,
+        font: fontBold,
+        color: colors.text
+      });
 
-      const colors = {
-        gold: rgb(0.83, 0.69, 0.22),
-        goldDark: rgb(0.72, 0.56, 0.14),
-        text: rgb(0.12, 0.12, 0.12),
-        muted: rgb(0.4, 0.4, 0.4)
-      };
+      const lineLength = 80;
+      const lineStartX = (pageWidth - lineLength) / 2;
+      const lineEndX = lineStartX + lineLength;
+      page.drawLine({
+        start: { x: lineStartX, y: pageHeight - 50 },
+        end: { x: lineEndX, y: pageHeight - 50 },
+        thickness: 1.2,
+        color: colors.goldDark
+      });
+    };
 
-      const drawRoundedRect = (page, x, y, width, height, radius, options) => {
-        const r = Math.min(radius, width / 2, height / 2);
-        const path = `M ${x + r} ${y} L ${x + width - r} ${y} A ${r} ${r} 0 0 1 ${x + width} ${y + r} L ${x + width} ${y + height - r} A ${r} ${r} 0 0 1 ${x + width - r} ${y + height} L ${x + r} ${y + height} A ${r} ${r} 0 0 1 ${x} ${y + height - r} L ${x} ${y + r} A ${r} ${r} 0 0 1 ${x + r} ${y} Z`;
-        page.drawSvgPath(path, options);
-      };
+    let page = pdfDoc.addPage([pageWidth, pageHeight]);
+    drawHeader(page);
+    drawFooter(page);
 
-      const drawFooter = (page) => {
-        const footerY = 24;
-        page.drawLine({
-          start: { x: marginX, y: footerY + 18 },
-          end: { x: pageWidth - marginX, y: footerY + 18 },
-          thickness: 1,
-          color: colors.gold
-        });
-        const footerLabel = pricingPdfConfig.footerLabel || 'Retrouvez-nous';
-        page.drawText(footerLabel, {
-          x: marginX,
-          y: footerY + 4,
-          size: 9,
-          font: fontBold,
-          color: colors.muted
-        });
-        const footerText = `${pricingPdfConfig.facebook}  |  ${pricingPdfConfig.instagram}  |  ${pricingPdfConfig.website}`;
-        const footerTextWidth = font.widthOfTextAtSize(footerText, 9);
-        page.drawText(footerText, {
-          x: (pageWidth - footerTextWidth) / 2,
-          y: footerY + 4,
-          size: 9,
+    const columnGap = 12;
+    const columns = 2;
+    const columnWidth = (pageWidth - marginX * 2 - columnGap) / columns;
+    const columnTop = pageHeight - marginTop - 14;
+    let columnIndex = 0;
+    let columnY = columnTop;
+
+    const formatPrice = (value) => {
+      if (value === null || value === undefined || value === '') return 'Tarif sur demande';
+      const numberValue = Number(value);
+      if (Number.isNaN(numberValue)) return 'Tarif sur demande';
+      return `${numberValue.toFixed(2)} €`;
+    };
+
+    const truncateText = (text, maxWidth, size) => {
+      if (font.widthOfTextAtSize(text, size) <= maxWidth) return text;
+      let truncated = text;
+      while (truncated.length > 0 && font.widthOfTextAtSize(`${truncated}…`, size) > maxWidth) {
+        truncated = truncated.slice(0, -1);
+      }
+      return `${truncated}…`;
+    };
+
+    const drawDottedLeader = (currentPage, startX, endX, y, size) => {
+      const dot = '.';
+      const dotWidth = font.widthOfTextAtSize(dot, size);
+      const dotsCount = Math.max(0, Math.floor((endX - startX) / dotWidth));
+      if (dotsCount > 0) {
+        currentPage.drawText(dot.repeat(dotsCount), {
+          x: startX,
+          y,
+          size,
           font,
           color: colors.muted
         });
-      };
+      }
+    };
 
-      const drawHeader = (page) => {
-        const title = pricingPdfConfig.title || 'Tarifs';
-        
-        if (logoImage && logoDims) {
-          const logoX = marginX;
-          const logoY = pageHeight - 25 - logoDims.height;
-          page.drawImage(logoImage, {
-            x: logoX,
-            y: logoY,
-            width: logoDims.width,
-            height: logoDims.height
-          });
+    const getColumnX = (index) => marginX + index * (columnWidth + columnGap);
+
+    const ensureColumnSpace = (boxHeight) => {
+      if (columnY - boxHeight < contentBottom) {
+        if (columnIndex < columns - 1) {
+          columnIndex += 1;
+          columnY = columnTop;
+        } else {
+          page = pdfDoc.addPage([pageWidth, pageHeight]);
+          drawHeader(page);
+          drawFooter(page);
+          columnIndex = 0;
+          columnY = columnTop;
         }
-        
-        const titleWidth = fontBold.widthOfTextAtSize(title, 20);
-        const titleX = (pageWidth - titleWidth) / 2;
-        page.drawText(title, {
-          x: titleX,
-          y: pageHeight - 38,
-          size: 20,
-          font: fontBold,
-          color: colors.text
-        });
-        
-        const lineLength = 80;
-        const lineStartX = (pageWidth - lineLength) / 2;
-        const lineEndX = lineStartX + lineLength;
-        page.drawLine({
-          start: { x: lineStartX, y: pageHeight - 50 },
-          end: { x: lineEndX, y: pageHeight - 50 },
-          thickness: 1.2,
-          color: colors.goldDark
-        });
-      };
+      }
+    };
 
-      let page = pdfDoc.addPage([pageWidth, pageHeight]);
-      drawHeader(page);
-      drawFooter(page);
+    categories.forEach((category) => {
+      const items = grouped[category];
+      const boxPadding = 6;
+      const titleSize = 12;
+      const rowSize = 9;
+      const itemHeight = 14;
+      const itemGap = 2;
+      const boxWidth = columnWidth;
+      const itemsHeight = items.length * itemHeight + Math.max(0, items.length - 1) * itemGap;
+      const boxHeight = boxPadding * 2 + titleSize + 8 + itemsHeight;
 
-      const columnGap = 12;
-      const columns = 2;
-      const columnWidth = (pageWidth - marginX * 2 - columnGap) / columns;
-      const columnTop = pageHeight - marginTop - 14;
-      let columnIndex = 0;
-      let columnY = columnTop;
+      ensureColumnSpace(boxHeight);
 
-      const formatPrice = (value) => {
-        if (value === null || value === undefined || value === '') return 'Tarif sur demande';
-        const numberValue = Number(value);
-        if (Number.isNaN(numberValue)) return 'Tarif sur demande';
-        return `${numberValue.toFixed(2)} €`;
-      };
-
-      const truncateText = (text, maxWidth, size) => {
-        if (font.widthOfTextAtSize(text, size) <= maxWidth) return text;
-        let truncated = text;
-        while (truncated.length > 0 && font.widthOfTextAtSize(`${truncated}…`, size) > maxWidth) {
-          truncated = truncated.slice(0, -1);
-        }
-        return `${truncated}…`;
-      };
-
-      const drawDottedLeader = (page, startX, endX, y, size) => {
-        const dot = '.';
-        const dotWidth = font.widthOfTextAtSize(dot, size);
-        const dotsCount = Math.max(0, Math.floor((endX - startX) / dotWidth));
-        if (dotsCount > 0) {
-          page.drawText(dot.repeat(dotsCount), {
-            x: startX,
-            y,
-            size,
-            font,
-            color: colors.muted
-          });
-        }
-      };
-
-      const getColumnX = (index) => marginX + index * (columnWidth + columnGap);
-
-      const ensureColumnSpace = (boxHeight) => {
-        if (columnY - boxHeight < contentBottom) {
-          if (columnIndex < columns - 1) {
-            columnIndex += 1;
-            columnY = columnTop;
-          } else {
-            page = pdfDoc.addPage([pageWidth, pageHeight]);
-            drawHeader(page);
-            drawFooter(page);
-            columnIndex = 0;
-            columnY = columnTop;
-          }
-        }
-      };
-
-      categories.forEach((category) => {
-        const items = grouped[category];
-        const boxPadding = 8;
-        const titleSize = 12;
-        const rowSize = 9;
-        const itemHeight = 16;
-        const itemGap = 4;
-        const boxWidth = columnWidth;
-        const itemsHeight = items.length * itemHeight + Math.max(0, items.length - 1) * itemGap;
-        const boxHeight = boxPadding * 2 + titleSize + 8 + itemsHeight;
-
-        ensureColumnSpace(boxHeight);
-
-        const boxX = getColumnX(columnIndex);
-        const boxY = columnY - boxHeight;
-        drawRoundedRect(page, boxX, boxY, boxWidth, boxHeight, 10, {
-          borderColor: colors.goldDark,
-          borderWidth: 1.4,
-          color: rgb(1, 1, 1)
-        });
-        drawRoundedRect(page, boxX + 2, boxY + 2, boxWidth - 4, boxHeight - 4, 8, {
-          borderColor: colors.gold,
-          borderWidth: 0.9,
-          color: rgb(1, 1, 1)
-        });
-
-        page.drawText(category, {
-          x: boxX + boxPadding,
-          y: columnY - boxPadding - titleSize + 2,
-          size: titleSize,
-          font: fontBold,
-          color: colors.text
-        });
-
-        let lineY = columnY - boxPadding - titleSize - 10;
-        items.forEach((item) => {
-          const name = item.name || '';
-          const price = formatPrice(item.priceEur);
-          const itemBoxX = boxX + boxPadding;
-          const itemBoxY = lineY - itemHeight + 4;
-          const itemBoxWidth = boxWidth - boxPadding * 2;
-
-          drawRoundedRect(page, itemBoxX, itemBoxY, itemBoxWidth, itemHeight, 6, {
-            borderColor: colors.gold,
-            borderWidth: 0.7,
-            color: rgb(1, 1, 1)
-          });
-
-          const priceWidth = fontBold.widthOfTextAtSize(price, rowSize);
-          const priceX = itemBoxX + itemBoxWidth - 8 - priceWidth;
-          const nameX = itemBoxX + 8;
-          const maxNameWidth = priceX - nameX - 10;
-          const safeName = truncateText(name, maxNameWidth, rowSize);
-
-          page.drawText(safeName, {
-            x: nameX,
-            y: lineY - 2,
-            size: rowSize,
-            font,
-            color: colors.text
-          });
-
-          const nameWidth = font.widthOfTextAtSize(safeName, rowSize);
-          const dotsStart = nameX + nameWidth + 4;
-          const dotsEnd = priceX - 4;
-          drawDottedLeader(page, dotsStart, dotsEnd, lineY - 2, rowSize);
-
-          page.drawText(price, {
-            x: priceX,
-            y: lineY - 2,
-            size: rowSize,
-            font: fontBold,
-            color: colors.text
-          });
-
-          lineY -= itemHeight + itemGap;
-        });
-
-        columnY = boxY - 12;
+      const boxX = getColumnX(columnIndex);
+      const boxY = columnY - boxHeight;
+      drawRoundedRect(page, boxX, boxY, boxWidth, boxHeight, 10, {
+        borderColor: colors.goldDark,
+        borderWidth: 1.4,
+        color: rgb(1, 1, 1)
+      });
+      drawRoundedRect(page, boxX + 2, boxY + 2, boxWidth - 4, boxHeight - 4, 8, {
+        borderColor: colors.gold,
+        borderWidth: 0.9,
+        color: rgb(1, 1, 1)
       });
 
-      const pdfBytes = await pdfDoc.save();
+      page.drawText(category, {
+        x: boxX + boxPadding,
+        y: columnY - boxPadding - titleSize + 2,
+        size: titleSize,
+        font: fontBold,
+        color: colors.text
+      });
+
+      let lineY = columnY - boxPadding - titleSize - 10;
+      items.forEach((item) => {
+        const name = item.name || '';
+        const price = formatPrice(item.priceEur);
+        const itemBoxX = boxX + boxPadding;
+        const itemBoxY = lineY - itemHeight + 4;
+        const itemBoxWidth = boxWidth - boxPadding * 2;
+
+        drawRoundedRect(page, itemBoxX, itemBoxY, itemBoxWidth, itemHeight, 6, {
+          borderColor: colors.gold,
+          borderWidth: 0.7,
+          color: rgb(1, 1, 1)
+        });
+
+        const priceWidth = fontBold.widthOfTextAtSize(price, rowSize);
+        const priceX = itemBoxX + itemBoxWidth - 8 - priceWidth;
+        const nameX = itemBoxX + 8;
+        const maxNameWidth = priceX - nameX - 10;
+        const safeName = truncateText(name, maxNameWidth, rowSize);
+
+        page.drawText(safeName, {
+          x: nameX,
+          y: lineY - 2,
+          size: rowSize,
+          font,
+          color: colors.text
+        });
+
+        const nameWidth = font.widthOfTextAtSize(safeName, rowSize);
+        const dotsStart = nameX + nameWidth + 4;
+        const dotsEnd = priceX - 4;
+        drawDottedLeader(page, dotsStart, dotsEnd, lineY - 2, rowSize);
+
+        page.drawText(price, {
+          x: priceX,
+          y: lineY - 2,
+          size: rowSize,
+          font: fontBold,
+          color: colors.text
+        });
+
+        lineY -= itemHeight + itemGap;
+      });
+
+      columnY = boxY - 8;
+    });
+
+    return pdfDoc.save();
+  };
+
+  const handleExportPricesPdf = async () => {
+    try {
+      const pdfBytes = await buildPricesPdf();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -624,270 +683,41 @@ export default function AdminPage() {
       URL.revokeObjectURL(url);
       toast.success('PDF des tarifs généré');
     } catch (error) {
+      if (error.message === 'EMPTY_PRICES') {
+        toast.error('Aucun tarif actif à exporter dans les catégories sélectionnées');
+        return;
+      }
       console.error('Erreur génération PDF tarifs:', error);
       toast.error('Erreur lors de la génération du PDF tarifs');
     }
   };
 
   const handlePreviewPricesPdf = async () => {
+    const previewWindow = window.open('about:blank', '_blank');
+
+    if (!previewWindow) {
+      toast.error('Le navigateur a bloqué l\'ouverture de l\'onglet');
+      return;
+    }
+
     try {
-      // Filter by active status and selected categories
-      const activePrices = prices.filter((item) => {
-        const isActive = item.isActive !== false;
-        const isInSelectedCategory = selectedCategoriesForPdf.includes(item.category);
-        return isActive && isInSelectedCategory;
-      });
-      
-      if (activePrices.length === 0) {
+      previewWindow.opener = null;
+    } catch (error) {
+      console.warn('Impossible de détacher opener sur l’onglet de prévisualisation.');
+    }
+
+    try {
+      const pdfBytes = await buildPricesPdf();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      previewWindow.location.href = url;
+      toast.success('PDF des tarifs ouvert dans un nouvel onglet');
+    } catch (error) {
+      previewWindow.close();
+      if (error.message === 'EMPTY_PRICES') {
         toast.error('Aucun tarif actif à visualiser dans les catégories sélectionnées');
         return;
       }
-
-      const grouped = activePrices.reduce((acc, item) => {
-        const category = item.category || 'Autres';
-        if (!acc[category]) acc[category] = [];
-        acc[category].push(item);
-        return acc;
-      }, {});
-
-      // Use the saved category order instead of pricingPdfConfig
-      const orderList = categoryOrder.length > 0 ? categoryOrder : (Array.isArray(pricingPdfConfig.categoryOrder) ? pricingPdfConfig.categoryOrder : []);
-      const normalizedOrder = orderList.map((item) => String(item).toLowerCase());
-      const getOrderIndex = (category) => normalizedOrder.indexOf(String(category).toLowerCase());
-
-      const categories = Object.keys(grouped).sort((a, b) => {
-        const indexA = getOrderIndex(a);
-        const indexB = getOrderIndex(b);
-        if (indexA !== -1 || indexB !== -1) {
-          if (indexA === -1) return 1;
-          if (indexB === -1) return -1;
-          if (indexA !== indexB) return indexA - indexB;
-        }
-        return a.localeCompare(b, 'fr');
-      });
-
-      categories.forEach((category) => {
-        grouped[category].sort((a, b) => {
-          const orderA = Number.isFinite(a.sortOrder) ? a.sortOrder : 0;
-          const orderB = Number.isFinite(b.sortOrder) ? b.sortOrder : 0;
-          if (orderA !== orderB) return orderA - orderB;
-          return (a.name || '').localeCompare(b.name || '', 'fr');
-        });
-      });
-
-      const pdfDoc = await PDFDocument.create();
-
-      const fetchBytes = async (url) => {
-        if (!url) return null;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Font fetch failed');
-        return await response.arrayBuffer();
-      };
-
-      let font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-      let fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-      try {
-        const regularBytes = await fetchBytes(pricingPdfConfig.fonts?.regular);
-        const semiboldBytes = await fetchBytes(pricingPdfConfig.fonts?.semibold);
-        if (regularBytes && semiboldBytes) {
-          font = await pdfDoc.embedFont(regularBytes);
-          fontBold = await pdfDoc.embedFont(semiboldBytes);
-        }
-      } catch (fontError) {
-        console.warn('Polices personnalisées non disponibles, utilisation des polices par défaut');
-      }
-
-      let pageNumber = 1;
-      let page = pdfDoc.addPage([595, 842]);
-      const [pageWidth, pageHeight] = page.getSize();
-      const margin = 30;
-      let yPosition = pageHeight - margin;
-
-      // Add logo
-      try {
-        const logoImg = new Image();
-        logoImg.onload = async () => {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          canvas.width = logoImg.width;
-          canvas.height = logoImg.height;
-          ctx.drawImage(logoImg, 0, 0);
-          const logoBytes = await fetch(canvas.toDataURL('image/png')).then(r => r.arrayBuffer());
-          const embeddedImg = await pdfDoc.embedPng(logoBytes);
-          const logoDims = embeddedImg.scale(0.3);
-          page.drawImage(embeddedImg, margin, pageHeight - margin - logoDims.height, logoDims.width, logoDims.height);
-          yPosition -= logoDims.height + 15;
-        };
-        logoImg.src = logoLeaBeaute;
-      } catch (logoError) {
-        console.warn('Logo introuvable pour le PDF tarifs.');
-      }
-
-      const drawPage = (pageNum, categoryList) => {
-        if (pageNum > 1) {
-          page = pdfDoc.addPage([595, 842]);
-          yPosition = pageHeight - margin;
-        }
-
-        const title = pricingPdfConfig.title || 'Tarifs';
-        page.drawText(title, {
-          x: margin + 80,
-          y: yPosition,
-          size: 20,
-          font: fontBold,
-          color: rgb(212, 175, 55)
-        });
-        yPosition -= 30;
-
-        page.drawLine({
-          start: { x: 150, y: yPosition + 5 },
-          end: { x: 450, y: yPosition + 5 },
-          thickness: 2,
-          color: rgb(212, 175, 55)
-        });
-        yPosition -= 20;
-
-        const boxesPerRow = 2;
-        let boxX = margin;
-        let boxY = yPosition;
-        let currentBoxIndex = 0;
-
-        categoryList.forEach((category) => {
-          if (!grouped[category]) return;
-
-          const boxWidth = (pageWidth - margin * 2 - 10) / boxesPerRow;
-          const items = grouped[category];
-          const itemHeight = 15;
-          const itemGap = 2;
-          const contentHeight = items.length * (itemHeight + itemGap) + 30;
-
-          if (boxY - contentHeight - 10 < margin + 50 && currentBoxIndex % boxesPerRow !== 0) {
-            boxX = margin;
-            boxY -= contentHeight + 20;
-          }
-
-          if (boxY - contentHeight - 10 < margin + 50) {
-            yPosition = boxY - 20;
-            drawPage(pageNum + 1, categoryList.slice(categoryList.indexOf(category)));
-            return;
-          }
-
-          const columnIndex = currentBoxIndex % boxesPerRow;
-          boxX = margin + columnIndex * (boxWidth + 10);
-
-          const drawRoundRect = (x, y, w, h, r, borderColor) => {
-            const path = [];
-            path.push({ x: x + r, y });
-            path.push({ x: x + w - r, y });
-            path.push({ x: x + w, y: y + r });
-            path.push({ x: x + w, y: y + h - r });
-            path.push({ x: x + w - r, y: y + h });
-            path.push({ x: x + r, y: y + h });
-            path.push({ x, y: y + h - r });
-            path.push({ x, y: y + r });
-            for (let i = 0; i < path.length; i++) {
-              const curr = path[i];
-              const next = path[(i + 1) % path.length];
-              page.drawLine({ start: curr, end: next, thickness: 1.5, color: borderColor });
-            }
-          };
-
-          drawRoundRect(boxX + 1, boxY - contentHeight - 1, boxWidth - 2, contentHeight, 8, rgb(212, 175, 55));
-          drawRoundRect(boxX - 1, boxY - contentHeight + 1, boxWidth - 2, contentHeight - 2, 8, rgb(212, 175, 55));
-
-          page.drawText(category, {
-            x: boxX + 10,
-            y: boxY - 20,
-            size: 12,
-            font: fontBold,
-            color: rgb(212, 175, 55)
-          });
-
-          let itemY = boxY - 40;
-          items.forEach((item) => {
-            const name = item.name || '';
-            const price = item.priceEur ? `${item.priceEur.toFixed(2)}€` : 'Tarif sur demande';
-
-            page.drawText(name, {
-              x: boxX + 10,
-              y: itemY,
-              size: 9,
-              font,
-              color: rgb(26, 26, 26),
-              maxWidth: boxWidth - 40
-            });
-
-            page.drawText(price, {
-              x: boxX + boxWidth - 25,
-              y: itemY,
-              size: 9,
-              font: fontBold,
-              color: rgb(26, 26, 26),
-              align: 'right'
-            });
-
-            itemY -= itemHeight + itemGap;
-          });
-
-          columnY = boxY - 12;
-          currentBoxIndex++;
-
-          if (currentBoxIndex % boxesPerRow === 0) {
-            boxY -= contentHeight + 20;
-          }
-        });
-
-        yPosition = boxY - 20;
-      };
-
-      drawPage(1, categories);
-
-      // Add footer with social links
-      const footerY = margin + 15;
-      const footerLabel = pricingPdfConfig.footerLabel || 'Retrouvez-nous';
-      page.drawText(footerLabel, {
-        x: margin,
-        y: footerY + 20,
-        size: 9,
-        font: fontBold,
-        color: rgb(212, 175, 55)
-      });
-
-      const socialSpacing = 80;
-      if (pricingPdfConfig.website) {
-        page.drawText(pricingPdfConfig.website, {
-          x: margin,
-          y: footerY,
-          size: 8,
-          font,
-          color: rgb(74, 74, 74)
-        });
-      }
-      if (pricingPdfConfig.facebook) {
-        page.drawText(pricingPdfConfig.facebook, {
-          x: margin + socialSpacing,
-          y: footerY,
-          size: 8,
-          font,
-          color: rgb(74, 74, 74)
-        });
-      }
-      if (pricingPdfConfig.instagram) {
-        page.drawText(pricingPdfConfig.instagram, {
-          x: margin + socialSpacing * 2,
-          y: footerY,
-          size: 8,
-          font,
-          color: rgb(74, 74, 74)
-        });
-      }
-
-      const pdfBytes = await pdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      toast.success('PDF des tarifs ouvert dans un nouvel onglet');
-    } catch (error) {
       console.error('Erreur génération PDF tarifs:', error);
       toast.error('Erreur lors de la génération du PDF tarifs');
     }
@@ -998,6 +828,168 @@ export default function AdminPage() {
   const handleGeneratePDF = async (card) => {
     if (!card.code) {
       toast.error('Cette carte doit être validée avant de générer le PDF');
+      return;
+    }
+
+    const previewWindow = window.open('about:blank', '_blank');
+
+    if (!previewWindow) {
+      toast.error('Le navigateur a bloqué l\'ouverture de l\'onglet');
+      return;
+    }
+
+    try {
+      previewWindow.opener = null;
+    } catch (error) {
+      console.warn('Impossible de détacher opener sur l’onglet du PDF carte cadeau.');
+    }
+
+    try {
+      const pdfDoc = await PDFDocument.create();
+      const page = pdfDoc.addPage([595.28, 419.53]);
+      const { width, height } = page.getSize();
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      const logoResponse = await fetch(logoLeaBeaute);
+      if (!logoResponse.ok) {
+        throw new Error('Logo non trouvé');
+      }
+      const logoBytes = await logoResponse.arrayBuffer();
+      let logoImage;
+      try {
+        logoImage = await pdfDoc.embedPng(logoBytes);
+      } catch (pngError) {
+        logoImage = await pdfDoc.embedJpg(logoBytes);
+      }
+
+      const bg = rgb(0.958, 0.933, 0.902);
+      const accent = rgb(0.67, 0.51, 0.5);
+      const text = rgb(0.22, 0.19, 0.18);
+      const muted = rgb(0.48, 0.41, 0.39);
+      const rule = rgb(0.78, 0.72, 0.68);
+
+      page.drawRectangle({ x: 0, y: 0, width, height, color: bg });
+
+      const logoScale = Math.min(66 / logoImage.width, 54 / logoImage.height);
+      const logoWidth = logoImage.width * logoScale;
+      const logoHeight = logoImage.height * logoScale;
+      page.drawImage(logoImage, {
+        x: (width - logoWidth) / 2,
+        y: height - 86,
+        width: logoWidth,
+        height: logoHeight
+      });
+
+      const title = 'CHÈQUE CADEAU';
+      const titleSize = 22;
+      const titleWidth = fontBold.widthOfTextAtSize(title, titleSize);
+      page.drawText(title, {
+        x: (width - titleWidth) / 2,
+        y: height - 126,
+        size: titleSize,
+        font: fontBold,
+        color: accent
+      });
+
+      const recipientName = card.recipient_name || `${card.buyer_firstname} ${card.buyer_lastname}`;
+      const buyerName = `${card.buyer_firstname} ${card.buyer_lastname}`;
+
+      const drawLineField = (label, value, y) => {
+        page.drawText(label, { x: 52, y: y + 4, size: 12, font, color: accent });
+        page.drawLine({
+          start: { x: 150, y },
+          end: { x: width - 54, y },
+          thickness: 1,
+          color: rule
+        });
+        page.drawText(value, { x: 158, y: y + 5, size: 15, font: fontBold, color: text });
+      };
+
+      drawLineField('Pour :', recipientName, height - 178);
+      drawLineField('De la part de :', buyerName, height - 218);
+
+      page.drawText('Montant', { x: 52, y: height - 268, size: 10, font, color: muted });
+      page.drawText(`${card.amountEur} EUR`, { x: 52, y: height - 290, size: 22, font: fontBold, color: accent });
+      page.drawText('N° du bon', { x: 250, y: height - 268, size: 10, font, color: muted });
+      page.drawText(card.code || '-', { x: 250, y: height - 286, size: 14, font: fontBold, color: text });
+      page.drawText("Valable jusqu'au", { x: 430, y: height - 268, size: 10, font, color: muted });
+      page.drawText(card.expiresAt ? new Date(card.expiresAt).toLocaleDateString('fr-FR') : '-', {
+        x: 430,
+        y: height - 286,
+        size: 12,
+        font: fontBold,
+        color: text
+      });
+
+      page.drawText("Conditions d'utilisation", {
+        x: 52,
+        y: 118,
+        size: 11,
+        font: fontBold,
+        color: accent
+      });
+      [
+        "• Valable 2 ans à partir de la date d'achat",
+        "• Utilisable sur toutes les prestations de l'institut",
+        '• Non remboursable et non transférable',
+        '• À présenter en version papier ou numérique'
+      ].forEach((condition, index) => {
+        page.drawText(condition, {
+          x: 60,
+          y: 100 - index * 14,
+          size: 10,
+          font,
+          color: text
+        });
+      });
+
+      if (card.personal_message) {
+        const messageLines = wrapText(card.personal_message, 34).slice(0, 4);
+        page.drawText('Message personnel', {
+          x: 322,
+          y: 118,
+          size: 11,
+          font: fontBold,
+          color: accent
+        });
+        messageLines.forEach((line, index) => {
+          page.drawText(line, {
+            x: 322,
+            y: 100 - index * 14,
+            size: 11,
+            font,
+            color: text
+          });
+        });
+      }
+
+      page.drawLine({
+        start: { x: 52, y: 52 },
+        end: { x: width - 52, y: 52 },
+        thickness: 1,
+        color: rule
+      });
+      page.drawText(INSTITUTE_ADDRESS, { x: 52, y: 34, size: 10, font, color: text });
+      page.drawText(`Tél. ${INSTITUTE_PHONE}`, { x: 52, y: 20, size: 10, font, color: text });
+      page.drawText(INSTITUTE_WEBSITE.replace('https://', ''), {
+        x: 388,
+        y: 20,
+        size: 10,
+        font: fontBold,
+        color: accent
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      previewWindow.location.href = url;
+      toast.success('PDF généré avec succès');
+      return;
+    } catch (error) {
+      previewWindow.close();
+      console.error('Erreur génération PDF:', error);
+      toast.error('Erreur lors de la génération du PDF');
       return;
     }
 
@@ -1218,10 +1210,11 @@ export default function AdminPage() {
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
+      previewWindow.location.href = url;
 
       toast.success('PDF généré avec succès');
     } catch (error) {
+      previewWindow.close();
       console.error('Erreur génération PDF:', error);
       toast.error('Erreur lors de la génération du PDF');
     }
@@ -1319,14 +1312,44 @@ export default function AdminPage() {
     }
   };
 
-  const categories = ['all', ...new Set(prices.map(p => p.category))];
-  const filteredPrices = prices.filter(item => {
-    const matchCategory = filterCategory === 'all' || item.category === filterCategory;
-    const matchSearch = searchTerm === '' || 
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchCategory && matchSearch;
-  });
+  const orderedCategories = categoryPreferencesLoaded && categoryOrder.length > 0
+    ? categoryOrder
+    : [...new Set(prices.map((p) => p.category))].sort();
+  const alphabeticCategories = [...new Set(prices.map((p) => p.category))].sort((a, b) => a.localeCompare(b, 'fr'));
+  const categories = ['all', ...(priceSortMode === 'alphabetical' ? alphabeticCategories : orderedCategories)];
+  const filteredPrices = prices
+    .filter(item => {
+      const matchCategory = filterCategory === 'all' || item.category === filterCategory;
+      const matchSearch = searchTerm === '' || 
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchCategory && matchSearch;
+    })
+    .sort((a, b) => {
+      if (priceSortMode === 'alphabetical') {
+        const categoryCompare = (a.category || '').localeCompare(b.category || '', 'fr');
+        if (categoryCompare !== 0) {
+          return categoryCompare;
+        }
+      } else {
+        const categoryIndexA = orderedCategories.indexOf(a.category);
+        const categoryIndexB = orderedCategories.indexOf(b.category);
+        const safeCategoryIndexA = categoryIndexA === -1 ? Number.MAX_SAFE_INTEGER : categoryIndexA;
+        const safeCategoryIndexB = categoryIndexB === -1 ? Number.MAX_SAFE_INTEGER : categoryIndexB;
+
+        if (safeCategoryIndexA !== safeCategoryIndexB) {
+          return safeCategoryIndexA - safeCategoryIndexB;
+        }
+      }
+
+      const orderA = Number.isFinite(a.sortOrder) ? a.sortOrder : 0;
+      const orderB = Number.isFinite(b.sortOrder) ? b.sortOrder : 0;
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      return (a.name || '').localeCompare(b.name || '', 'fr');
+    });
 
   const filteredGiftCards = giftCards.filter(card => giftCardStatusFilters[card.status]);
 
@@ -1457,6 +1480,14 @@ export default function AdminPage() {
                   {categories.map(cat => (
                     <option key={cat} value={cat}>{cat === 'all' ? 'Toutes les catégories' : cat}</option>
                   ))}
+                </select>
+                <select
+                  value={priceSortMode}
+                  onChange={(e) => setPriceSortMode(e.target.value)}
+                  className="px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                >
+                  <option value="categoryOrder">Tri: ordre catégories</option>
+                  <option value="alphabetical">Tri: alphabétique</option>
                 </select>
               </div>
               <div className="flex flex-col md:flex-row gap-3">

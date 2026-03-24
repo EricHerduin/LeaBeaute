@@ -20,6 +20,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 const axios = api;
+const INSTITUTE_ADDRESS = '7 Rue du Palais de Justice - 50700 Valognes';
+const INSTITUTE_PHONE = '02 33 21 48 19';
+const INSTITUTE_WEBSITE = 'https://leabeautevalognes.fr';
 
 export default function GiftCardSuccess() {
   const [searchParams] = useSearchParams();
@@ -65,6 +68,175 @@ export default function GiftCardSuccess() {
 
   const handleOpenPdf = async () => {
     if (!giftCard) return;
+
+    const previewWindow = window.open('about:blank', '_blank');
+
+    if (!previewWindow) {
+      toast.error('Le navigateur a bloque l\'ouverture de l\'onglet');
+      return;
+    }
+
+    try {
+      previewWindow.opener = null;
+    } catch (error) {
+      console.warn('Impossible de detacher opener sur l’onglet du bon cadeau.');
+    }
+
+    try {
+      const pdfDoc = await PDFDocument.create();
+      const pageWidth = 595.28;
+      const pageHeight = 419.53;
+      const page = pdfDoc.addPage([pageWidth, pageHeight]);
+      const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+      const logoResponse = await fetch(logoLeaBeaute);
+      const logoBytes = await logoResponse.arrayBuffer();
+      const logoImage = await pdfDoc.embedPng(logoBytes);
+
+      const bg = rgb(0.958, 0.933, 0.902);
+      const accent = rgb(0.67, 0.51, 0.5);
+      const text = rgb(0.22, 0.19, 0.18);
+      const muted = rgb(0.48, 0.41, 0.39);
+      const rule = rgb(0.78, 0.72, 0.68);
+
+      page.drawRectangle({ x: 0, y: 0, width: pageWidth, height: pageHeight, color: bg });
+
+      const logoScale = Math.min(66 / logoImage.width, 54 / logoImage.height);
+      const logoWidth = logoImage.width * logoScale;
+      const logoHeight = logoImage.height * logoScale;
+      page.drawImage(logoImage, {
+        x: (pageWidth - logoWidth) / 2,
+        y: pageHeight - 86,
+        width: logoWidth,
+        height: logoHeight
+      });
+
+      const title = 'CHÈQUE CADEAU';
+      const titleSize = 22;
+      const titleWidth = fontBold.widthOfTextAtSize(title, titleSize);
+      page.drawText(title, {
+        x: (pageWidth - titleWidth) / 2,
+        y: pageHeight - 126,
+        size: titleSize,
+        font: fontBold,
+        color: accent
+      });
+
+      const recipientName = giftCard.recipient_name || `${giftCard.buyer_firstname} ${giftCard.buyer_lastname}`;
+      const buyerName = `${giftCard.buyer_firstname} ${giftCard.buyer_lastname}`;
+      const displayAmount = giftCard.amountEur ?? giftCard.amount;
+      const displayExpiresAt = giftCard.expiresAt ?? giftCard.expires_at;
+
+      const drawLineField = (label, value, y) => {
+        page.drawText(label, { x: 52, y: y + 4, size: 12, font, color: accent });
+        page.drawLine({
+          start: { x: 150, y },
+          end: { x: pageWidth - 54, y },
+          thickness: 1,
+          color: rule
+        });
+        page.drawText(value, { x: 158, y: y + 5, size: 15, font: fontBold, color: text });
+      };
+
+      drawLineField('Pour :', recipientName, pageHeight - 178);
+      drawLineField('De la part de :', buyerName, pageHeight - 218);
+
+      page.drawText('Montant', { x: 52, y: pageHeight - 268, size: 10, font, color: muted });
+      page.drawText(`${displayAmount} EUR`, { x: 52, y: pageHeight - 290, size: 22, font: fontBold, color: accent });
+      page.drawText('N° du bon', { x: 250, y: pageHeight - 268, size: 10, font, color: muted });
+      page.drawText(giftCard.code || '-', { x: 250, y: pageHeight - 286, size: 14, font: fontBold, color: text });
+      page.drawText("Valable jusqu'au", { x: 430, y: pageHeight - 268, size: 10, font, color: muted });
+      page.drawText(formatDate(displayExpiresAt), { x: 430, y: pageHeight - 286, size: 12, font: fontBold, color: text });
+
+      page.drawText("Conditions d'utilisation", {
+        x: 52,
+        y: 118,
+        size: 11,
+        font: fontBold,
+        color: accent
+      });
+      [
+        "• Valable 2 ans à partir de la date d'achat",
+        "• Utilisable sur toutes les prestations de l'institut",
+        '• Non remboursable et non transférable',
+        '• À présenter en version papier ou numérique'
+      ].forEach((condition, index) => {
+        page.drawText(condition, {
+          x: 60,
+          y: 100 - index * 14,
+          size: 10,
+          font,
+          color: text
+        });
+      });
+
+      if (giftCard.personal_message) {
+        const wrapText = (textValue, maxWidth, fontRef, size) => {
+          const words = textValue.split(' ');
+          const lines = [];
+          let current = '';
+          for (const word of words) {
+            const test = current ? `${current} ${word}` : word;
+            if (fontRef.widthOfTextAtSize(test, size) <= maxWidth) {
+              current = test;
+            } else {
+              if (current) lines.push(current);
+              current = word;
+            }
+          }
+          if (current) lines.push(current);
+          return lines;
+        };
+
+        const lines = wrapText(giftCard.personal_message, 230, font, 11).slice(0, 4);
+        page.drawText('Message personnel', {
+          x: 322,
+          y: 118,
+          size: 11,
+          font: fontBold,
+          color: accent
+        });
+        lines.forEach((line, index) => {
+          page.drawText(line, {
+            x: 322,
+            y: 100 - index * 14,
+            size: 11,
+            font,
+            color: text
+          });
+        });
+      }
+
+      page.drawLine({
+        start: { x: 52, y: 52 },
+        end: { x: pageWidth - 52, y: 52 },
+        thickness: 1,
+        color: rule
+      });
+      page.drawText(INSTITUTE_ADDRESS, { x: 52, y: 34, size: 10, font, color: text });
+      page.drawText(`Tél. ${INSTITUTE_PHONE}`, { x: 52, y: 20, size: 10, font, color: text });
+      page.drawText(INSTITUTE_WEBSITE.replace('https://', ''), {
+        x: 388,
+        y: 20,
+        size: 10,
+        font: fontBold,
+        color: accent
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      previewWindow.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      return;
+    } catch (error) {
+      previewWindow.close();
+      console.error('PDF generation error:', error);
+      toast.error('Erreur lors de la génération du PDF');
+      return;
+    }
+
     try {
       const pdfDoc = await PDFDocument.create();
       const pageWidth = 595.28; // A5 landscape width in points
@@ -297,9 +469,10 @@ export default function GiftCardSuccess() {
       const pdfBytes = await pdfDoc.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank', 'noopener,noreferrer');
+      previewWindow.location.href = url;
       setTimeout(() => URL.revokeObjectURL(url), 5000);
     } catch (error) {
+      previewWindow.close();
       console.error('PDF generation error:', error);
       toast.error('Erreur lors de la génération du PDF');
     }

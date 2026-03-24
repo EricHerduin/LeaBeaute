@@ -54,6 +54,10 @@ class PriceItemUpdate(BaseModel):
     isActive: Optional[bool] = None
     sortOrder: Optional[int] = None
 
+class PriceCategoryPreferences(BaseModel):
+    categoryOrder: List[str] = Field(default_factory=list)
+    selectedCategoriesForPdf: List[str] = Field(default_factory=list)
+
 class GiftCard(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -281,6 +285,65 @@ async def seed_database():
             await db.price_items.insert_one(doc)
         logging.info(f"Seeded {len(PRICE_ITEMS_SEED)} price items")
 
+def normalize_category_preferences(
+    all_categories: List[str],
+    category_order: Optional[List[str]] = None,
+    selected_categories: Optional[List[str]] = None
+) -> PriceCategoryPreferences:
+    unique_categories = sorted({category for category in all_categories if category})
+    sanitized_order = []
+    for category in category_order or []:
+        if category in unique_categories and category not in sanitized_order:
+            sanitized_order.append(category)
+    missing_categories = [category for category in unique_categories if category not in sanitized_order]
+    final_order = sanitized_order + missing_categories
+
+    sanitized_selected = []
+    for category in selected_categories or final_order:
+        if category in final_order and category not in sanitized_selected:
+            sanitized_selected.append(category)
+
+    return PriceCategoryPreferences(
+        categoryOrder=final_order,
+        selectedCategoriesForPdf=sanitized_selected
+    )
+
+async def get_normalized_price_category_preferences() -> PriceCategoryPreferences:
+    all_prices = await db.price_items.find({}, {"_id": 0, "category": 1}).to_list(1000)
+    all_categories = [item.get("category") for item in all_prices if item.get("category")]
+    saved_preferences = await db.admin_settings.find_one({"key": "price_category_preferences"}, {"_id": 0})
+
+    preferences = normalize_category_preferences(
+        all_categories=all_categories,
+        category_order=(saved_preferences or {}).get("categoryOrder"),
+        selected_categories=(saved_preferences or {}).get("selectedCategoriesForPdf")
+    )
+
+    await db.admin_settings.update_one(
+        {"key": "price_category_preferences"},
+        {"$set": {"key": "price_category_preferences", **preferences.model_dump()}},
+        upsert=True
+    )
+
+    return preferences
+
+def sort_prices_with_category_order(prices: List[Dict], category_order: Optional[List[str]] = None) -> List[Dict]:
+    normalized_order = [str(category).lower() for category in (category_order or [])]
+
+    def sort_key(item: Dict):
+        category = str(item.get("category") or "")
+        try:
+            category_index = normalized_order.index(category.lower())
+        except ValueError:
+            category_index = len(normalized_order)
+
+        sort_order = item.get("sortOrder")
+        safe_sort_order = sort_order if isinstance(sort_order, int) else 0
+        name = str(item.get("name") or "")
+        return (category_index, category.lower(), safe_sort_order, name.lower())
+
+    return sorted(prices, key=sort_key)
+
 # ============ ROUTES ============
 
 @api_router.get("/")
@@ -292,7 +355,8 @@ async def root():
 async def get_prices():
     """Get all active price items"""
     prices = await db.price_items.find({"isActive": True}, {"_id": 0}).to_list(1000)
-    return sorted(prices, key=lambda x: (x['category'], x['sortOrder']))
+    preferences = await get_normalized_price_category_preferences()
+    return sort_prices_with_category_order(prices, preferences.categoryOrder)
 
 @api_router.get("/prices/all", response_model=List[PriceItem])
 async def get_all_prices(authorization: str = Header(None)):
@@ -300,7 +364,40 @@ async def get_all_prices(authorization: str = Header(None)):
     if authorization != ADMIN_PASSWORD:
         raise HTTPException(status_code=401, detail="Unauthorized")
     prices = await db.price_items.find({}, {"_id": 0}).to_list(1000)
-    return sorted(prices, key=lambda x: (x['category'], x['sortOrder']))
+    preferences = await get_normalized_price_category_preferences()
+    return sort_prices_with_category_order(prices, preferences.categoryOrder)
+
+@api_router.get("/prices/category-preferences", response_model=PriceCategoryPreferences)
+async def get_price_category_preferences(authorization: str = Header(None)):
+    """Admin: Get saved category preferences"""
+    if authorization != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    return await get_normalized_price_category_preferences()
+
+@api_router.put("/prices/category-preferences", response_model=PriceCategoryPreferences)
+async def update_price_category_preferences(
+    preferences: PriceCategoryPreferences,
+    authorization: str = Header(None)
+):
+    """Admin: Save category preferences"""
+    if authorization != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    all_prices = await db.price_items.find({}, {"_id": 0, "category": 1}).to_list(1000)
+    all_categories = [item.get("category") for item in all_prices if item.get("category")]
+    normalized_preferences = normalize_category_preferences(
+        all_categories=all_categories,
+        category_order=preferences.categoryOrder,
+        selected_categories=preferences.selectedCategoriesForPdf
+    )
+
+    await db.admin_settings.update_one(
+        {"key": "price_category_preferences"},
+        {"$set": {"key": "price_category_preferences", **normalized_preferences.model_dump()}},
+        upsert=True
+    )
+
+    return normalized_preferences
 
 @api_router.post("/prices", response_model=PriceItem)
 async def create_price(item: PriceItem, authorization: str = Header(None)):

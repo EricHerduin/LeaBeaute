@@ -1,9 +1,9 @@
 export const pricingPdfConfig = {
   title: 'Tarifs',
   footerLabel: "Retrouvez-nous",
-  website: 'https://www.votre-site.fr',
-  facebook: 'https://facebook.com/votre-page',
-  instagram: 'https://instagram.com/votre-compte',
+  website: 'https://leabeautevalognes.fr',
+  facebook: 'https://www.facebook.com/leabeautevalognes',
+  instagram: 'https://www.instagram.com/leabeautevalognes',
   categoryOrder: [
     'Soins visage',
     'Soins corps',

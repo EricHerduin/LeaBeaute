@@ -1,32 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { fetchBusinessHoursFromBackend, getOpeningStatus } from '../data/businessHours';
 import OpeningHours from './OpeningHours';
 
 export default function Contact() {
-  const [hours, setHours] = useState([]);
-  const [status, setStatus] = useState(null);
   const [isClosedPeriod, setIsClosedPeriod] = useState(false);
-
-  useEffect(() => {
-    const fetchHours = async () => {
-      const data = await fetchBusinessHoursFromBackend();
-      // Adapter le format pour l'affichage
-      const days = [
-        'Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'
-      ];
-      const result = days.map((day, idx) => {
-        const h = data.generalHours[idx] || {};
-        return {
-          day,
-          hours: h.open && h.close ? `${h.open}–${h.close}` : 'Fermé'
-        };
-      });
-      setHours(result);
-      setStatus(getOpeningStatus());
-    };
-    fetchHours();
-  }, []);
 
   const handleClosedPeriodChange = (isClosed, message) => {
     setIsClosedPeriod(isClosed);

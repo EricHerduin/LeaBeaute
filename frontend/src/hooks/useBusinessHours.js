@@ -48,6 +48,7 @@ const formatNextOpenMessage = (nextOpenTime) => {
  * @returns {Object} État avec status, message, horaires, exceptions, jours fériés
  */
 export function useBusinessHours() {
+  const REFRESH_INTERVAL = 3600000; // 1 heure
   const [status, setStatus] = useState(null);
   const [generalHours, setGeneralHours] = useState(null);
   const [exceptions, setExceptions] = useState([]);
@@ -103,10 +104,10 @@ export function useBusinessHours() {
     }
   }, []);
 
-  // Fetch initial et mise à jour toutes les minutes
+  // Fetch initial et mise à jour toutes les heures
   useEffect(() => {
     fetchAllData();
-    const interval = setInterval(fetchAllData, 60000); // Mise à jour chaque minute
+    const interval = setInterval(fetchAllData, REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, [fetchAllData]);
 

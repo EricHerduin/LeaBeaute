@@ -5,10 +5,10 @@ export default function StructuredData() {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
     "name": "Léa Beauté",
-    "image": "https://demo-client.htagfacility.fr/assets/photos/logos/logo16-9_1.png",
+    "image": "https://leabeautevalognes.fr/assets/photos/logos/logo16-9_1.png",
     "description": "Institut de beauté à Valognes proposant des soins Guinot, épilations, LPG, manucure, pédicure, extensions de cils et accompagnement nutrition.",
     "telephone": "+33233214819",
-    "email": "contact@demo-client.htagfacility.fr",
+    "email": "contact@leabeautevalognes.fr",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "7 Rue du Palais de Justice",
@@ -22,7 +22,7 @@ export default function StructuredData() {
       "latitude": 49.508661,
       "longitude": -1.470834
     },
-    "url": "https://demo-client.htagfacility.fr",
+    "url": "https://leabeautevalognes.fr",
     "priceRange": "€€",
     "openingHoursSpecification": [
       {
@@ -114,7 +114,7 @@ export default function StructuredData() {
         "@type": "ListItem",
         "position": 1,
         "name": "Accueil",
-        "item": "https://demo-client.htagfacility.fr"
+        "item": "https://leabeautevalognes.fr"
       }
     ]
   };
@@ -123,8 +123,8 @@ export default function StructuredData() {
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "Léa Beauté",
-    "url": "https://demo-client.htagfacility.fr",
-    "logo": "https://demo-client.htagfacility.fr/assets/photos/logos/logo16-9_1.png",
+    "url": "https://leabeautevalognes.fr",
+    "logo": "https://leabeautevalognes.fr/assets/photos/logos/logo16-9_1.png",
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+33233214819",

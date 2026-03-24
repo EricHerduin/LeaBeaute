@@ -16,15 +16,32 @@ export default function PricingModal({ open, onClose, initialCategories = null }
   const modalRef = useRef(null);
   const contentRef = useRef(null);
 
+  const normalizeCategory = (value) => String(value || '').trim().replace(/\s+/g, ' ').toLowerCase();
+
   useEffect(() => {
     if (open) {
       fetchPrices();
-      setCategoryScope(Array.isArray(initialCategories) && initialCategories.length > 0 ? initialCategories : null);
-      setSelectedCategory(
-        Array.isArray(initialCategories) && initialCategories.length > 0 ? 'all' : 'all'
-      );
+      setSelectedCategory('all');
     }
   }, [open, initialCategories]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (!Array.isArray(initialCategories) || initialCategories.length === 0) {
+      setCategoryScope(null);
+      return;
+    }
+
+    const normalizedAvailableCategories = new Map(
+      prices.map((item) => [normalizeCategory(item.category), item.category])
+    );
+    const matchingCategories = initialCategories
+      .map((category) => normalizedAvailableCategories.get(normalizeCategory(category)))
+      .filter(Boolean);
+
+    setCategoryScope(matchingCategories);
+  }, [open, initialCategories, prices]);
 
   useEffect(() => {
     if (!open) return;

@@ -104,7 +104,7 @@ export const services = [
     details: "Un accompagnement sur-mesure pour installer des habitudes simples et durables.",
     techniquesText: 'Bilan personnalisé · Suivi & ajustements · Conseils pratiques',
     duration: '45–60 min',
-    pricingCategories: []
+    pricingCategories: ['Accompagnement nutrition']
   },
   {
     id: 'autres-prestations',

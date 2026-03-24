@@ -23,6 +23,7 @@ export default function LandingPage() {
   const [exceptionBanner, setExceptionBanner] = useState(null);
   const [isClosedPeriod, setIsClosedPeriod] = useState(false);
   const [closedBannerMessage, setClosedBannerMessage] = useState(null);
+  const BANNER_REFRESH_INTERVAL = 3600000;
 
   const handleShowPricing = (categories) => {
     setPricingCategories(Array.isArray(categories) && categories.length > 0 ? categories : null);
@@ -62,7 +63,7 @@ export default function LandingPage() {
       }
     };
     updateBanner();
-    const interval = setInterval(updateBanner, 30000);
+    const interval = setInterval(updateBanner, BANNER_REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, []);
 
@@ -77,7 +78,7 @@ export default function LandingPage() {
         title="Léa Beauté Valognes - Institut de Beauté et Bien-être"
         description="Institut de beauté à Valognes (50). Soins Guinot, épilations, LPG, manucure, pédicure, extensions de cils, accompagnement nutrition. Prenez RDV au 02 33 21 48 19."
         keywords="institut beauté Valognes, Guinot, épilation, LPG, manucure, pédicure, soins visage, accompagnement nutrition, chrononutrition, extensions cils, Manche 50"
-        url="https://demo-client.htagfacility.fr"
+        url="https://leabeautevalognes.fr"
       />
       <div className="overflow-hidden bg-white">
         <Navigation onShowPricing={handleShowPricing} />

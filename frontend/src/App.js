@@ -21,6 +21,7 @@ import { useState, useEffect } from 'react';
 
 function App() {
   const [exceptionBanner, setExceptionBanner] = useState(null);
+  const BANNER_REFRESH_INTERVAL = 3600000;
 
   useEffect(() => {
     const updateBanner = () => {
@@ -32,7 +33,7 @@ function App() {
       }
     };
     updateBanner();
-    const interval = setInterval(updateBanner, 30000);
+    const interval = setInterval(updateBanner, BANNER_REFRESH_INTERVAL);
     return () => clearInterval(interval);
   }, []);
 
