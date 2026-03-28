@@ -1,7 +1,75 @@
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import api from '../lib/apiClient';
 import LPGPic from '../assets/photos/lpg/Lpg.jpg';
 
 export default function LPGSection({ onShowPricing }) {
+  const [lpgPrices, setLpgPrices] = useState([]);
+  const [pricesLoading, setPricesLoading] = useState(true);
+  const [pricesError, setPricesError] = useState(false);
+
+  const displayedPrices = (() => {
+    const forfaitItems = lpgPrices.filter((item) => String(item.name || '').toLowerCase().includes('forfait'));
+    const regularItems = lpgPrices.filter((item) => !String(item.name || '').toLowerCase().includes('forfait'));
+
+    if (forfaitItems.length === 0) {
+      return regularItems;
+    }
+
+    const forfaitPrices = forfaitItems
+      .map((item) => Number(item.priceEur))
+      .filter((value) => Number.isFinite(value));
+
+    const minForfaitPrice = Math.min(...forfaitPrices);
+    const maxForfaitPrice = Math.max(...forfaitPrices);
+
+    return [
+      ...regularItems,
+      {
+        id: 'lpg-forfaits-summary',
+        name: 'Les forfaits',
+        note: 'Découvrez le détail des forfaits et leurs conditions dans la grille complète des tarifs.',
+        priceLabel:
+          forfaitPrices.length > 0
+            ? `de ${minForfaitPrice}€ à ${maxForfaitPrice}€`
+            : 'Voir conditions',
+      },
+    ];
+  })();
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchLpgPrices() {
+      try {
+        setPricesLoading(true);
+        setPricesError(false);
+        const response = await api.get('/prices');
+        const filteredPrices = (response.data || []).filter(
+          (item) => String(item.category || '').trim().toLowerCase() === 'lpg'
+        );
+
+        if (isMounted) {
+          setLpgPrices(filteredPrices);
+        }
+      } catch {
+        if (isMounted) {
+          setPricesError(true);
+        }
+      } finally {
+        if (isMounted) {
+          setPricesLoading(false);
+        }
+      }
+    }
+
+    fetchLpgPrices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <section id="lpg" className="py-24 md:py-32 bg-white">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
@@ -61,12 +129,31 @@ export default function LPGSection({ onShowPricing }) {
 
             <div className="glass-card p-6 rounded-2xl mb-8">
               <h3 className="font-bold text-[#1A1A1A] mb-3">Nos formules LPG</h3>
-              <div className="space-y-2 text-sm text-[#4A4A4A]">
-                <p>• Le body : 16€</p>
-                <p>• La séance : 55€</p>
-                <p>• Forfait 10 séances + 1 offerte : 550€</p>
-                <p>• Séance d'entretien : 49€</p>
-              </div>
+              {pricesLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#D4AF37] border-t-transparent" />
+                </div>
+              ) : pricesError ? (
+                <p className="text-sm text-[#8A6A46]">
+                  Les tarifs LPG sont momentanément indisponibles.
+                </p>
+              ) : (
+                <div className="space-y-3 text-sm text-[#4A4A4A]">
+                  {displayedPrices.map((item) => (
+                    <div key={item.id} className="flex items-start justify-between gap-4 border-b border-[#E8DCCA] pb-3 last:border-b-0 last:pb-0">
+                      <div>
+                        <p className="font-medium text-[#1A1A1A]">{item.name}</p>
+                        {item.note ? (
+                          <p className="mt-1 text-xs italic text-[#808080]">{item.note}</p>
+                        ) : null}
+                      </div>
+                      <div className="whitespace-nowrap font-semibold text-[#D4AF37]">
+                        {item.priceLabel || (item.priceEur !== null ? `${item.priceEur}€` : 'Sur demande')}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <button

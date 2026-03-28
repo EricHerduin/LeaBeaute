@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
 import ScrollToTop from "./components/ScrollToTop";
 import CookieConsent from "./components/CookieConsent";
+import GoogleAnalyticsConsentBridge from "./components/GoogleAnalyticsConsentBridge";
 import StructuredData from "./components/StructuredData";
 import LandingPage from './pages/LandingPage';
 import GuinotPage from './pages/GuinotPage';
@@ -42,6 +43,7 @@ function App() {
       <StructuredData />
       <BrowserRouter>
         <ScrollToTop />
+        <GoogleAnalyticsConsentBridge />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/guinot" element={<GuinotPage />} />

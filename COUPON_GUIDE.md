@@ -125,14 +125,7 @@ Réduction: -7.50€
 
 ## 🚀 Pour Tester
 
-### Script Python de test
-
-```bash
-cd /Users/ericherduin/Projet_SitesWeb_Officiel/Site\ Lea\ Beaute/backend
-python test_coupon_system.py
-```
-
-### Curl manual
+### Tests manuels avec curl
 
 **1. Créer un coupon (admin)**
 ```bash
@@ -316,6 +309,4 @@ Valide: Permanent
 
 Pour des questions sur le système, consultez :
 - `/COUPON_SYSTEM.md` - Documentation technique complète
-- `test_coupon_system.py` - Exemples de tests
-- `backend/server.py` - Implémentation (lignes 775-820 pour validation)
-
+- `backend/server.js` - Implémentation Node.js de l'API coupons/cartes cadeaux

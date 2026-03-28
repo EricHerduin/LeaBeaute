@@ -97,7 +97,7 @@ GOOGLE_PLACE_ID=ChIJN1t_tDeuEmsRUsoyG83frY4
 
 ```bash
 # Google Places (pour le bouton "Laisser un avis")
-REACT_APP_GOOGLE_PLACE_ID=ChIJN1t_tDeuEmsRUsoyG83frY4
+VITE_GOOGLE_PLACE_ID=ChIJN1t_tDeuEmsRUsoyG83frY4
 ```
 
 ---
@@ -107,8 +107,8 @@ REACT_APP_GOOGLE_PLACE_ID=ChIJN1t_tDeuEmsRUsoyG83frY4
 ### 1. Redémarrer le backend
 ```bash
 cd backend
-source .venv/bin/activate
-python server.py
+npm install
+npm start
 ```
 
 ### 2. Redémarrer le frontend
@@ -135,6 +135,7 @@ Vous devriez voir un JSON avec :
 
 ### 4. Vérifier le frontend
 - Ouvrez http://localhost:3000
+- Avec la configuration actuelle Vite, le serveur de dev tourne sur http://localhost:3005
 - Scrollez jusqu'en bas de page
 - Vous devriez voir la section "Ce qu'en pensent nos client·e·s"
 
@@ -169,31 +170,31 @@ Vous devriez voir un JSON avec :
 ### 1. Cache des avis (pour éviter les quotas API)
 Ajoutez un cache Redis ou simplement un cache mémoire :
 
-```python
-# Dans server.py
-from datetime import datetime, timedelta
+```js
+// Dans backend/server.js
+const reviewsCache = {
+  data: null,
+  timestamp: null,
+};
 
-# Cache simple en mémoire
-reviews_cache = {
-    "data": None,
-    "timestamp": None
-}
+app.get("/api/google-reviews", async (req, res) => {
+  const cacheIsValid =
+    reviewsCache.data &&
+    reviewsCache.timestamp &&
+    Date.now() - reviewsCache.timestamp < 60 * 60 * 1000;
 
-@api_router.get("/google-reviews")
-async def get_google_reviews():
-    # Vérifier le cache (valide 1 heure)
-    if reviews_cache["data"] and reviews_cache["timestamp"]:
-        if datetime.now() - reviews_cache["timestamp"] < timedelta(hours=1):
-            return reviews_cache["data"]
-    
-    # ... votre code actuel ...
-    
-    # Sauvegarder dans le cache
-    result = { "name": ..., "rating": ..., ... }
-    reviews_cache["data"] = result
-    reviews_cache["timestamp"] = datetime.now()
-    
-    return result
+  if (cacheIsValid) {
+    return res.json(reviewsCache.data);
+  }
+
+  // ... votre code actuel ...
+
+  const result = { name: "...", rating: 4.8, reviews: [] };
+  reviewsCache.data = result;
+  reviewsCache.timestamp = Date.now();
+
+  return res.json(result);
+});
 ```
 
 ### 2. Fallback en cas d'erreur

@@ -1,0 +1,794 @@
+[
+  {
+    "category": "Epilations",
+    "name": "Sourcils",
+    "priceEur": 11,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Epilations",
+    "name": "Lèvre",
+    "priceEur": 7,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Epilations",
+    "name": "Menton",
+    "priceEur": 10,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Epilations",
+    "name": "Joues",
+    "priceEur": 11,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 40
+  },
+  {
+    "category": "Epilations",
+    "name": "Sourcils + Lèvre + Menton",
+    "priceEur": 25,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 50
+  },
+  {
+    "category": "Epilations",
+    "name": "Demi-jambes",
+    "priceEur": 26,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 60
+  },
+  {
+    "category": "Epilations",
+    "name": "Maillot",
+    "priceEur": 18,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 70
+  },
+  {
+    "category": "Epilations",
+    "name": "Maillot échancré",
+    "priceEur": 23,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 80
+  },
+  {
+    "category": "Epilations",
+    "name": "Maillot intégral",
+    "priceEur": 28,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 90
+  },
+  {
+    "category": "Epilations",
+    "name": "Aisselles",
+    "priceEur": 14,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 100
+  },
+  {
+    "category": "Epilations",
+    "name": "Cuisses",
+    "priceEur": 28,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 110
+  },
+  {
+    "category": "Epilations",
+    "name": "Arrières cuisses",
+    "priceEur": 16,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 120
+  },
+  {
+    "category": "Epilations",
+    "name": "Jambes entières",
+    "priceEur": 36,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 130
+  },
+  {
+    "category": "Epilations",
+    "name": "Fesses",
+    "priceEur": 10,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 140
+  },
+  {
+    "category": "Epilations",
+    "name": "Bras",
+    "priceEur": 20,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 150
+  },
+  {
+    "category": "Epilations",
+    "name": "Mains",
+    "priceEur": 12,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 160
+  },
+  {
+    "category": "Forfaits épilations",
+    "name": "Demi-jambes + Aisselles",
+    "priceEur": 36,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Forfaits épilations",
+    "name": "Demi-jambes + Maillot",
+    "priceEur": 40,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Forfaits épilations",
+    "name": "Demi-jambes + Maillot + Aisselles",
+    "priceEur": 54,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Forfaits épilations",
+    "name": "Jambes entières + Aisselles",
+    "priceEur": 46,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 40
+  },
+  {
+    "category": "Forfaits épilations",
+    "name": "Jambes entières + Maillot",
+    "priceEur": 50,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 50
+  },
+  {
+    "category": "Forfaits épilations",
+    "name": "Jambes entières + Aisselles + Maillot",
+    "priceEur": 62,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 60
+  },
+  {
+    "category": "Mains",
+    "name": "Manucure",
+    "priceEur": 22,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Mains",
+    "name": "Pose de semi-permanent",
+    "priceEur": 30,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Mains",
+    "name": "French",
+    "priceEur": 35,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Mains",
+    "name": "Pose de vernis",
+    "priceEur": 12,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 40
+  },
+  {
+    "category": "Mains",
+    "name": "Beauté des mains",
+    "priceEur": 40,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 50
+  },
+  {
+    "category": "Mains",
+    "name": "Beauté des mains + paraffine",
+    "priceEur": 55,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 60
+  },
+  {
+    "category": "Pieds",
+    "name": "Beauté de pieds flash",
+    "priceEur": 25,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Pieds",
+    "name": "Soin peeling rénovateur des pieds (Guinot)",
+    "priceEur": 50,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Pieds",
+    "name": "Soin des pieds + paraffine",
+    "priceEur": 70,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Maquillage",
+    "name": "Maquillage jour",
+    "priceEur": 28,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Maquillage",
+    "name": "Maquillage soir",
+    "priceEur": 38,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Maquillage",
+    "name": "Forfait mariée",
+    "priceEur": 50,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Maquillage",
+    "name": "3 cours d'auto maquillage",
+    "priceEur": 80,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 40
+  },
+  {
+    "category": "Extensions de cils",
+    "name": "1ère pose",
+    "priceEur": 85,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Extensions de cils",
+    "name": "Remplissage 2 semaines",
+    "priceEur": 48,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Extensions de cils",
+    "name": "Remplissage 3 semaines",
+    "priceEur": 58,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Extensions de cils",
+    "name": "Remplissage 4 semaines",
+    "priceEur": 68,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 40
+  },
+  {
+    "category": "Autres soins",
+    "name": "Strass dentaire",
+    "priceEur": 35,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Autres soins",
+    "name": "Teinture de sourcils",
+    "priceEur": 10,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Autres soins",
+    "name": "Teinture de cils",
+    "priceEur": 20,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "YUMI",
+    "name": "Réhaussement et soin des cils avec teinture",
+    "priceEur": 70,
+    "durationMin": null,
+    "note": "En duo : 60 €",
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "YUMI",
+    "name": "Browlift",
+    "priceEur": 45,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "YUMI",
+    "name": "Réhaussement + Browlift",
+    "priceEur": 105,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Électrolyse",
+    "name": "15 min",
+    "priceEur": 35,
+    "durationMin": 15,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Électrolyse",
+    "name": "30 min",
+    "priceEur": 70,
+    "durationMin": 30,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Épilation lumière pulsée",
+    "name": "Épilation lumière pulsée",
+    "priceEur": null,
+    "durationMin": null,
+    "note": "Demandez les tarifs",
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "LPG",
+    "name": "Le body",
+    "priceEur": 16,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "LPG",
+    "name": "La séance",
+    "priceEur": 55,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "LPG",
+    "name": "Forfait 10 séances + 1 offerte",
+    "priceEur": 550,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "LPG",
+    "name": "Séance d'entretien",
+    "priceEur": 49,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 40
+  },
+  {
+    "category": "Pressothérapie",
+    "name": "Jambes ou ventre (20 min)",
+    "priceEur": 25,
+    "durationMin": 20,
+    "note": "Soin jambes lourdes, anti-cellulite, récupération sportive",
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "UV",
+    "name": "Séance UV",
+    "priceEur": 13,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "UV",
+    "name": "Lunettes obligatoires",
+    "priceEur": 6,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Hydradermie 1000 (60 min)",
+    "priceEur": 100,
+    "durationMin": 60,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Hydradermie jeunesse 1000 (60 min)",
+    "priceEur": 120,
+    "durationMin": 60,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Hydradermie 1000 Lift (60 min)",
+    "priceEur": 140,
+    "durationMin": 60,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Lift summum (60 min)",
+    "priceEur": 120,
+    "durationMin": 60,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 40
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Age summum (60 min)",
+    "priceEur": 130,
+    "durationMin": 60,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 50
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Hydra Peeling (60 min)",
+    "priceEur": 100,
+    "durationMin": 60,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 60
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Hydra summum (60 min)",
+    "priceEur": 110,
+    "durationMin": 60,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 70
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Détox Oxygénant (45 min)",
+    "priceEur": 90,
+    "durationMin": 45,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 80
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Douceur hydra beauté (45 min)",
+    "priceEur": 50,
+    "durationMin": 45,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 90
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Soin hydra-sensitive (45 min)",
+    "priceEur": 58,
+    "durationMin": 45,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 100
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Soin visage anti-fatigue (50 min)",
+    "priceEur": 60,
+    "durationMin": 50,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 110
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Soin fermeté (50 min)",
+    "priceEur": 75,
+    "durationMin": 50,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 120
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Soin visage anti-rides (50 min)",
+    "priceEur": 65,
+    "durationMin": 50,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 130
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Soin équilibre pureté (45 min)",
+    "priceEur": 65,
+    "durationMin": 45,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 140
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Eye lift (40 min)",
+    "priceEur": 75,
+    "durationMin": 40,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 150
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Soin express (30 min)",
+    "priceEur": 35,
+    "durationMin": 30,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 160
+  },
+  {
+    "category": "Guinot - Soins visage",
+    "name": "Soin du visage de Léa (75 min)",
+    "priceEur": 120,
+    "durationMin": 75,
+    "note": "Personnalisé expert luminothérapie",
+    "isActive": true,
+    "sortOrder": 170
+  },
+  {
+    "category": "Soins corps",
+    "name": "Gommage corps (30 min)",
+    "priceEur": 45,
+    "durationMin": 30,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Soins corps",
+    "name": "Modelage corps (50 min)",
+    "priceEur": 70,
+    "durationMin": 50,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Soins corps",
+    "name": "Modelage corps (30 min)",
+    "priceEur": 50,
+    "durationMin": 30,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Soins corps spécifiques",
+    "name": "Rêve de détente (60 min)",
+    "priceEur": 78,
+    "durationMin": 60,
+    "note": "Gommage + modelage",
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Soins corps spécifiques",
+    "name": "Rêve de détente du dos (45 min)",
+    "priceEur": 60,
+    "durationMin": 45,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Soins corps spécifiques",
+    "name": "Rêve de détente du dos à la bougie (45 min)",
+    "priceEur": 70,
+    "durationMin": 45,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Soins corps spécifiques",
+    "name": "Rêve de détente future maman (75 min)",
+    "priceEur": 90,
+    "durationMin": 75,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 40
+  },
+  {
+    "category": "Soins corps spécifiques",
+    "name": "Rêve de détente absolue (90 min)",
+    "priceEur": 120,
+    "durationMin": 90,
+    "note": "Gommage, modelage, enveloppement",
+    "isActive": true,
+    "sortOrder": 50
+  },
+  {
+    "category": "Soins corps spécifiques",
+    "name": "Rêve de gambettes sucrées (20 min)",
+    "priceEur": 35,
+    "durationMin": 20,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 60
+  },
+  {
+    "category": "Soins corps spécifiques",
+    "name": "Soin en duo",
+    "priceEur": null,
+    "durationMin": null,
+    "note": "Demandez les tarifs",
+    "isActive": true,
+    "sortOrder": 70
+  },
+  {
+    "category": "Visible Age Reverse",
+    "name": "1 soin (30 min)",
+    "priceEur": 130,
+    "durationMin": 30,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Visible Age Reverse",
+    "name": "Cure de 4 soins",
+    "priceEur": 455,
+    "durationMin": null,
+    "note": "Au lieu de 520 € (65 € offerts)",
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Visible Age Reverse",
+    "name": "Séance d'entretien",
+    "priceEur": 100,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  },
+  {
+    "category": "Le Tan",
+    "name": "Visage cou décolleté",
+    "priceEur": 15,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 10
+  },
+  {
+    "category": "Le Tan",
+    "name": "Visage cou décolleté + bras",
+    "priceEur": 25,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 20
+  },
+  {
+    "category": "Le Tan",
+    "name": "Corps entier",
+    "priceEur": 45,
+    "durationMin": null,
+    "note": null,
+    "isActive": true,
+    "sortOrder": 30
+  }
+]

@@ -76,7 +76,7 @@ export default function Navigation({ onShowPricing }) {
               <img
                 src={Logo}
                 alt="Léa Beauté Valognes"
-                className="h-18 w-auto"
+                className="h-12 md:h-14 w-auto object-contain"
               />
             </Link>
 

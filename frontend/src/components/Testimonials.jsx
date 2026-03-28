@@ -80,7 +80,7 @@ const Testimonials = () => {
     return <div className="flex gap-1">{stars}</div>;
   };
 
-  const placeId = process.env.REACT_APP_GOOGLE_PLACE_ID || 'ChIJreE_Pi-DDEgRJ0veR0hH5jE';
+  const placeId = import.meta.env.VITE_GOOGLE_PLACE_ID || 'ChIJreE_Pi-DDEgRJ0veR0hH5jE';
   const writeReviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
 
   return (

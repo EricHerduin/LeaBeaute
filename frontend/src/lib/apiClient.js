@@ -1,9 +1,9 @@
 import axios from "axios";
 
-// si REACT_APP_BACKEND_URL n'est pas défini ou vide -> appels relatifs "/api"
-// si REACT_APP_BACKEND_URL inclut déjà "/api" -> ne pas le dupliquer
-// si REACT_APP_BACKEND_URL pointe vers localhost en prod -> forcer "/api"
-const rawBaseUrl = (process.env.REACT_APP_BACKEND_URL ?? "").trim();
+// si VITE_BACKEND_URL n'est pas défini ou vide -> appels relatifs "/api"
+// si VITE_BACKEND_URL inclut déjà "/api" -> ne pas le dupliquer
+// si VITE_BACKEND_URL pointe vers localhost en prod -> forcer "/api"
+const rawBaseUrl = (import.meta.env.VITE_BACKEND_URL ?? "").trim();
 const envBaseUrl = rawBaseUrl.replace(/\/$/, "");
 const isBrowser = typeof window !== "undefined";
 const hostname = isBrowser ? window.location.hostname : "";

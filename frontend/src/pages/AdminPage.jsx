@@ -7,6 +7,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import AdminDashboardHome from './AdminDashboardHome';
 import logoLeaBeaute from '../assets/photos/logos/logo16-9_1.png';
 import { pricingPdfConfig } from '../lib/pricingPdfConfig';
+import { Cookie } from 'lucide-react';
 
 const axios = api;
 const INSTITUTE_ADDRESS = '7 Rue du Palais de Justice - 50700 Valognes';
@@ -87,6 +88,22 @@ export default function AdminPage() {
   const [editingCouponId, setEditingCouponId] = useState(null);
   const [editCouponForm, setEditCouponForm] = useState({});
 
+  // Cookie consents
+  const [cookieConsents, setCookieConsents] = useState([]);
+  const [cookieConsentSearch, setCookieConsentSearch] = useState('');
+  const [cookiePolicySettings, setCookiePolicySettings] = useState({
+    choiceRetentionDays: 180,
+    evidenceRetentionDays: 1095,
+    necessaryRetentionLabel: '',
+    stripeRetentionLabel: '',
+    analyticsProvider: 'google-analytics-4',
+    analyticsMeasurementId: '',
+    analyticsEnabled: false,
+    lastUpdated: '',
+    policyVersion: '',
+  });
+  const [savingCookiePolicySettings, setSavingCookiePolicySettings] = useState(false);
+
   // Initial load
   useEffect(() => {
     const savedToken = localStorage.getItem('admin_token');
@@ -127,6 +144,41 @@ export default function AdminPage() {
     }
   }, [token]);
 
+  const fetchCookieConsents = useCallback(async (search = '') => {
+    setLoading(true);
+    try {
+      const response = await axios.get('/cookie-consents', {
+        headers: { Authorization: token },
+        params: { search, limit: 300 }
+      });
+      setCookieConsents(response.data.items || []);
+    } catch (error) {
+      const detail = error.response?.data?.detail || 'Erreur lors du chargement des consentements';
+      toast.error(detail);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  const fetchCookiePolicySettings = useCallback(async () => {
+    try {
+      const response = await axios.get('/cookie-policy-config');
+      setCookiePolicySettings({
+        choiceRetentionDays: response.data.choiceRetentionDays || 180,
+        evidenceRetentionDays: response.data.evidenceRetentionDays || 1095,
+        necessaryRetentionLabel: response.data.necessaryRetentionLabel || '',
+        stripeRetentionLabel: response.data.stripeRetentionLabel || '',
+        analyticsProvider: response.data.analyticsProvider || 'google-analytics-4',
+        analyticsMeasurementId: response.data.analyticsMeasurementId || '',
+        analyticsEnabled: Boolean(response.data.analyticsEnabled),
+        lastUpdated: response.data.lastUpdated || '',
+        policyVersion: response.data.policyVersion || '',
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Impossible de charger la configuration cookies');
+    }
+  }, []);
+
   // Load data based on tab
   useEffect(() => {
     if (token && activeTab === 'coupons') {
@@ -139,6 +191,70 @@ export default function AdminPage() {
       fetchGiftCards();
     }
   }, [token, activeTab, fetchGiftCards]);
+
+  useEffect(() => {
+    if (token && activeTab === 'cookie-consents') {
+      fetchCookieConsents(cookieConsentSearch);
+      fetchCookiePolicySettings();
+    }
+  }, [token, activeTab, cookieConsentSearch, fetchCookieConsents, fetchCookiePolicySettings]);
+
+  const handleSaveCookiePolicySettings = async () => {
+    const choiceRetentionDays = Number(cookiePolicySettings.choiceRetentionDays);
+    const evidenceRetentionDays = Number(cookiePolicySettings.evidenceRetentionDays);
+
+    if (!Number.isFinite(choiceRetentionDays) || choiceRetentionDays <= 0) {
+      toast.error('La durée de conservation du choix doit être un nombre positif');
+      return;
+    }
+
+    if (!Number.isFinite(evidenceRetentionDays) || evidenceRetentionDays < choiceRetentionDays) {
+      toast.error('La durée de preuve doit être supérieure ou égale à la durée du choix');
+      return;
+    }
+
+    if (cookiePolicySettings.analyticsEnabled && !cookiePolicySettings.analyticsMeasurementId.trim()) {
+      toast.error('Renseigne un identifiant de mesure Google Analytics pour activer le suivi');
+      return;
+    }
+
+    if (!window.confirm('Confirmer la mise à jour des durées et libellés de conservation des cookies ?')) {
+      return;
+    }
+
+    try {
+      setSavingCookiePolicySettings(true);
+      const response = await axios.put('/admin/cookie-policy-config', {
+        choiceRetentionDays,
+        evidenceRetentionDays,
+        necessaryRetentionLabel: cookiePolicySettings.necessaryRetentionLabel,
+        stripeRetentionLabel: cookiePolicySettings.stripeRetentionLabel,
+        analyticsProvider: cookiePolicySettings.analyticsProvider,
+        analyticsMeasurementId: cookiePolicySettings.analyticsMeasurementId.trim(),
+        analyticsEnabled: Boolean(cookiePolicySettings.analyticsEnabled),
+      }, {
+        headers: { Authorization: token }
+      });
+
+      setCookiePolicySettings((current) => ({
+        ...current,
+        choiceRetentionDays: response.data.choiceRetentionDays || choiceRetentionDays,
+        evidenceRetentionDays: response.data.evidenceRetentionDays || evidenceRetentionDays,
+        necessaryRetentionLabel: response.data.necessaryRetentionLabel || '',
+        stripeRetentionLabel: response.data.stripeRetentionLabel || '',
+        analyticsProvider: response.data.analyticsProvider || 'google-analytics-4',
+        analyticsMeasurementId: response.data.analyticsMeasurementId || '',
+        analyticsEnabled: Boolean(response.data.analyticsEnabled),
+        lastUpdated: response.data.lastUpdated || '',
+        policyVersion: response.data.policyVersion || '',
+      }));
+      toast.success('Configuration cookies mise à jour');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Impossible de mettre à jour la configuration cookies');
+    } finally {
+      setSavingCookiePolicySettings(false);
+    }
+  };
 
   // Auth functions
   const handleLogin = async (e) => {
@@ -1402,7 +1518,7 @@ export default function AdminPage() {
       {/* Tabs */}
       <div className="sticky top-18.25 z-40 bg-white border-b border-[#E8DCCA]">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="flex gap-8">
+          <div className="flex flex-wrap gap-6">
             <button
               onClick={() => setActiveTab('home')}
               className={`py-4 px-2 text-sm font-medium border-b-2 transition-colors ${
@@ -1442,6 +1558,17 @@ export default function AdminPage() {
               }`}
             >
               Coupons
+            </button>
+            <button
+              onClick={() => setActiveTab('cookie-consents')}
+              className={`py-4 px-2 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'cookie-consents'
+                  ? 'border-[#D4AF37] text-[#D4AF37]'
+                  : 'border-transparent text-[#4A4A4A] hover:text-[#D4AF37]'
+              }`}
+            >
+              <Cookie className="mr-2 inline-block h-4 w-4" />
+              Consentements
             </button>
           </div>
         </div>
@@ -2176,6 +2303,246 @@ export default function AdminPage() {
               </div>
             </div>
             <div className="mt-6 text-center text-sm text-[#808080]">{coupons.length} coupon(s)</div>
+          </div>
+        )}
+
+        {activeTab === 'cookie-consents' && (
+          <div>
+            <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+              <div className="flex flex-col gap-4">
+                <div>
+                  <h2 className="text-xl font-bold text-[#1A1A1A]">Paramètres de conservation</h2>
+                  <p className="text-sm text-[#808080] mt-1">
+                    Cette configuration alimente le bandeau cookies, la politique de cookies et la durée calculée dans le backend.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                      Conservation du choix visiteur (jours)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={cookiePolicySettings.choiceRetentionDays}
+                      onChange={(e) => setCookiePolicySettings((current) => ({
+                        ...current,
+                        choiceRetentionDays: e.target.value
+                      }))}
+                      className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                      Conservation de la preuve (jours)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={cookiePolicySettings.evidenceRetentionDays}
+                      onChange={(e) => setCookiePolicySettings((current) => ({
+                        ...current,
+                        evidenceRetentionDays: e.target.value
+                      }))}
+                      className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                      Libellé traceurs nécessaires
+                    </label>
+                    <input
+                      type="text"
+                      value={cookiePolicySettings.necessaryRetentionLabel}
+                      onChange={(e) => setCookiePolicySettings((current) => ({
+                        ...current,
+                        necessaryRetentionLabel: e.target.value
+                      }))}
+                      className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                      Libellé Stripe
+                    </label>
+                    <input
+                      type="text"
+                      value={cookiePolicySettings.stripeRetentionLabel}
+                      onChange={(e) => setCookiePolicySettings((current) => ({
+                        ...current,
+                        stripeRetentionLabel: e.target.value
+                      }))}
+                      className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                      Identifiant Google Analytics 4
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="G-XXXXXXXXXX"
+                      value={cookiePolicySettings.analyticsMeasurementId}
+                      onChange={(e) => setCookiePolicySettings((current) => ({
+                        ...current,
+                        analyticsMeasurementId: e.target.value
+                      }))}
+                      className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                    />
+                  </div>
+
+                  <div className="flex items-end">
+                    <label className="flex items-center gap-3 rounded-lg border border-[#E8DCCA] px-4 py-3 w-full">
+                      <input
+                        type="checkbox"
+                        checked={cookiePolicySettings.analyticsEnabled}
+                        onChange={(e) => setCookiePolicySettings((current) => ({
+                          ...current,
+                          analyticsEnabled: e.target.checked
+                        }))}
+                        className="h-4 w-4 rounded border-[#D4AF37] text-[#D4AF37] focus:ring-[#D4AF37]"
+                      />
+                      <span className="text-sm text-[#1A1A1A]">
+                        Activer Google Analytics 4 après consentement analytique
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                  <div className="text-sm text-[#808080]">
+                    Dernière mise à jour politique : {cookiePolicySettings.lastUpdated || 'n/a'}
+                    {cookiePolicySettings.policyVersion ? ` • Version : ${cookiePolicySettings.policyVersion}` : ''}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSaveCookiePolicySettings}
+                    disabled={savingCookiePolicySettings}
+                    className="btn-gold w-full md:w-auto disabled:opacity-60"
+                  >
+                    {savingCookiePolicySettings ? 'Enregistrement...' : 'Enregistrer les paramètres'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+              <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-[#1A1A1A]">Consentements cookies</h2>
+                  <p className="text-sm text-[#808080] mt-1">
+                    Historique des choix enregistrés pour pouvoir documenter la preuve du consentement.
+                  </p>
+                </div>
+                <div className="w-full md:w-96">
+                  <input
+                    type="text"
+                    value={cookieConsentSearch}
+                    onChange={(e) => setCookieConsentSearch(e.target.value)}
+                    placeholder="Rechercher un identifiant, une décision, une version..."
+                    className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="text-sm text-[#808080]">Total affiché</div>
+                <div className="mt-1 text-2xl font-bold text-[#1A1A1A]">{cookieConsents.length}</div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="text-sm text-[#808080]">Nécessaires uniquement</div>
+                <div className="mt-1 text-2xl font-bold text-[#1A1A1A]">
+                  {cookieConsents.filter((item) => item.decision === 'necessary-only').length}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="text-sm text-[#808080]">Acceptés / personnalisés</div>
+                <div className="mt-1 text-2xl font-bold text-[#1A1A1A]">
+                  {cookieConsents.filter((item) => item.decision === 'custom-or-accepted').length}
+                </div>
+              </div>
+              <div className="bg-white rounded-xl shadow-sm p-4">
+                <div className="text-sm text-[#808080]">Version active</div>
+                <div className="mt-1 text-lg font-bold text-[#1A1A1A]">
+                  {cookieConsents[0]?.policyVersion || 'n/a'}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-[#F9F7F2] border-b border-[#E8DCCA]">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Visiteur</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Décision</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Catégories</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Source</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Version</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Dernière mise à jour</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Historique</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cookieConsents.map((consent, index) => {
+                      const activeCategories = Object.entries(consent.categories || {})
+                        .filter(([, enabled]) => enabled)
+                        .map(([key]) => key);
+
+                      return (
+                        <tr key={consent.anonymousVisitorId} className={index % 2 === 0 ? 'bg-white' : 'bg-[#F9F7F2]/30'}>
+                          <td className="px-4 py-3 text-xs font-mono text-[#4A4A4A]">
+                            {consent.anonymousVisitorId}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              consent.decision === 'necessary-only'
+                                ? 'bg-gray-100 text-gray-700'
+                                : 'bg-green-100 text-green-800'
+                            }`}>
+                              {consent.decision === 'necessary-only' ? 'Nécessaires uniquement' : 'Accepté / personnalisé'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                            {activeCategories.join(', ')}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[#4A4A4A]">{consent.source || '-'}</td>
+                          <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                            Politique {consent.policyVersion || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                            {consent.updatedAt ? new Date(consent.updatedAt).toLocaleString('fr-FR') : '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                            {consent.historyCount ?? (Array.isArray(consent.history) ? consent.history.length : 0)} événement(s)
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {cookieConsents.length === 0 && !loading && (
+              <div className="mt-6 bg-white rounded-xl shadow-sm p-8 text-center">
+                <Cookie className="mx-auto h-8 w-8 text-[#D4AF37] mb-3" />
+                <p className="text-[#1A1A1A] font-medium mb-2">Aucun consentement enregistré pour le moment</p>
+                <p className="text-sm text-[#808080]">
+                  Ouvre le site public, accepte ou refuse les cookies, puis recharge cet onglet admin.
+                  Les anciens consentements locaux seront aussi synchronisés automatiquement au prochain chargement du site.
+                </p>
+              </div>
+            )}
+            <div className="mt-6 text-center text-sm text-[#808080]">
+              {cookieConsents.length} consentement(s) affiché(s)
+            </div>
           </div>
         )}
       </div>

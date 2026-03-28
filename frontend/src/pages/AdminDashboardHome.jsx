@@ -6,13 +6,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCheck,
   faCreditCard,
-  faEuroSign,
   faGift,
   faList,
-  faMagnifyingGlass,
-  faTicket,
-  faClock
+  faTicket
 } from '@fortawesome/free-solid-svg-icons';
+import { BadgeCheck, Clock3, Gem, Search, TicketPercent } from 'lucide-react';
 import BusinessHoursManager from '../components/BusinessHoursManager';
 
 const axios = api;
@@ -224,24 +222,47 @@ export default function AdminDashboardHome({
 
   // ============ RENDER COMPONENTS ============
 
-  const SquareButton = ({ icon, label, onClick, color = 'gold' }) => {
-    const colorClasses = {
-      gold: 'from-[#D4AF37] to-[#C5A028] hover:shadow-lg',
-      green: 'from-green-500 to-green-600 hover:shadow-lg',
-      blue: 'from-blue-500 to-blue-600 hover:shadow-lg',
-      purple: 'from-purple-500 to-purple-600 hover:shadow-lg',
-      red: 'from-red-500 to-red-600 hover:shadow-lg'
+  const SquareButton = ({ icon, label, onClick, tone = 'champagne' }) => {
+    const toneClasses = {
+      champagne: {
+        accent: 'from-[#C6A16B] to-[#9F7747]',
+        icon: 'text-[#7A5730] border-[#C9AE8B] bg-[#FCF8F1]'
+      },
+      espresso: {
+        accent: 'from-[#6A5448] to-[#3E2F28]',
+        icon: 'text-[#4C372D] border-[#BFAEA2] bg-[#FBF7F2]'
+      },
+      pearl: {
+        accent: 'from-[#BDA58B] to-[#8E7660]',
+        icon: 'text-[#5C483B] border-[#CFC2B4] bg-[#FCFAF7]'
+      },
+      bronze: {
+        accent: 'from-[#A97854] to-[#6C4832]',
+        icon: 'text-[#6F4932] border-[#CBB19D] bg-[#FBF7F1]'
+      },
+      noir: {
+        accent: 'from-[#4A4542] to-[#1F1D1C]',
+        icon: 'text-[#352F2D] border-[#BBB1AA] bg-[#FBF8F4]'
+      }
     };
+
+    const selectedTone = toneClasses[tone] || toneClasses.champagne;
 
     return (
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ y: -5, scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         onClick={onClick}
-        className={`w-32 h-32 rounded-2xl bg-linear-to-br ${colorClasses[color]} text-white shadow-md transition-all duration-300 flex flex-col items-center justify-center gap-2 p-4`}
+        className="group relative min-h-[152px] overflow-hidden rounded-[28px] border border-[#DED3C5] bg-[linear-gradient(180deg,#FCFAF7_0%,#F4EDE3_100%)] p-5 text-center shadow-[0_20px_45px_rgba(98,79,58,0.10)] transition-all duration-300 flex flex-col items-center justify-center gap-3"
       >
-        <div className="text-4xl">{icon}</div>
-        <div className="text-sm font-semibold text-center">{label}</div>
+        <div className={`pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r ${selectedTone.accent}`} />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),transparent_55%)] opacity-80" />
+        <div className={`relative z-10 flex h-14 w-14 items-center justify-center rounded-full border transition-transform duration-300 group-hover:scale-105 ${selectedTone.icon}`}>
+          {icon}
+        </div>
+        <div className="relative z-10 text-[14px] font-semibold leading-5 text-[#231B16]">
+          {label}
+        </div>
       </motion.button>
     );
   };
@@ -266,12 +287,12 @@ export default function AdminDashboardHome({
         animate={{ opacity: 1, y: 0 }}
         className="mb-16"
       >
-        <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">Actions Rapides</h2>
+        <h2 className="mb-6 text-2xl font-bold text-[#1A1A1A]">Actions Rapides</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           <SquareButton
-            icon={<FontAwesomeIcon icon={faMagnifyingGlass} />}
-            label="Vérifier une Carte"
-            color="blue"
+            icon={<Search className="h-6 w-6" strokeWidth={1.8} />}
+            label="Vérifier une carte"
+            tone="pearl"
             onClick={() => {
               setVerifyQuery('');
               setVerifyResults(null);
@@ -279,30 +300,30 @@ export default function AdminDashboardHome({
             }}
           />
           <SquareButton
-            icon={<FontAwesomeIcon icon={faCheck} />}
-            label="Valider une Carte"
-            color="green"
+            icon={<BadgeCheck className="h-6 w-6" strokeWidth={1.8} />}
+            label="Valider une carte"
+            tone="espresso"
             onClick={() => {
               setRedeemCode('');
               setRedeemModal(true);
             }}
           />
           <SquareButton
-            icon={<FontAwesomeIcon icon={faEuroSign} />}
+            icon={<Gem className="h-6 w-6" strokeWidth={1.8} />}
             label="Nouveau Tarif"
-            color="purple"
+            tone="champagne"
             onClick={() => setPriceModal(true)}
           />
           <SquareButton
-            icon={<FontAwesomeIcon icon={faTicket} />}
+            icon={<TicketPercent className="h-6 w-6" strokeWidth={1.8} />}
             label="Nouveau Coupon"
-            color="red"
+            tone="bronze"
             onClick={() => setCouponModal(true)}
           />
           <SquareButton
-            icon={<FontAwesomeIcon icon={faClock} />}
+            icon={<Clock3 className="h-6 w-6" strokeWidth={1.8} />}
             label="Horaires"
-            color="gold"
+            tone="noir"
             onClick={() => setBusinessHoursModal(true)}
           />
         </div>

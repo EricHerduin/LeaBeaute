@@ -270,9 +270,9 @@ BUSINESS_HOURS = {
 **Ce fichier peut maintenant être supprimé** - Tous les horaires viennent de MongoDB.
 
 ### Migration vers MongoDB :
-```python
-# Dans backend/server.py - fonction seed_database()
-# Ces données sont automatiquement créées si la collection n'existe pas
+```js
+// Dans backend/server.js - fonction seedDatabase()
+// Ces données sont automatiquement créées si la collection n'existe pas
 ```
 
 ---
@@ -393,7 +393,7 @@ curl http://localhost:5000/api/business-hours/holidays
 ## 📝 Fichiers Modifiés
 
 ✅ **Backend**
-- `backend/server.py` - Endpoints business hours (4 groupes)
+- `backend/server.js` - Endpoints business hours (4 groupes)
 
 ✅ **Frontend**
 - `frontend/src/components/BusinessHoursManager.jsx` - Interface admin tabbed

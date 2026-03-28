@@ -7,6 +7,10 @@ import Footer from '../components/Footer';
 import OpeningHours from '../components/OpeningHours';
 import { motion } from 'framer-motion';
 import videoVitrine from '../assets/videos/video_vitrine.mp4';
+import leaPhoto from '../assets/photos/Equipe/Lea.jpg';
+import maryssaPhoto from '../assets/photos/Equipe/Maryssa.jpg';
+import maelisePhoto from '../assets/photos/Equipe/Maelise.jpg';
+import equipePhoto from '../assets/photos/Equipe/Equipe.jpg';
 
 export default function AboutInstitut() {
   const [showPricing, setShowPricing] = useState(false);
@@ -89,7 +93,7 @@ export default function AboutInstitut() {
               transition={{ duration: 0.6 }}
               className="glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full"
             >
-              <img src={require('../assets/photos/Equipe/Lea.jpg')} alt="Léa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" />
+              <img src={leaPhoto} alt="Léa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" />
               <h3 className="text-2xl font-bold text-[#1A1A1A] mb-1">Léa</h3>
               <div className="min-h-[52px] mb-2">
                 <span className="block text-sm text-[#D4AF37] font-medium">Spécialité : Conseil &amp; Soins Visage</span>
@@ -106,7 +110,7 @@ export default function AboutInstitut() {
               transition={{ delay: 0.1, duration: 0.6 }}
               className="glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full"
             >
-              <img src={require('../assets/photos/Equipe/Maryssa.jpg')} alt="Maryssa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" />
+              <img src={maryssaPhoto} alt="Maryssa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" />
               <h3 className="text-2xl font-bold text-[#1A1A1A] mb-1">Maryssa</h3>
               <div className="min-h-[52px] mb-2">
                 <span className="block text-sm text-[#D4AF37] font-medium">Spécialité : Ongles &amp; Extensions de cils</span>
@@ -124,7 +128,7 @@ export default function AboutInstitut() {
               className="glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full"
             >
               <div className="w-40 h-40 rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2] overflow-hidden">
-                <img src={require('../assets/photos/Equipe/Maelise.jpg')} alt="Maélise" className="w-full h-full object-cover object-[center_80%] scale-140" />
+                <img src={maelisePhoto} alt="Maélise" className="w-full h-full object-cover object-[center_80%] scale-140" />
               </div>
               <h3 className="text-2xl font-bold text-[#1A1A1A] mb-1">Maélise</h3>
               <div className="min-h-[52px] mb-2">
@@ -198,7 +202,7 @@ export default function AboutInstitut() {
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-[#1A1A1A]">Nos points forts</h2>
             <div className="w-56 h-56 md:w-64 md:h-64 rounded-2xl overflow-hidden shadow-lg border border-[#E8DCCA] opacity-75 md:float-right md:ml-6 mb-4 mx-auto md:mx-0">
               <img
-                src={require('../assets/photos/Equipe/Equipe.jpg')}
+                src={equipePhoto}
                 alt="Equipe Lea Beaute"
                 className="w-full h-full object-cover"
                 loading="lazy"

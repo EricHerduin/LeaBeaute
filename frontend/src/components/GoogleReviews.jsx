@@ -170,7 +170,7 @@ const GoogleReviews = () => {
     );
   }
 
-  const placeId = process.env.REACT_APP_GOOGLE_PLACE_ID || '';
+  const placeId = import.meta.env.VITE_GOOGLE_PLACE_ID || '';
   const writeReviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
 
   return (
@@ -240,7 +240,6 @@ const GoogleReviews = () => {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-full font-medium hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
-                      className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-full font-medium hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
           >
             Laisser un avis Google
             <Star className="w-5 h-5 fill-white" />

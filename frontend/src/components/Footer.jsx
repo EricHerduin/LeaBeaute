@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
 import Logo from '../assets/photos/logos/logo16-9_1.png';
+import { openCookieConsentManager } from '../lib/cookieConsent';
+import { Cookie } from 'lucide-react';
 
 export default function Footer({ onShowPricing }) {
   return (
@@ -64,9 +66,19 @@ export default function Footer({ onShowPricing }) {
             <Link to="/confidentialite" className="text-white/50 hover:text-[#D4AF37] transition-colors">
               Confidentialité
             </Link>
-            <Link to="/cookies" className="text-white/50 hover:text-[#D4AF37] transition-colors">
-              Cookies
-            </Link>
+            <button
+              type="button"
+              onClick={openCookieConsentManager}
+              className="inline-flex items-center justify-center text-white/50 hover:text-[#D4AF37] transition-colors"
+              title="Gérer mes cookies"
+              aria-label="Gérer mes cookies"
+            >
+              <span className="relative inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5">
+                <Cookie className="h-4 w-4" />
+                <span className="absolute right-1 top-1 h-1 w-1 rounded-full bg-[#D4AF37]" />
+                <span className="absolute left-1.5 bottom-1.5 h-1 w-1 rounded-full bg-[#D4AF37]" />
+              </span>
+            </button>
           </div>
         </div>
       </div>

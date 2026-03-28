@@ -12,10 +12,11 @@ import { services } from '../data/services';
 
 function ServiceVisual({ src, alt, fallbackLetter }) {
   return (
-    <div className="relative w-30 h-30">
+    <div className="relative w-32 h-32 md:w-36 md:h-36 mx-auto">
       <div className="absolute inset-0 rounded-full border border-[#D4AF37]/35" />
-      <div className="absolute inset-[3px] rounded-full border border-[#D4AF37]/20" />
-      <div className="absolute inset-[6px] rounded-full overflow-hidden bg-[#F7F4EC]">
+      <div className="absolute inset-[6px] rounded-full border border-[#D4AF37]/25" />
+      <div className="absolute inset-[12px] rounded-full border border-white/80" />
+      <div className="absolute inset-[16px] rounded-full overflow-hidden bg-[#F7F4EC] shadow-[0_16px_40px_rgba(212,175,55,0.18)]">
         <span className="absolute inset-0 grid place-items-center text-sm font-semibold text-[#1A1A1A]/70">
           {fallbackLetter}
         </span>
@@ -23,15 +24,17 @@ function ServiceVisual({ src, alt, fallbackLetter }) {
           src={src}
           alt={alt}
           loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover scale-105"
           onError={(e) => {
             e.currentTarget.style.display = 'none';
           }}
         />
       </div>
 
-      <div className="absolute -top-1 -left-1 w-5 h-5 rounded-full bg-white border border-[#D4AF37]/25" />
-      <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/25" />
+      <div className="absolute top-2 -left-1 h-4 w-4 rounded-full border border-[#D4AF37]/30 bg-white" />
+      <div className="absolute bottom-3 -right-1 h-6 w-6 rounded-full border border-[#D4AF37]/30 bg-[#D4AF37]/12" />
+      <div className="absolute -top-1 right-5 h-2.5 w-2.5 rounded-full bg-[#D4AF37]/60" />
+      <div className="absolute left-4 bottom-1 h-2.5 w-2.5 rounded-full bg-white border border-[#D4AF37]/25" />
     </div>
   );
 }
@@ -70,7 +73,7 @@ export default function Services({ onShowPricing }) {
                   data-testid={`service-${index}`}
                   aria-label={`En savoir plus sur ${service.title}`}
                 >
-                  <div className="mb-4">
+                  <div className="mb-5 flex justify-center">
                     <ServiceVisual
                       src={service.imageSrc}
                       alt={service.imageAlt}
