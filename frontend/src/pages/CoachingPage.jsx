@@ -138,7 +138,7 @@ export default function CoachingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation onShowPricing={() => setShowPricing(true)} />
+      <Navigation onShowPricing={() => setShowPricing(true)} forceLight />
       
       {/* Hero */}
       <section className="relative pt-32 pb-20 overflow-hidden">
@@ -151,10 +151,11 @@ export default function CoachingPage() {
               transition={{ duration: 0.8 }}
             >
               <h1 className="text-5xl md:text-6xl font-bold mb-6 text-[#1A1A1A]">
-                Accompagnement en <span className="gold-gradient-text italic">Chrononutrition</span>
+                Programme de <span className="gold-gradient-text italic">rééquilibrage alimentaire</span>
               </h1>
               <p className="text-lg md:text-xl text-[#4A4A4A] mb-8 leading-relaxed">
-                Un accompagnement personnalisé pour manger au bon moment et retrouver votre équilibre naturel.
+                Un accompagnement personnalisé basé sur la chrononutrition, pour réorganiser vos habitudes alimentaires,
+                retrouver un meilleur équilibre et avancer durablement à votre rythme.
               </p>
               <a
                 href="tel:0233214819"

@@ -6,12 +6,13 @@ import OpeningStatus from './OpeningStatus';
 import ExceptionBanner from './ExceptionBanner';
 import { getOpeningStatus } from '../data/businessHours';
 
-export default function Navigation({ onShowPricing }) {
+export default function Navigation({ onShowPricing, forceLight = false }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const [exceptionBanner, setExceptionBanner] = useState(null);
   const BANNER_REFRESH_INTERVAL = 3600000;
+  const navIsLight = forceLight || isScrolled;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -65,7 +66,7 @@ export default function Navigation({ onShowPricing }) {
   return (
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 before:content-[''] before:absolute before:inset-0 before:rounded-b-2xl before:pointer-events-none before:z-[-1] ${
-        isScrolled
+        navIsLight
           ? 'bg-white/40 backdrop-blur shadow-lg before:bg-none'
           : 'bg-[#222]/40 before:bg-linear-to-b before:from-black/60 before:to-transparent'
       }`}>
@@ -84,60 +85,60 @@ export default function Navigation({ onShowPricing }) {
             <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
               <Link
                 to="/a-propos-institut"
-                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+                className={`text-sm font-medium transition-colors ${navIsLight ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
               >
                 À propos
               </Link>
               <button
                 onClick={() => scrollToSection('services')}
                 data-testid="nav-services"
-                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+                className={`text-sm font-medium transition-colors ${navIsLight ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
               >
                 Prestations
               </button>
               <Link
                 to="/guinot"
                 data-testid="nav-guinot"
-                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+                className={`text-sm font-medium transition-colors ${navIsLight ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
               >
                 Guinot
               </Link>
               <button
                 onClick={() => scrollToSection('lpg')}
                 data-testid="nav-lpg"
-                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+                className={`text-sm font-medium transition-colors ${navIsLight ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
               >
                 LPG
               </button>
               <button
                 onClick={() => scrollToSection('cartes-cadeaux')}
                 data-testid="nav-giftcards"
-                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+                className={`text-sm font-medium transition-colors ${navIsLight ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
               >
                 Cartes cadeaux
               </button>
               <Link
                 to="/accompagnement-nutrition"
                 data-testid="nav-coaching"
-                className={`text-sm font-medium transition-colors ${isScrolled ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
+                className={`text-sm font-medium transition-colors ${navIsLight ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
               >
                 Accompagnement Nutrition
               </Link>
               <a
                 href="tel:0233214819"
                 data-testid="nav-call"
-                className={`btn-gold text-sm ${isScrolled ? '' : 'text-[#D4AF37] hover:text-white'}`}
+                className={`btn-gold text-sm ${navIsLight ? '' : 'text-[#D4AF37] hover:text-white'}`}
               >
                 Prendre rendez-vous
               </a>
-              <OpeningStatus isScrolled={isScrolled} />
+              <OpeningStatus isScrolled={navIsLight} />
             </div>
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               data-testid="mobile-menu-btn"
-              className="md:hidden p-2"
+              className={`md:hidden p-2 ${navIsLight ? 'text-[#1A1A1A]' : 'text-white'}`}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
