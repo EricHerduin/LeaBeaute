@@ -5,14 +5,14 @@ const mysql = require("mysql2/promise");
 const schemaPath = path.join(__dirname, "schema.sql");
 
 function createMysqlPoolFromEnv() {
-  const host = process.env.DB_HOST;
-  const port = Number(process.env.DB_PORT || 3306);
-  const user = process.env.DB_USER;
-  const password = process.env.DB_PASSWORD;
-  const database = process.env.DB_NAME;
+  const host = process.env.MYSQL_HOST || process.env.DB_HOST;
+  const port = Number(process.env.MYSQL_PORT || process.env.DB_PORT || 3306);
+  const user = process.env.MYSQL_USER || process.env.DB_USER;
+  const password = process.env.MYSQL_PASSWORD || process.env.DB_PASSWORD;
+  const database = process.env.MYSQL_DB_NAME || process.env.DB_NAME;
 
   if (!host || !user || !password || !database) {
-    throw new Error("DB_HOST, DB_USER, DB_PASSWORD et DB_NAME sont requis pour MySQL");
+    throw new Error("MYSQL_HOST, MYSQL_USER, MYSQL_PASSWORD et MYSQL_DB_NAME sont requis pour MySQL");
   }
 
   return mysql.createPool({

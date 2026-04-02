@@ -206,7 +206,7 @@ export default function CookieConsent() {
                     <button
                       onClick={handleAcceptAll}
                       disabled={isSaving}
-                      className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#B8952A] disabled:opacity-60"
+                      className="rounded-lg bg-[#D4AF37] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(180,137,31,0.22)] transition-colors hover:bg-[#B8952A] disabled:opacity-60"
                     >
                       Tout accepter
                     </button>
@@ -214,14 +214,14 @@ export default function CookieConsent() {
                     <button
                       onClick={handleRejectAll}
                       disabled={isSaving}
-                      className="rounded-lg border border-[#D4AF37] px-4 py-2 text-sm font-medium text-[#D4AF37] transition-colors hover:bg-[#D4AF37] hover:text-white disabled:opacity-60"
+                      className="rounded-lg border border-[#D8C7A8] bg-white px-5 py-2.5 text-sm font-medium text-[#4A4A4A] transition-colors hover:border-[#D4AF37] hover:text-[#B8891F] disabled:opacity-60"
                     >
                       Tout refuser
                     </button>
 
                     <button
                       onClick={() => setIsDialogOpen(true)}
-                      className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-[#4A4A4A] transition-colors hover:bg-gray-50"
+                      className="rounded-lg border border-[#D8C7A8] bg-white px-5 py-2.5 text-sm font-medium text-[#4A4A4A] transition-colors hover:border-[#D4AF37] hover:text-[#B8891F]"
                     >
                       Personnaliser
                     </button>
@@ -327,9 +327,17 @@ export default function CookieConsent() {
           <DialogFooter className="mt-6">
             <button
               type="button"
+              onClick={handleAcceptAll}
+              disabled={isSaving}
+              className="rounded-lg bg-[#D4AF37] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(180,137,31,0.22)] hover:bg-[#B8952A] disabled:opacity-60"
+            >
+              Tout accepter
+            </button>
+            <button
+              type="button"
               onClick={handleRejectAll}
               disabled={isSaving}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-[#4A4A4A] hover:bg-gray-50 disabled:opacity-60"
+              className="rounded-lg border border-[#D8C7A8] bg-white px-5 py-2.5 text-sm font-medium text-[#4A4A4A] hover:border-[#D4AF37] hover:text-[#B8891F] disabled:opacity-60"
             >
               Tout refuser
             </button>
@@ -337,9 +345,9 @@ export default function CookieConsent() {
               type="button"
               onClick={handleSaveCustom}
               disabled={isSaving}
-              className="rounded-lg bg-[#D4AF37] px-4 py-2 text-sm font-medium text-white hover:bg-[#B8952A] disabled:opacity-60"
+              className="rounded-lg border border-[#D8C7A8] bg-white px-5 py-2.5 text-sm font-medium text-[#4A4A4A] hover:border-[#D4AF37] hover:text-[#B8891F] disabled:opacity-60"
             >
-              {isSaving ? "Enregistrement..." : "Enregistrer mes choix"}
+              {isSaving ? "Enregistrement..." : "Personnaliser"}
             </button>
           </DialogFooter>
         </DialogContent>

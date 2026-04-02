@@ -1,39 +1,28 @@
 require("dotenv").config();
 
-const { MongoClient } = require("mongodb");
 const holidaysSeed = require("./data/holidaysSeed.json");
+const { executeSchema, runSql, getSqliteDatabasePath, sqlBool, sqlValue } = require("./sqlite/sqliteClient");
 
-async function main() {
-  const mongoUrl = process.env.MONGO_URL;
-  const dbName = process.env.DB_NAME;
+function main() {
+  executeSchema();
 
-  if (!mongoUrl || !dbName) {
-    throw new Error("MONGO_URL et DB_NAME sont requis");
+  runSql("DELETE FROM business_hours_holidays;");
+
+  for (const item of holidaysSeed) {
+    runSql(`
+      INSERT INTO business_hours_holidays (date, name, is_closed, created_at, updated_at)
+      VALUES (
+        ${sqlValue(item.date)},
+        ${sqlValue(item.name)},
+        ${sqlBool(true)},
+        ${sqlValue(new Date().toISOString())},
+        ${sqlValue(new Date().toISOString())}
+      );
+    `);
   }
 
-  const client = new MongoClient(mongoUrl);
-
-  try {
-    await client.connect();
-    const db = client.db(dbName);
-    const collection = db.collection("business_hours_holidays");
-
-    await collection.deleteMany({});
-    await collection.insertMany(
-      holidaysSeed.map((item) => ({
-        date: item.date,
-        name: item.name,
-        isClosed: true,
-      })),
-    );
-
-    console.log(`Jours fériés insérés: ${holidaysSeed.length}`);
-  } finally {
-    await client.close();
-  }
+  console.info(`Jours fériés insérés dans SQLite: ${holidaysSeed.length}`);
+  console.info(`Base SQLite: ${getSqliteDatabasePath()}`);
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main();

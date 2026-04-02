@@ -11,6 +11,30 @@ const formatTime = (time) => {
   return `${hours}h${minutes}`;
 };
 
+const normalizeDayHours = (hours) => {
+  if (!hours) return null;
+  return {
+    morningOpen: hours.morningOpen ?? hours.open ?? null,
+    morningClose: hours.morningClose ?? null,
+    afternoonOpen: hours.afternoonOpen ?? null,
+    afternoonClose: hours.afternoonClose ?? hours.close ?? null,
+  };
+};
+
+const getDayIntervals = (hours) => {
+  const normalized = normalizeDayHours(hours);
+  const intervals = [];
+
+  if (normalized?.morningOpen && normalized?.morningClose) {
+    intervals.push(`${formatTime(normalized.morningOpen)} - ${formatTime(normalized.morningClose)}`);
+  }
+  if (normalized?.afternoonOpen && normalized?.afternoonClose) {
+    intervals.push(`${formatTime(normalized.afternoonOpen)} - ${formatTime(normalized.afternoonClose)}`);
+  }
+
+  return intervals;
+};
+
 export default function OpeningHours({ fullWidth = false, showStatus = true, showShortReopen = false, onClosedPeriodChange }) {
   const [status, setStatus] = useState(null);
   const [generalHours, setGeneralHours] = useState(null);
@@ -58,8 +82,9 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
       if (exceptionForDay && !exceptionForDay.isOpen) continue;
       // Vérifier horaires habituels
       const dayIdx = searchDate.getDay();
-      const dayHours = generalHours && generalHours[String(dayIdx)];
-      if (!dayHours || !dayHours.open || !dayHours.close) continue;
+      const dayHours = generalHours && normalizeDayHours(generalHours[String(dayIdx)]);
+      const intervals = getDayIntervals(dayHours);
+      if (intervals.length === 0) continue;
       // Si exception d'ouverture modifiée ce jour-là
       if (exceptionForDay && exceptionForDay.isOpen) {
         reopenDate = new Date(searchDate);
@@ -67,7 +92,7 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
         break;
       } else {
         reopenDate = new Date(searchDate);
-        reopenTime = dayHours.open;
+        reopenTime = dayHours.morningOpen || dayHours.afternoonOpen;
         break;
       }
     }
@@ -141,8 +166,9 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
       <div className="space-y-3">
         {dayLabels.map((day, index) => {
           const dayKey = String(index);
-          const dayHours = generalHours[dayKey];
-          const isClosed = !dayHours || !dayHours.open || !dayHours.close;
+          const dayHours = normalizeDayHours(generalHours[dayKey]);
+          const dayIntervals = getDayIntervals(dayHours);
+          const isClosed = dayIntervals.length === 0;
           const isToday = currentTime.getDay() === index;
           // Calcul de la date du jour affiché (année/mois/jour corrects)
           const today = new Date(); today.setHours(0,0,0,0);
@@ -151,7 +177,7 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
 
           // Recherche exception couvrant ce jour
           const exception = getExceptionForDate(dateObj);
-          let horaires = `${formatTime(dayHours?.open)} - ${formatTime(dayHours?.close)}`;
+          let horaires = dayIntervals.join('  •  ');
 
           // Cas 1 : Jour habituellement fermé
           if (isClosed) {

@@ -26,13 +26,13 @@ const getBusinessHoursStore = () => {
 // Cache des données récupérées du backend
 let businessHoursCache = {
   generalHours: {
-    0: { open: null, close: null },
-    1: { open: '14:00', close: '18:30' },
-    2: { open: '09:00', close: '18:30' },
-    3: { open: null, close: null },
-    4: { open: '09:00', close: '18:30' },
-    5: { open: '09:00', close: '18:30' },
-    6: { open: '09:00', close: '16:00' }
+    0: { morningOpen: null, morningClose: null, afternoonOpen: null, afternoonClose: null },
+    1: { morningOpen: null, morningClose: null, afternoonOpen: '14:00', afternoonClose: '18:30' },
+    2: { morningOpen: '09:00', morningClose: '12:00', afternoonOpen: '14:00', afternoonClose: '18:30' },
+    3: { morningOpen: null, morningClose: null, afternoonOpen: null, afternoonClose: null },
+    4: { morningOpen: '09:00', morningClose: '12:00', afternoonOpen: '14:00', afternoonClose: '18:30' },
+    5: { morningOpen: '09:00', morningClose: '12:00', afternoonOpen: '14:00', afternoonClose: '18:30' },
+    6: { morningOpen: '09:00', morningClose: '12:00', afternoonOpen: '14:00', afternoonClose: '16:00' }
   },
   exceptions: [],
   holidays: [],
@@ -42,6 +42,44 @@ let businessHoursCache = {
 };
 
 const CACHE_DURATION = 3600000; // 1 heure
+
+const normalizeDayHours = (hours) => {
+  if (!hours) {
+    return {
+      morningOpen: null,
+      morningClose: null,
+      afternoonOpen: null,
+      afternoonClose: null,
+    };
+  }
+
+  return {
+    morningOpen: hours.morningOpen ?? hours.open ?? null,
+    morningClose: hours.morningClose ?? null,
+    afternoonOpen: hours.afternoonOpen ?? null,
+    afternoonClose: hours.afternoonClose ?? hours.close ?? null,
+  };
+};
+
+const getDayIntervals = (hours) => {
+  const normalized = normalizeDayHours(hours);
+  const intervals = [];
+
+  if (normalized.morningOpen && normalized.morningClose) {
+    intervals.push({ open: normalized.morningOpen, close: normalized.morningClose, label: 'morning' });
+  }
+  if (normalized.afternoonOpen && normalized.afternoonClose) {
+    intervals.push({ open: normalized.afternoonOpen, close: normalized.afternoonClose, label: 'afternoon' });
+  }
+
+  return intervals;
+};
+
+const getFirstOpening = (hours) => getDayIntervals(hours)[0]?.open || null;
+const getLastClosing = (hours) => {
+  const intervals = getDayIntervals(hours);
+  return intervals[intervals.length - 1]?.close || null;
+};
 
 /**
  * Force la mise à jour immédiate du cache
@@ -98,7 +136,11 @@ export const fetchBusinessHoursFromBackend = async (forceRefresh = false) => {
       console.log('[DEBUG][fetchBusinessHoursFromBackend] exceptionsRes =', exceptionsRes);
 
       if (hoursRes.data) {
-        businessHoursCache.generalHours = hoursRes.data;
+        const normalizedHours = {};
+        for (let dayIndex = 0; dayIndex <= 6; dayIndex += 1) {
+          normalizedHours[String(dayIndex)] = normalizeDayHours(hoursRes.data[String(dayIndex)] ?? hoursRes.data[dayIndex]);
+        }
+        businessHoursCache.generalHours = normalizedHours;
         console.log('[BusinessHours] Updated generalHours:', hoursRes.data);
       }
       if (exceptionsRes.data && Array.isArray(exceptionsRes.data)) {
@@ -241,8 +283,9 @@ const getClosedSecondaryMessage = (startDate) => {
       reopenTime = formatTime(reopenException.startTime);
     } else {
       const dayHours = getHoursForDay(reopenDate.getDay());
-      if (dayHours && dayHours.open) {
-        reopenTime = formatTime(dayHours.open);
+      const firstOpening = getFirstOpening(dayHours);
+      if (firstOpening) {
+        reopenTime = formatTime(firstOpening);
       }
     }
     
@@ -297,7 +340,7 @@ export const getExceptionForDate = (date) => {
  * Récupère les horaires d'un jour de la semaine (0=dimanche, 6=samedi)
  */
 export const getHoursForDay = (dayIndex) => {
-  return businessHoursCache.generalHours[String(dayIndex)] || null;
+  return normalizeDayHours(businessHoursCache.generalHours[String(dayIndex)] || null);
 };
 
 /**
@@ -340,8 +383,9 @@ export const getOpeningStatus = () => {
         reopenTime = formatTime(reopenException.startTime);
       } else {
         const dayHours = getHoursForDay(reopenDate.getDay());
-        if (dayHours && dayHours.open) {
-          reopenTime = formatTime(dayHours.open);
+        const firstOpening = getFirstOpening(dayHours);
+        if (firstOpening) {
+          reopenTime = formatTime(firstOpening);
         }
       }
       // Utiliser le vrai prochain jour ouvert (nextOpenTime)
@@ -408,8 +452,9 @@ export const getOpeningStatus = () => {
 
   // Utiliser les horaires généraux du jour
   const todayHours = getHoursForDay(currentDay);
+  const todayIntervals = getDayIntervals(todayHours);
 
-  if (!todayHours || !todayHours.open || !todayHours.close) {
+  if (todayIntervals.length === 0) {
     return {
       status: 'closed',
       message: 'Fermé actuellement',
@@ -418,41 +463,37 @@ export const getOpeningStatus = () => {
     };
   }
 
-  const openTimeInMinutes = parseTimeToMinutes(todayHours.open);
-  const closeTimeInMinutes = parseTimeToMinutes(todayHours.close);
+  for (const interval of todayIntervals) {
+    const openTimeInMinutes = parseTimeToMinutes(interval.open);
+    const closeTimeInMinutes = parseTimeToMinutes(interval.close);
 
-  if (openTimeInMinutes === null || closeTimeInMinutes === null) {
-    return {
-      status: 'closed',
-      message: 'Fermé',
-      nextOpenTime: getNextOpenDay(now),
-    };
-  }
+    if (openTimeInMinutes === null || closeTimeInMinutes === null) {
+      continue;
+    }
 
-  // Vérifier si on est dans les horaires d'ouverture
-  if (currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes) {
-    return {
-      status: 'open',
-      message: 'Ouvert actuellement',
-      secondaryMessage: `Ferme à ${formatTime(todayHours.close)}`,
-      nextOpenTime: null,
-    };
-  }
+    if (currentTimeInMinutes >= openTimeInMinutes && currentTimeInMinutes < closeTimeInMinutes) {
+      return {
+        status: 'open',
+        message: 'Ouvert actuellement',
+        secondaryMessage: `Ferme à ${formatTime(interval.close)}`,
+        nextOpenTime: null,
+      };
+    }
 
-  // Si c'est avant l'ouverture
-  if (currentTimeInMinutes < openTimeInMinutes) {
-    return {
-      status: 'closed',
-      message: 'Fermé actuellement',
-      secondaryMessage: `Ouvre aujourd'hui à ${formatTime(todayHours.open)}`,
-      nextOpenTime: new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        Math.floor(openTimeInMinutes / 60),
-        openTimeInMinutes % 60
-      ),
-    };
+    if (currentTimeInMinutes < openTimeInMinutes) {
+      return {
+        status: 'closed',
+        message: 'Fermé actuellement',
+        secondaryMessage: `Ouvre aujourd'hui à ${formatTime(interval.open)}`,
+        nextOpenTime: new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          Math.floor(openTimeInMinutes / 60),
+          openTimeInMinutes % 60
+        ),
+      };
+    }
   }
 
   // Si c'est après la fermeture
@@ -491,8 +532,9 @@ export const getNextOpenDay = (startDate = new Date()) => {
       ? { open: exception.startTime, close: exception.endTime }
       : getHoursForDay(date.getDay());
 
-    if (dayHours && dayHours.open && dayHours.close) {
-      const openMinutes = parseTimeToMinutes(dayHours.open);
+    const firstOpening = getFirstOpening(dayHours);
+    if (firstOpening) {
+      const openMinutes = parseTimeToMinutes(firstOpening);
       if (openMinutes !== null) {
         date.setHours(Math.floor(openMinutes / 60), openMinutes % 60, 0, 0);
         return date;
@@ -539,8 +581,10 @@ export const getTodayAndNextDayHours = () => {
     };
   } else if (!today.isHoliday && !todayException) {
     const dayHours = getHoursForDay(today.dayIndex);
-    if (dayHours && dayHours.open && dayHours.close) {
-      today.hours = { ...dayHours, isException: false };
+    const firstOpening = getFirstOpening(dayHours);
+    const lastClosing = getLastClosing(dayHours);
+    if (firstOpening && lastClosing) {
+      today.hours = { open: firstOpening, close: lastClosing, ...dayHours, isException: false };
     }
   }
 
@@ -553,8 +597,10 @@ export const getTodayAndNextDayHours = () => {
     };
   } else if (!tmrw.isHoliday && !tmrwException) {
     const dayHours = getHoursForDay(tmrw.dayIndex);
-    if (dayHours && dayHours.open && dayHours.close) {
-      tmrw.hours = { ...dayHours, isException: false };
+    const firstOpening = getFirstOpening(dayHours);
+    const lastClosing = getLastClosing(dayHours);
+    if (firstOpening && lastClosing) {
+      tmrw.hours = { open: firstOpening, close: lastClosing, ...dayHours, isException: false };
     }
   }
 
@@ -603,8 +649,10 @@ export const getOpeningStatusForDate = (testDate) => {
   // Horaires généraux
   const dayHours = getHoursForDay(dayIndex);
   console.log(`[DEBUG] Day hours:`, dayHours);
-  
-  if (!dayHours || !dayHours.open || !dayHours.close) {
+  const firstOpening = getFirstOpening(dayHours);
+  const lastClosing = getLastClosing(dayHours);
+
+  if (!firstOpening || !lastClosing) {
     console.log(`[DEBUG] Closed (no hours for this day)`);
     return {
       status: 'closed',
@@ -617,7 +665,7 @@ export const getOpeningStatusForDate = (testDate) => {
   return {
     status: 'open',
     message: 'Ouvert',
-    secondaryMessage: `De ${formatTime(dayHours.open)} à ${formatTime(dayHours.close)}`,
+    secondaryMessage: `De ${formatTime(firstOpening)} à ${formatTime(lastClosing)}`,
     nextOpenTime: null,
   };
 };

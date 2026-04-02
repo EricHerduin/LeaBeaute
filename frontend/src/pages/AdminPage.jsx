@@ -843,7 +843,7 @@ export default function AdminPage() {
     if (!window.confirm('Supprimer cette carte cadeau en attente ?')) return;
 
     try {
-      await axios.delete(`${API}/gift-cards/${id}`, {
+      await axios.delete(`/gift-cards/${id}`, {
         headers: { Authorization: token }
       });
       toast.success('Carte cadeau supprimée');
@@ -864,7 +864,7 @@ export default function AdminPage() {
     if (!window.confirm('Valider cette carte cadeau ? Un code unique sera généré.')) return;
 
     try {
-      const response = await axios.post(`${API}/gift-cards/${id}/activate`, {}, {
+      const response = await axios.post(`/gift-cards/${id}/activate`, {}, {
         headers: { Authorization: token }
       });
       toast.success(`Carte activée avec le code: ${response.data.code}`);
@@ -884,14 +884,14 @@ export default function AdminPage() {
     }
 
     try {
-      await axios.patch(`${API}/gift-cards/${id}/extend-expiry`, {
+      await axios.patch(`/gift-cards/${id}/extend-expiry`, {
         new_expiry_date: extendExpiryDate
       }, {
         headers: { Authorization: token }
       });
       toast.success('Date de validité prolongée');
       fetchGiftCards();
-      const response = await axios.get(`${API}/gift-cards/${id}`, {
+      const response = await axios.get(`/gift-cards/${id}`, {
         headers: { Authorization: token }
       });
       setSelectedGiftCard(response.data);
@@ -907,14 +907,14 @@ export default function AdminPage() {
     }
 
     try {
-      await axios.patch(`${API}/gift-cards/${id}/update-recipient`, {
+      await axios.patch(`/gift-cards/${id}/update-recipient`, {
         recipient_name: newRecipientName
       }, {
         headers: { Authorization: token }
       });
       toast.success('Bénéficiaire mis à jour');
       fetchGiftCards();
-      const response = await axios.get(`${API}/gift-cards/${id}`, {
+      const response = await axios.get(`/gift-cards/${id}`, {
         headers: { Authorization: token }
       });
       setSelectedGiftCard(response.data);
@@ -1344,7 +1344,7 @@ export default function AdminPage() {
 
     setSendingEmail(true);
     try {
-      await axios.post(`${API}/gift-cards/${card.id}/resend-email`, {}, {
+      await axios.post(`/gift-cards/${card.id}/resend-email`, {}, {
         headers: { Authorization: token }
       });
       toast.success(`Email envoyé à ${card.buyer_email}`);
@@ -1370,7 +1370,7 @@ export default function AdminPage() {
     }
 
     try {
-      await axios.post(`${API}/coupons`, {
+      await axios.post(`/coupons`, {
         code: newCouponForm.code,
         type: newCouponForm.type,
         value: parseFloat(newCouponForm.value),
@@ -1400,7 +1400,7 @@ export default function AdminPage() {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce coupon ?')) return;
 
     try {
-      await axios.delete(`${API}/coupons/${id}`, {
+      await axios.delete(`/coupons/${id}`, {
         headers: { Authorization: token }
       });
       toast.success('Coupon supprimé');
@@ -1417,7 +1417,7 @@ export default function AdminPage() {
 
   const handleSaveCouponEdit = async () => {
     try {
-      await axios.put(`${API}/coupons/${editingCouponId}`, editCouponForm, {
+      await axios.put(`/coupons/${editingCouponId}`, editCouponForm, {
         headers: { Authorization: token }
       });
       toast.success('Coupon mis à jour');

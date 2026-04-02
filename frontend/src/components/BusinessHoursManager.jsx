@@ -6,6 +6,34 @@ import { invalidateCache } from '../data/businessHours';
 
 const DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
+const EMPTY_DAY = {
+  morningOpen: null,
+  morningClose: null,
+  afternoonOpen: null,
+  afternoonClose: null,
+};
+
+const normalizeDayHours = (hours) => {
+  if (!hours) return null;
+
+  return {
+    morningOpen: hours.morningOpen ?? hours.open ?? null,
+    morningClose: hours.morningClose ?? null,
+    afternoonOpen: hours.afternoonOpen ?? null,
+    afternoonClose: hours.afternoonClose ?? hours.close ?? null,
+  };
+};
+
+const hasAnyOpeningHours = (hours) => {
+  if (!hours) return false;
+  return Boolean(
+    (hours.morningOpen && hours.morningClose) ||
+    (hours.afternoonOpen && hours.afternoonClose)
+  );
+};
+
+const serializeGeneralHours = (hours) => JSON.stringify(hours);
+
 export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('general'); // 'general', 'exceptions', 'holidays'
   const [businessHours, setBusinessHours] = useState({});
@@ -13,6 +41,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
   const [holidays, setHolidays] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [initialGeneralHoursSnapshot, setInitialGeneralHoursSnapshot] = useState('');
 
   // Form states for exceptions
   const [exceptionMode, setExceptionMode] = useState('single'); // 'single' ou 'range'
@@ -36,7 +65,9 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
         api.get('/business-hours/exceptions', { headers: { Authorization: adminToken } }),
         api.get('/business-hours/holidays', { headers: { Authorization: adminToken } })
       ]);
-      setBusinessHours(hoursRes.data || {});
+      const loadedHours = hoursRes.data || {};
+      setBusinessHours(loadedHours);
+      setInitialGeneralHoursSnapshot(serializeGeneralHours(loadedHours));
       setExceptions(exceptionsRes.data || []);
       setHolidays(holidaysRes.data || []);
     } catch (error) {
@@ -57,7 +88,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
     setBusinessHours(prev => ({
       ...prev,
       [day]: {
-        ...prev[day],
+        ...(normalizeDayHours(prev[day]) || EMPTY_DAY),
         [field]: value === '' ? null : value
       }
     }));
@@ -66,21 +97,50 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
   const handleToggleDay = (day) => {
     setBusinessHours(prev => ({
       ...prev,
-      [day]: prev[day] ? null : { open: '09:00', close: '18:30' }
+      [day]: hasAnyOpeningHours(normalizeDayHours(prev[day]))
+        ? null
+        : { morningOpen: '09:00', morningClose: '12:00', afternoonOpen: '14:00', afternoonClose: '18:30' }
     }));
+  };
+
+  const buildGeneralHoursPayload = () => {
+    const payload = {};
+
+    for (let dayIndex = 0; dayIndex <= 6; dayIndex += 1) {
+      const normalized = normalizeDayHours(businessHours[dayIndex]);
+
+      if (!hasAnyOpeningHours(normalized)) {
+        payload[dayIndex] = { ...EMPTY_DAY };
+        continue;
+      }
+
+      payload[dayIndex] = {
+        morningOpen: normalized.morningOpen || null,
+        morningClose: normalized.morningClose || null,
+        afternoonOpen: normalized.afternoonOpen || null,
+        afternoonClose: normalized.afternoonClose || null,
+      };
+    }
+
+    return payload;
   };
 
   const handleSaveGeneral = async () => {
     try {
       setSaving(true);
-      await api.post('/business-hours', businessHours, {
+      const payload = buildGeneralHoursPayload();
+      await api.post('/business-hours', payload, {
         headers: { 'Authorization': adminToken }
       });
       toast.success('Horaires généraux mis à jour');
+      await fetchData();
       await invalidateCache(); // Forcer la mise à jour du cache
+      setInitialGeneralHoursSnapshot(serializeGeneralHours(payload));
+      return true;
     } catch (error) {
       console.error('Erreur:', error);
-      toast.error('Impossible de sauvegarder');
+      toast.error(error.response?.data?.detail || 'Impossible de sauvegarder');
+      return false;
     } finally {
       setSaving(false);
     }
@@ -224,6 +284,49 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
     }
   };
 
+  const generalHoursDirty = serializeGeneralHours(buildGeneralHoursPayload()) !== initialGeneralHoursSnapshot;
+  const exceptionDraftDirty = Boolean(
+    exceptionDate ||
+    exceptionEndDate ||
+    exceptionReason.trim() ||
+    editingException ||
+    exceptionOpen ||
+    exceptionStartTime !== '09:00' ||
+    exceptionEndTime !== '18:30' ||
+    exceptionMode !== 'single'
+  );
+  const holidayDraftDirty = Boolean(holidayDate || holidayName.trim());
+
+  const handleRequestClose = async () => {
+    if (saving) return;
+
+    if (activeTab === 'general' && generalHoursDirty) {
+      const shouldSave = window.confirm('Les horaires généraux ont été modifiés. Voulez-vous les enregistrer avant de fermer ?');
+      if (shouldSave) {
+        const saved = await handleSaveGeneral();
+        if (saved) {
+          onClose();
+        }
+        return;
+      }
+
+      const shouldDiscard = window.confirm('Fermer sans enregistrer les horaires généraux ?');
+      if (!shouldDiscard) return;
+    }
+
+    if (activeTab === 'exceptions' && exceptionDraftDirty) {
+      const shouldDiscard = window.confirm('Une exception est en cours de saisie. Fermer sans enregistrer ?');
+      if (!shouldDiscard) return;
+    }
+
+    if (activeTab === 'holidays' && holidayDraftDirty) {
+      const shouldDiscard = window.confirm('Un jour férié est en cours de saisie. Fermer sans enregistrer ?');
+      if (!shouldDiscard) return;
+    }
+
+    onClose();
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -232,7 +335,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-      onClick={onClose}
+      onClick={handleRequestClose}
     >
       <motion.div
         initial={{ scale: 0.9, opacity: 0 }}
@@ -243,6 +346,14 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
         <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">
           Gérer les Horaires d'Ouverture
         </h2>
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={handleRequestClose}
+            className="px-4 py-2 border border-[#E8DCCA] text-[#4A4A4A] rounded-lg hover:bg-[#F5F0E8] transition-all font-medium"
+          >
+            Fermer
+          </button>
+        </div>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 border-b border-[#E8DCCA]">
@@ -273,8 +384,8 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
             {activeTab === 'general' && (
               <div className="space-y-4 mb-6">
                 {DAYS.map((day, index) => {
-                  const hours = businessHours[index];
-                  const isClosed = !hours;
+                  const hours = normalizeDayHours(businessHours[index]);
+                  const isClosed = !hasAnyOpeningHours(hours);
 
                   return (
                     <div key={index} className="border border-[#E8DCCA] rounded-lg p-4">
@@ -293,24 +404,46 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                       </div>
 
                       {!isClosed && (
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <label className="text-sm text-[#4A4A4A] block mb-1">Ouverture</label>
-                            <input
-                              type="time"
-                              value={hours.open || '09:00'}
-                              onChange={(e) => handleTimeChange(index, 'open', e.target.value)}
-                              className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                            />
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm text-[#4A4A4A] block mb-1">Matin - ouverture</label>
+                              <input
+                                type="time"
+                                value={hours?.morningOpen || ''}
+                                onChange={(e) => handleTimeChange(index, 'morningOpen', e.target.value)}
+                                className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm text-[#4A4A4A] block mb-1">Matin - fermeture</label>
+                              <input
+                                type="time"
+                                value={hours?.morningClose || ''}
+                                onChange={(e) => handleTimeChange(index, 'morningClose', e.target.value)}
+                                className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <label className="text-sm text-[#4A4A4A] block mb-1">Fermeture</label>
-                            <input
-                              type="time"
-                              value={hours.close || '18:30'}
-                              onChange={(e) => handleTimeChange(index, 'close', e.target.value)}
-                              className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                            />
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-sm text-[#4A4A4A] block mb-1">Après-midi - ouverture</label>
+                              <input
+                                type="time"
+                                value={hours?.afternoonOpen || ''}
+                                onChange={(e) => handleTimeChange(index, 'afternoonOpen', e.target.value)}
+                                className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-sm text-[#4A4A4A] block mb-1">Après-midi - fermeture</label>
+                              <input
+                                type="time"
+                                value={hours?.afternoonClose || ''}
+                                onChange={(e) => handleTimeChange(index, 'afternoonClose', e.target.value)}
+                                className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                              />
+                            </div>
                           </div>
                         </div>
                       )}

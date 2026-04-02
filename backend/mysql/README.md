@@ -2,13 +2,13 @@ Configuration MySQL o2switch
 
 1. Renseigner les variables suivantes dans `.env` :
 
-- `DB_HOST`
-- `DB_PORT`
-- `DB_NAME`
-- `DB_USER`
-- `DB_PASSWORD`
 - `MONGO_URL`
 - `MONGO_DB_NAME`
+- `MYSQL_HOST`
+- `MYSQL_PORT`
+- `MYSQL_DB_NAME`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
 
 2. Initialiser le schema SQL :
 

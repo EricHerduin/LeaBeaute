@@ -7,6 +7,9 @@
     "dev": "node --watch server.js",
     "start": "node server.js",
     "seed:holidays": "node seed-holidays.js",
+    "db:init:local-sqlite": "node init-local-sqlite.js",
+    "db:migrate:mongo-to-local-sqlite": "node migrate-mongo-to-local-sqlite.js",
+    "db:migrate:local-sqlite-to-mysql": "node migrate-local-sqlite-to-mysql.js",
     "db:init:mysql": "node init-mysql.js",
     "db:migrate:mongo-to-mysql": "node migrate-mongo-to-mysql.js"
   },
