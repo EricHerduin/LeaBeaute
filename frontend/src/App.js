@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
 import ScrollToTop from "./components/ScrollToTop";
+import ScrollTopFab from "./components/ScrollTopFab";
 import CookieConsent from "./components/CookieConsent";
 import GoogleAnalyticsConsentBridge from "./components/GoogleAnalyticsConsentBridge";
 import StructuredData from "./components/StructuredData";
@@ -59,6 +60,7 @@ function App() {
         </Routes>
       </BrowserRouter>
       <CookieConsent />
+      <ScrollTopFab />
       <Toaster richColors position="top-center" />
     </HelmetProvider>
   );

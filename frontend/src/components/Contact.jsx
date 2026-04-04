@@ -4,6 +4,10 @@ import OpeningHours from './OpeningHours';
 
 export default function Contact() {
   const [isClosedPeriod, setIsClosedPeriod] = useState(false);
+  const encodedAddress = encodeURIComponent('7 Rue du Palais de Justice, 50700 Valognes');
+  const mapsEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&z=16&output=embed`;
+  const mapsDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+  const wazeUrl = `https://waze.com/ul?q=${encodedAddress}&navigate=yes`;
 
   const handleClosedPeriodChange = (isClosed, message) => {
     setIsClosedPeriod(isClosed);
@@ -59,9 +63,55 @@ export default function Contact() {
                   </div>
                 </div>
               </div>
+
+              <div className="mt-6">
+                <p className="mb-3 text-sm font-semibold text-[#1A1A1A]">Emplacement</p>
+                <div className="relative overflow-hidden rounded-2xl border border-[#E8DCCA] shadow-sm">
+                  <iframe
+                    title="Carte Léa Beauté Valognes"
+                    src={mapsEmbedUrl}
+                    className="h-56 w-full"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                  <a
+                    href={mapsDirectionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute inset-0 z-10"
+                    title="Ouvrir l'itinéraire"
+                    aria-label="Ouvrir l'itinéraire"
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/50 to-transparent p-3">
+                    <span className="inline-flex items-center rounded-full border border-white/40 bg-white/20 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+                      Touchez la carte pour ouvrir l'itinéraire
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-3 flex flex-wrap gap-3">
+                  <a
+                    href={wazeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center rounded-full border border-[#D4AF37]/50 bg-[#FFFDF8] px-4 py-2 text-xs font-semibold text-[#6A5315] transition-colors hover:bg-[#F9F2E2] md:hidden"
+                  >
+                    Ouvrir dans Waze
+                  </a>
+                  <a
+                    href={mapsDirectionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center rounded-full border border-[#D4AF37]/50 bg-[#FFFDF8] px-4 py-2 text-xs font-semibold text-[#6A5315] transition-colors hover:bg-[#F9F2E2]"
+                  >
+                    Ouvrir dans Google Maps
+                  </a>
+                </div>
+              </div>
+
               <div className="mt-6">
                 <a
-                  href="https://www.google.com/maps/dir//7+Rue+du+Palais+de+Justice,+50700+Valognes"
+                  href={mapsDirectionsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   data-testid="contact-directions"

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
@@ -53,7 +54,7 @@ export default function Confidentialite() {
             <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">Cookies</h2>
             <p>
               Ce site utilise des cookies techniques nécessaires à son fonctionnement. Pour plus d'informations, consultez notre
-              <a href="/cookies" className="text-[#D4AF37] hover:underline ml-1">politique cookies</a>.
+              <Link to="/cookies" className="text-[#D4AF37] hover:underline ml-1">politique cookies</Link>.
             </p>
           </section>
         </div>

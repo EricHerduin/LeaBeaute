@@ -57,6 +57,22 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
   const [holidayDate, setHolidayDate] = useState('');
   const [holidayName, setHolidayName] = useState('');
 
+  const resetExceptionForm = useCallback(() => {
+    setExceptionDate('');
+    setExceptionEndDate('');
+    setExceptionReason('');
+    setExceptionOpen(false);
+    setExceptionMode('single');
+    setEditingException(null);
+    setExceptionStartTime('09:00');
+    setExceptionEndTime('18:30');
+  }, []);
+
+  const resetHolidayForm = useCallback(() => {
+    setHolidayDate('');
+    setHolidayName('');
+  }, []);
+
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
@@ -186,14 +202,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
 
       toast.success(editingException ? 'Exception modifiée' : 'Exception ajoutée');
       
-      // Réinitialiser
-      setExceptionDate('');
-      setExceptionEndDate('');
-      setExceptionReason('');
-      setExceptionOpen(false);
-      setExceptionMode('single');
-      setEditingException(null);
-      
+      resetExceptionForm();
       await fetchData();
       await invalidateCache();
     } catch (error) {
@@ -216,12 +225,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
   };
 
   const handleCancelEdit = () => {
-    setExceptionDate('');
-    setExceptionEndDate('');
-    setExceptionReason('');
-    setExceptionOpen(false);
-    setExceptionMode('single');
-    setEditingException(null);
+    resetExceptionForm();
   };
 
   const handleDeleteException = async (date) => {
@@ -255,8 +259,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
         headers: { 'Authorization': adminToken }
       });
       toast.success('Jour férié ajouté');
-      setHolidayDate('');
-      setHolidayName('');
+      resetHolidayForm();
       await fetchData();
       await invalidateCache(); // Forcer la mise à jour du cache
     } catch (error) {
@@ -296,6 +299,12 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
     exceptionMode !== 'single'
   );
   const holidayDraftDirty = Boolean(holidayDate || holidayName.trim());
+
+  const handleResetGeneralHours = () => {
+    const loaded = JSON.parse(initialGeneralHoursSnapshot || '{}');
+    setBusinessHours(loaded);
+    toast.success('Modifications des horaires annulées');
+  };
 
   const handleRequestClose = async () => {
     if (saving) return;
@@ -343,15 +352,21 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
         onClick={(e) => e.stopPropagation()}
         className="bg-white rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-auto"
       >
-        <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">
-          Gérer les Horaires d'Ouverture
-        </h2>
-        <div className="flex justify-end mb-4">
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-[#1A1A1A]">
+              Gérer les Horaires d'Ouverture
+            </h2>
+            <p className="text-sm text-[#6B6358] mt-2">
+              Modifie les horaires, enregistre explicitement tes changements, puis ferme la fenêtre.
+            </p>
+          </div>
           <button
             onClick={handleRequestClose}
-            className="px-4 py-2 border border-[#E8DCCA] text-[#4A4A4A] rounded-lg hover:bg-[#F5F0E8] transition-all font-medium"
+            className="h-10 w-10 shrink-0 rounded-full border border-[#E8DCCA] text-[#4A4A4A] hover:bg-[#F5F0E8] transition-all font-medium"
+            aria-label="Fermer"
           >
-            Fermer
+            ×
           </button>
         </div>
 
@@ -383,6 +398,9 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
             {/* General Hours Tab */}
             {activeTab === 'general' && (
               <div className="space-y-4 mb-6">
+                <div className="rounded-xl border border-[#E8DCCA] bg-[#FCF8F1] px-4 py-3 text-sm text-[#6B6358]">
+                  Modifie les créneaux ci-dessous puis utilise les actions <strong>Enregistrer</strong> ou <strong>Annuler</strong>.
+                </div>
                 {DAYS.map((day, index) => {
                   const hours = normalizeDayHours(businessHours[index]);
                   const isClosed = !hasAnyOpeningHours(hours);
@@ -450,13 +468,22 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                     </div>
                   );
                 })}
-                <button
-                  onClick={handleSaveGeneral}
-                  disabled={saving}
-                  className="w-full px-6 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold mt-6"
-                >
-                  {saving ? 'Sauvegarde...' : 'Sauvegarder les Horaires'}
-                </button>
+                <div className="flex justify-end gap-3 pt-4">
+                  <button
+                    onClick={handleResetGeneralHours}
+                    disabled={saving || !generalHoursDirty}
+                    className="px-5 py-2 border border-[#E8DCCA] text-[#4A4A4A] rounded-lg hover:bg-[#F5F0E8] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium"
+                  >
+                    Annuler les modifications
+                  </button>
+                  <button
+                    onClick={handleSaveGeneral}
+                    disabled={saving}
+                    className="px-6 py-2 bg-[#8A6A16] text-[#FFF8E7] rounded-lg hover:bg-[#755912] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                  >
+                    {saving ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                </div>
               </div>
             )}
 
@@ -465,8 +492,11 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
               <div className="space-y-6">
                 <div className="border border-[#E8DCCA] rounded-lg p-4">
                   <h3 className="font-semibold text-[#1A1A1A] mb-4">
-                    {editingException ? 'Éditer Exception' : 'Ajouter une Exception'}
+                    {editingException ? 'Modifier une exception' : 'Créer une exception'}
                   </h3>
+                  <p className="text-sm text-[#6B6358] mb-4">
+                    Renseigne le formulaire, puis clique sur <strong>{editingException ? 'Enregistrer l’exception' : 'Créer l’exception'}</strong>.
+                  </p>
                   <div className="space-y-4">
                     {/* Mode Toggle: Single Day vs Period */}
                     <div>
@@ -577,22 +607,20 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                       <button
                         onClick={handleAddException}
                         disabled={saving}
-                        className="flex-1 px-6 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                        className="flex-1 px-6 py-2 bg-[#8A6A16] text-[#FFF8E7] rounded-lg hover:bg-[#755912] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
                       >
                         {saving 
-                          ? (editingException ? 'Modification...' : 'Ajout...') 
-                          : (editingException ? 'Modifier l\'Exception' : 'Ajouter l\'Exception')
+                          ? (editingException ? 'Enregistrement...' : 'Création...') 
+                          : (editingException ? 'Enregistrer l’exception' : 'Créer l’exception')
                         }
                       </button>
-                      {editingException && (
-                        <button
-                          onClick={handleCancelEdit}
-                          disabled={saving}
-                          className="flex-1 px-6 py-2 border border-[#E8DCCA] text-[#4A4A4A] rounded-lg hover:bg-[#F5F0E8] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
-                        >
-                          Annuler
-                        </button>
-                      )}
+                      <button
+                        onClick={handleCancelEdit}
+                        disabled={saving}
+                        className="flex-1 px-6 py-2 border border-[#E8DCCA] text-[#4A4A4A] rounded-lg hover:bg-[#F5F0E8] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                      >
+                        Vider le formulaire
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -629,7 +657,7 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                               disabled={saving}
                               className="px-3 py-1 bg-[#D4AF37] text-white rounded-lg hover:bg-[#C5A028] disabled:opacity-50 transition-all text-sm font-medium"
                             >
-                              Éditer
+                              Modifier
                             </button>
                             <button
                               onClick={() => handleDeleteException(exc.date)}
@@ -652,6 +680,9 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
               <div className="space-y-6">
                 <div className="border border-[#E8DCCA] rounded-lg p-4">
                   <h3 className="font-semibold text-[#1A1A1A] mb-4">Ajouter un Jour Férié</h3>
+                  <p className="text-sm text-[#6B6358] mb-4">
+                    Saisis la date et le libellé, puis clique sur <strong>Enregistrer le jour férié</strong>.
+                  </p>
                   <div className="space-y-4">
                     <div>
                       <label className="text-sm text-[#4A4A4A] block mb-1">Date</label>
@@ -675,9 +706,16 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
                     <button
                       onClick={handleAddHoliday}
                       disabled={saving}
-                      className="w-full px-6 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                      className="w-full px-6 py-2 bg-[#8A6A16] text-[#FFF8E7] rounded-lg hover:bg-[#755912] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
                     >
-                      {saving ? 'Ajout...' : 'Ajouter le Jour Férié'}
+                      {saving ? 'Enregistrement...' : 'Enregistrer le jour férié'}
+                    </button>
+                    <button
+                      onClick={resetHolidayForm}
+                      disabled={saving || !holidayDraftDirty}
+                      className="w-full px-6 py-2 border border-[#E8DCCA] text-[#4A4A4A] rounded-lg hover:bg-[#F5F0E8] disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                    >
+                      Vider le formulaire
                     </button>
                   </div>
                 </div>
@@ -710,14 +748,6 @@ export default function BusinessHoursManager({ adminToken, isOpen, onClose }) {
           </>
         )}
 
-        <div className="flex gap-3 mt-6 border-t border-[#E8DCCA] pt-4">
-          <button
-            onClick={onClose}
-            className="flex-1 px-6 py-2 border border-[#E8DCCA] text-[#1A1A1A] rounded-lg hover:bg-[#FBF9F4] transition-all font-semibold"
-          >
-            Fermer
-          </button>
-        </div>
       </motion.div>
     </motion.div>
   );

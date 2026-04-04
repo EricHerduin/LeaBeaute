@@ -3,7 +3,7 @@ import { getOpeningStatus, waitForInitialization } from '../data/businessHours';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClock, faCircle } from '@fortawesome/free-solid-svg-icons';
 
-export default function OpeningStatus({ isScrolled, showShortReopen }) {
+export default function OpeningStatus({ isScrolled, showShortReopen, compact = false }) {
   const [status, setStatus] = useState(null);
   const REFRESH_INTERVAL = 60000; // recalcul local chaque minute, sans requete reseau
 
@@ -45,15 +45,15 @@ export default function OpeningStatus({ isScrolled, showShortReopen }) {
   }
 
   return (
-    <div className="flex flex-col items-start">
-      <div className={`flex items-center gap-2 text-sm font-semibold ${textColor}`}>
+    <div className={`flex flex-col items-start ${compact ? 'max-w-[150px]' : ''}`}>
+      <div className={`flex items-center ${compact ? 'gap-1 text-[11px]' : 'gap-2 text-sm'} font-semibold ${textColor}`}>
         <FontAwesomeIcon icon={faCircle} size="xs" className={dotColor} />
         <span className="whitespace-nowrap">
           {status.message}
         </span>
       </div>
       {secondaryMessage && (
-        <div className={`text-xs whitespace-nowrap ${secondaryColor}`}>
+        <div className={`${compact ? 'text-[10px]' : 'text-xs'} whitespace-nowrap ${secondaryColor}`}>
           {secondaryMessage}
         </div>
       )}

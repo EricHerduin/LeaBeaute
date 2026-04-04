@@ -112,7 +112,7 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
 
   const containerClass = fullWidth 
     ? 'w-full' 
-    : 'max-w-md';
+    : 'max-w-md sm:max-w-lg md:max-w-xl';
 
   return (
     <motion.div
@@ -200,7 +200,7 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
           return (
             <div
               key={index}
-              className={`flex justify-between items-center p-3 rounded-lg transition-colors ${
+              className={`flex justify-between items-center gap-3 p-3 rounded-lg transition-colors ${
                 isToday 
                   ? 'bg-[#FFF9E6] border-l-4 border-[#D4AF37]' 
                   : isClosed 
@@ -208,14 +208,14 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
                   : 'bg-[#FAFAFA]'
               }`}
             >
-              <span className={`font-medium ${isToday ? 'text-[#1A1A1A]' : 'text-[#4A4A4A]'}`}>{day}</span>
-              <span className={`text-sm font-semibold ${
+              <span className={`font-medium text-sm sm:text-base ${isToday ? 'text-[#1A1A1A]' : 'text-[#4A4A4A]'}`}>{day}</span>
+              <span className={`text-[11px] sm:text-sm font-semibold ${
                 isClosed
                   ? 'text-[#999]' 
                   : isToday 
                   ? 'text-[#D4AF37]' 
                   : 'text-[#1A1A1A]'
-              } flex items-center`}>
+              } flex items-center text-right`}>
                 {horaires}
               </span>
             </div>

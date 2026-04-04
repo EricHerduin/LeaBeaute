@@ -31,12 +31,17 @@
         border-radius: 50px !important;
         background: #000 !important;
         position: fixed !important;
-        bottom: 16px;
+        bottom: 84px;
         right: 16px;
         text-decoration: none;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
         font-size: 12px !important;
         z-index: 9999 !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        transform: translateY(10px) !important;
+        transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease !important;
       "
     >
       <span
@@ -79,6 +84,76 @@
         Made by htagfacility
       </p>
     </a>
+    <script>
+      (function () {
+        var badge = document.getElementById('htag-badge');
+        if (!badge) return;
+
+        function toggleBadgeVisibility() {
+          var scrollTop = window.scrollY || window.pageYOffset || 0;
+          var viewportBottom = scrollTop + window.innerHeight;
+          var footerSection = document.querySelector('footer');
+          var documentHeight = Math.max(
+            document.body.scrollHeight,
+            document.documentElement.scrollHeight
+          );
+          var canScroll = documentHeight > (window.innerHeight + 120);
+          var shouldShow = false;
+
+          if (footerSection) {
+            var footerStart = footerSection.offsetTop;
+            shouldShow = canScroll && scrollTop > 40 && viewportBottom >= (footerStart - 220);
+          } else {
+            shouldShow = canScroll && scrollTop >= (window.innerHeight * 1.1);
+          }
+
+          if (shouldShow) {
+            if (footerSection) {
+              var footerDivider = footerSection.querySelector('.border-t');
+              var footerTop = footerSection.offsetTop;
+              var stopLineTop = footerDivider ? footerDivider.offsetTop : footerTop;
+              var stopOffset = 6;
+              var fixedBottomOffset = 84;
+              var blendZone = 240;
+              var distanceToLine = stopLineTop - viewportBottom;
+              var dynamicBottom = fixedBottomOffset;
+
+              if (distanceToLine > blendZone) {
+                dynamicBottom = fixedBottomOffset;
+              } else if (distanceToLine > 0) {
+                var progress = 1 - (distanceToLine / blendZone);
+                dynamicBottom = fixedBottomOffset + (stopOffset - fixedBottomOffset) * progress;
+              } else {
+                dynamicBottom = stopOffset + Math.abs(distanceToLine);
+              }
+
+              badge.style.setProperty('position', 'fixed', 'important');
+              badge.style.setProperty('top', 'auto', 'important');
+              badge.style.setProperty('bottom', dynamicBottom + 'px', 'important');
+            }
+
+            badge.style.opacity = '1';
+            badge.style.visibility = 'visible';
+            badge.style.pointerEvents = 'auto';
+            badge.style.transform = 'translateY(0)';
+          } else {
+            badge.style.setProperty('position', 'fixed', 'important');
+            badge.style.setProperty('top', 'auto', 'important');
+            badge.style.setProperty('bottom', '84px', 'important');
+            badge.style.opacity = '0';
+            badge.style.visibility = 'hidden';
+            badge.style.pointerEvents = 'none';
+            badge.style.transform = 'translateY(10px)';
+          }
+        }
+
+        window.addEventListener('scroll', toggleBadgeVisibility, { passive: true });
+        window.addEventListener('resize', toggleBadgeVisibility);
+        window.addEventListener('load', toggleBadgeVisibility);
+        setTimeout(toggleBadgeVisibility, 600);
+        toggleBadgeVisibility();
+      })();
+    </script>
     <script type="module" src="/src/index.js"></script>
   </body>
 </html>

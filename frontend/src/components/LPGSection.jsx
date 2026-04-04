@@ -157,7 +157,7 @@ export default function LPGSection({ onShowPricing }) {
             </div>
 
             <button
-              onClick={onShowPricing}
+              onClick={() => onShowPricing?.(['LPG'])}
               data-testid="lpg-pricing-btn"
               className="btn-gold"
             >

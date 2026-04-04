@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Cookie } from "lucide-react";
 import {
@@ -234,9 +235,9 @@ export default function CookieConsent() {
                     >
                       {showDetails ? "Masquer les détails" : "Voir les détails"}
                     </button>
-                    <a href="/cookies" className="text-[#4A4A4A] hover:text-[#D4AF37]">
+                    <Link to="/cookies" className="text-[#4A4A4A] hover:text-[#D4AF37]">
                       Politique de cookies
-                    </a>
+                    </Link>
                   </div>
 
                   {showDetails ? (
@@ -267,10 +268,10 @@ export default function CookieConsent() {
           onClick={openCookieConsentManager}
           title="Gérer mes cookies"
           aria-label="Gérer mes cookies"
-          className="fixed bottom-4 left-4 z-40 flex h-14 w-14 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-white/95 text-[#1A1A1A] shadow-lg backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-[#D4AF37] hover:text-[#D4AF37] hover:shadow-xl"
+          className="fixed bottom-4 left-4 z-40 flex h-11 w-11 md:h-12 md:w-12 items-center justify-center rounded-full border border-[#D4AF37]/30 bg-white/95 text-[#1A1A1A] shadow-lg backdrop-blur-sm transition-all hover:-translate-y-0.5 hover:border-[#D4AF37] hover:text-[#D4AF37] hover:shadow-xl"
         >
-          <span className="relative flex h-9 w-9 items-center justify-center rounded-full bg-[#F9F7F2]">
-            <Cookie className="h-5 w-5 text-[#B8891F]" />
+          <span className="relative flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-full bg-[#F9F7F2]">
+            <Cookie className="h-3.5 w-3.5 md:h-4 md:w-4 text-[#B8891F]" />
             <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
             <span className="absolute left-1.5 bottom-1.5 h-1.5 w-1.5 rounded-full bg-[#D4AF37]" />
             <span className="absolute right-2 bottom-1.5 h-1 w-1 rounded-full bg-[#D4AF37]" />
@@ -279,7 +280,7 @@ export default function CookieConsent() {
       ) : null}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="w-[calc(100vw-14px)] max-w-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Préférences cookies</DialogTitle>
             <DialogDescription>

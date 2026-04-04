@@ -69,13 +69,19 @@ const GoogleReviews = () => {
   const renderStars = (rating) => {
     const stars = [];
     for (let star = 1; star <= 5; star += 1) {
+      const fill = Math.max(0, Math.min(1, Number(rating) - (star - 1)));
       stars.push(
-        <Star
+        <div
           key={star}
-          className={`w-5 h-5 ${
-            star <= rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'
-          }`}
-        />
+          className="relative h-5 w-5"
+        >
+          <Star className="h-5 w-5 text-gray-300" />
+          {fill > 0 ? (
+            <div className="absolute inset-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+              <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+            </div>
+          ) : null}
+        </div>
       );
     }
     return <div className="flex gap-1">{stars}</div>;
@@ -174,7 +180,7 @@ const GoogleReviews = () => {
   const writeReviewUrl = `https://search.google.com/local/writereview?placeid=${placeId}`;
 
   return (
-    <section className="py-20 bg-linear-to-b from-white to-amber-50/30">
+    <section id="google-reviews" className="py-20 bg-linear-to-b from-white to-amber-50/30">
       <div className="max-w-7xl mx-auto px-6">
         {/* Header */}
         <motion.div
@@ -203,7 +209,7 @@ const GoogleReviews = () => {
                   <span className="text-3xl font-semibold text-gray-800">
                     {reviewsData.rating}
                   </span>
-                  {renderStars(Math.round(reviewsData.rating))}
+                  {renderStars(reviewsData.rating)}
                 </div>
                 <p className="text-sm text-gray-600">
                   {reviewsData.user_ratings_total} avis Google
@@ -239,7 +245,7 @@ const GoogleReviews = () => {
             href={writeReviewUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-amber-500 to-amber-600 text-white rounded-full font-medium hover:from-amber-600 hover:to-amber-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
+            className="inline-flex items-center gap-2 rounded-full border border-[#8A6A16] bg-[#8A6A16] px-8 py-4 font-semibold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#735813] hover:shadow-xl"
           >
             Laisser un avis Google
             <Star className="w-5 h-5 fill-white" />

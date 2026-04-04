@@ -49,6 +49,8 @@ export default function AdminPage() {
   const [selectedCategoriesForPdf, setSelectedCategoriesForPdf] = useState([]);
   const [categoryOrder, setCategoryOrder] = useState([]);
   const [categoryPreferencesLoaded, setCategoryPreferencesLoaded] = useState(false);
+  const [draggedCategory, setDraggedCategory] = useState(null);
+  const [dragOverCategory, setDragOverCategory] = useState(null);
   const [newPriceForm, setNewPriceForm] = useState({
     category: '',
     name: '',
@@ -367,15 +369,50 @@ export default function AdminPage() {
     loadCategoryPreferences();
   }, [loadCategoryPreferences]);
 
-  const handleMoveCategory = (index, direction) => {
-    const newOrder = [...categoryOrder];
-    if (direction === 'up' && index > 0) {
-      [newOrder[index], newOrder[index - 1]] = [newOrder[index - 1], newOrder[index]];
-    } else if (direction === 'down' && index < newOrder.length - 1) {
-      [newOrder[index], newOrder[index + 1]] = [newOrder[index + 1], newOrder[index]];
+  const handleCategoryDragStart = (event, category) => {
+    if (event.target.tagName.toLowerCase() === 'input') return;
+    setDraggedCategory(category);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', category);
+  };
+
+  const handleCategoryDragOver = (event, category) => {
+    event.preventDefault();
+    if (!draggedCategory || draggedCategory === category) return;
+    setDragOverCategory(category);
+    event.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleCategoryDrop = (event, targetCategory) => {
+    event.preventDefault();
+    const sourceCategory = draggedCategory || event.dataTransfer.getData('text/plain');
+    if (!sourceCategory || sourceCategory === targetCategory) {
+      setDraggedCategory(null);
+      setDragOverCategory(null);
+      return;
     }
+
+    const sourceIndex = categoryOrder.indexOf(sourceCategory);
+    const targetIndex = categoryOrder.indexOf(targetCategory);
+    if (sourceIndex < 0 || targetIndex < 0) {
+      setDraggedCategory(null);
+      setDragOverCategory(null);
+      return;
+    }
+
+    const newOrder = [...categoryOrder];
+    newOrder.splice(sourceIndex, 1);
+    newOrder.splice(targetIndex, 0, sourceCategory);
+
     setCategoryOrder(newOrder);
     saveCategoryPreferences(newOrder, selectedCategoriesForPdf);
+    setDraggedCategory(null);
+    setDragOverCategory(null);
+  };
+
+  const handleCategoryDragEnd = () => {
+    setDraggedCategory(null);
+    setDragOverCategory(null);
   };
 
   const handleToggleCategorySelection = (category) => {
@@ -1582,7 +1619,10 @@ export default function AdminPage() {
             onNavigateGiftCards={() => setActiveTab('gift-cards')}
             onNavigateCoupons={() => setActiveTab('coupons')}
             adminToken={token}
-            onAddPrice={() => fetchPrices(token)}
+            onOpenAddPriceModal={() => {
+              setActiveTab('prices');
+              setShowAddPriceModal(true);
+            }}
             onAddCoupon={() => fetchCoupons()}
           />
         )}
@@ -1784,11 +1824,26 @@ export default function AdminPage() {
 
                   {/* Category list with drag and selection */}
                   <div className="space-y-2 mb-6">
-                    {categoryOrder.map((category, index) => (
+                    {categoryOrder.map((category) => (
                       <div
                         key={category}
-                        className="flex items-center gap-3 p-3 border border-[#E8DCCA] rounded-lg hover:bg-[#F9F7F2]"
+                        draggable
+                        onDragStart={(event) => handleCategoryDragStart(event, category)}
+                        onDragOver={(event) => handleCategoryDragOver(event, category)}
+                        onDrop={(event) => handleCategoryDrop(event, category)}
+                        onDragEnd={handleCategoryDragEnd}
+                        className={`flex items-center gap-3 p-3 border rounded-lg cursor-grab transition-colors ${
+                          dragOverCategory === category
+                            ? 'border-[#D4AF37] bg-[#FFF8E7]'
+                            : 'border-[#E8DCCA] hover:bg-[#F9F7F2]'
+                        }`}
                       >
+                        <span
+                          className="text-[#B08A17] text-lg leading-none select-none"
+                          title="Glisser pour réordonner"
+                        >
+                          ::
+                        </span>
                         <input
                           type="checkbox"
                           checked={selectedCategoriesForPdf.includes(category)}
@@ -1796,26 +1851,6 @@ export default function AdminPage() {
                           className="w-4 h-4 cursor-pointer"
                         />
                         <span className="flex-1 text-[#1A1A1A]">{category}</span>
-                        <div className="flex gap-1">
-                          {index > 0 && (
-                            <button
-                              onClick={() => handleMoveCategory(index, 'up')}
-                              className="px-2 py-1 text-xs border border-[#D4AF37] text-[#D4AF37] rounded hover:bg-[#D4AF37] hover:text-white"
-                              title="Monter"
-                            >
-                              ↑
-                            </button>
-                          )}
-                          {index < categoryOrder.length - 1 && (
-                            <button
-                              onClick={() => handleMoveCategory(index, 'down')}
-                              className="px-2 py-1 text-xs border border-[#D4AF37] text-[#D4AF37] rounded hover:bg-[#D4AF37] hover:text-white"
-                              title="Descendre"
-                            >
-                              ↓
-                            </button>
-                          )}
-                        </div>
                       </div>
                     ))}
                   </div>
@@ -2486,6 +2521,7 @@ export default function AdminPage() {
                       <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Catégories</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Source</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Version</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Créé le</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Dernière mise à jour</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-[#1A1A1A]">Historique</th>
                     </tr>
@@ -2516,6 +2552,9 @@ export default function AdminPage() {
                           <td className="px-4 py-3 text-sm text-[#4A4A4A]">{consent.source || '-'}</td>
                           <td className="px-4 py-3 text-sm text-[#4A4A4A]">
                             Politique {consent.policyVersion || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-[#4A4A4A]">
+                            {consent.createdAt ? new Date(consent.createdAt).toLocaleString('fr-FR') : '-'}
                           </td>
                           <td className="px-4 py-3 text-sm text-[#4A4A4A]">
                             {consent.updatedAt ? new Date(consent.updatedAt).toLocaleString('fr-FR') : '-'}

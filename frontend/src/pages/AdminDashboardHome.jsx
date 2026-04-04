@@ -43,12 +43,11 @@ export default function AdminDashboardHome({
   onNavigateGiftCards,
   onNavigateCoupons,
   adminToken,
-  onAddPrice,
+  onOpenAddPriceModal,
   onAddCoupon
 }) {
   const [verifyModal, setVerifyModal] = useState(false);
   const [redeemModal, setRedeemModal] = useState(false);
-  const [priceModal, setPriceModal] = useState(false);
   const [couponModal, setCouponModal] = useState(false);
   const [businessHoursModal, setBusinessHoursModal] = useState(false);
 
@@ -59,15 +58,6 @@ export default function AdminDashboardHome({
 
   const [redeemCode, setRedeemCode] = useState('');
   const [redeemLoading, setRedeemLoading] = useState(false);
-
-  const [newPrice, setNewPrice] = useState({
-    category: '',
-    name: '',
-    priceEur: '',
-    durationMin: '',
-    note: ''
-  });
-  const [priceLoading, setPriceLoading] = useState(false);
 
   const [newCoupon, setNewCoupon] = useState({
     code: '',
@@ -136,47 +126,6 @@ export default function AdminDashboardHome({
       toast.error(msg);
     } finally {
       setRedeemLoading(false);
-    }
-  };
-
-  // ============ ADD PRICE ============
-  const handleAddPrice = async () => {
-    if (!newPrice.category || !newPrice.name || !newPrice.priceEur) {
-      toast.error('Veuillez remplir les champs obligatoires');
-      return;
-    }
-
-    setPriceLoading(true);
-    try {
-      const priceData = {
-        category: newPrice.category,
-        name: newPrice.name,
-        priceEur: parseFloat(newPrice.priceEur),
-        durationMin: newPrice.durationMin ? parseInt(newPrice.durationMin) : null,
-        note: newPrice.note || null,
-        isActive: true,
-        sortOrder: 0
-      };
-
-      await axios.post('/prices', priceData, {
-        headers: { Authorization: adminToken }
-      });
-
-      toast.success(`Tarif "${newPrice.name}" ajouté`);
-      setPriceModal(false);
-      setNewPrice({
-        category: '',
-        name: '',
-        priceEur: '',
-        durationMin: '',
-        note: ''
-      });
-      onAddPrice?.();
-    } catch (error) {
-      console.error('Error adding price:', error);
-      toast.error(error.response?.data?.detail || 'Erreur lors de l\'ajout');
-    } finally {
-      setPriceLoading(false);
     }
   };
 
@@ -312,7 +261,7 @@ export default function AdminDashboardHome({
             icon={<Gem className="h-6 w-6" strokeWidth={1.8} />}
             label="Nouveau Tarif"
             tone="champagne"
-            onClick={() => setPriceModal(true)}
+            onClick={onOpenAddPriceModal}
           />
           <SquareButton
             icon={<TicketPercent className="h-6 w-6" strokeWidth={1.8} />}
@@ -563,112 +512,6 @@ export default function AdminDashboardHome({
             >
               Fermer
             </button>
-          </motion.div>
-        </motion.div>
-      )}
-
-      {/* ============ PRICE MODAL ============ */}
-      {priceModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-          onClick={() => setPriceModal(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl p-8 max-w-md w-full"
-          >
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">
-              Ajouter un Nouveau Tarif
-            </h2>
-
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                  Catégorie *
-                </label>
-                <input
-                  type="text"
-                  value={newPrice.category}
-                  onChange={(e) => setNewPrice({ ...newPrice, category: e.target.value })}
-                  placeholder="ex: Epilations"
-                  className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                  Nom du service *
-                </label>
-                <input
-                  type="text"
-                  value={newPrice.name}
-                  onChange={(e) => setNewPrice({ ...newPrice, name: e.target.value })}
-                  placeholder="ex: Sourcils"
-                  className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                  Prix (€) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newPrice.priceEur}
-                  onChange={(e) => setNewPrice({ ...newPrice, priceEur: e.target.value })}
-                  placeholder="25.00"
-                  className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                  Durée (minutes)
-                </label>
-                <input
-                  type="number"
-                  value={newPrice.durationMin}
-                  onChange={(e) => setNewPrice({ ...newPrice, durationMin: e.target.value })}
-                  placeholder="30"
-                  className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
-                  Note
-                </label>
-                <input
-                  type="text"
-                  value={newPrice.note}
-                  onChange={(e) => setNewPrice({ ...newPrice, note: e.target.value })}
-                  placeholder="ex: En duo 60€"
-                  className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleAddPrice}
-                disabled={priceLoading}
-                className="flex-1 px-6 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
-              >
-                {priceLoading ? 'Ajout...' : 'Ajouter'}
-              </button>
-              <button
-                onClick={() => setPriceModal(false)}
-                className="flex-1 px-6 py-2 border border-[#E8DCCA] text-[#1A1A1A] rounded-lg hover:bg-[#FBF9F4] transition-all"
-              >
-                Annuler
-              </button>
-            </div>
           </motion.div>
         </motion.div>
       )}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Logo from '../assets/photos/logos/logo16-9_1.png';
 import OpeningStatus from './OpeningStatus';
@@ -10,9 +10,11 @@ export default function Navigation({ onShowPricing, forceLight = false }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const [exceptionBanner, setExceptionBanner] = useState(null);
   const BANNER_REFRESH_INTERVAL = 3600000;
-  const navIsLight = forceLight || isScrolled;
+  const isHomePage = location.pathname === '/';
+  const navIsLight = forceLight || isScrolled || !isHomePage;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -67,7 +69,7 @@ export default function Navigation({ onShowPricing, forceLight = false }) {
     <>
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 before:content-[''] before:absolute before:inset-0 before:rounded-b-2xl before:pointer-events-none before:z-[-1] ${
         navIsLight
-          ? 'bg-white/40 backdrop-blur shadow-lg before:bg-none'
+          ? 'bg-white/92 backdrop-blur-md shadow-lg before:bg-none border-b border-[#EADFCF]/85'
           : 'bg-[#222]/40 before:bg-linear-to-b before:from-black/60 before:to-transparent'
       }`}>
         <div className="max-w-8xl mx-auto px-6 md:px-12 relative">
@@ -81,8 +83,12 @@ export default function Navigation({ onShowPricing, forceLight = false }) {
               />
             </Link>
 
+            <div className="lg:hidden flex-1 flex justify-end mr-2">
+              <OpeningStatus isScrolled={navIsLight} showShortReopen compact />
+            </div>
+
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4 lg:space-x-6">
+            <div className="hidden lg:flex items-center space-x-4 xl:space-x-6">
               <Link
                 to="/a-propos-institut"
                 className={`text-sm font-medium transition-colors ${navIsLight ? 'text-[#1A1A1A] hover:text-[#D4AF37]' : 'text-[#D4AF37] hover:text-white'}`}
@@ -138,7 +144,7 @@ export default function Navigation({ onShowPricing, forceLight = false }) {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               data-testid="mobile-menu-btn"
-              className={`md:hidden p-2 ${navIsLight ? 'text-[#1A1A1A]' : 'text-white'}`}
+              className={`lg:hidden p-2 ${navIsLight ? 'text-[#1A1A1A]' : 'text-white'}`}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {isMobileMenuOpen ? (
@@ -155,19 +161,19 @@ export default function Navigation({ onShowPricing, forceLight = false }) {
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="md:hidden pb-6 space-y-4"
+              className="lg:hidden mt-2 mb-5 rounded-2xl border border-[#E8DCCA] bg-[#FFFCF7]/95 backdrop-blur-md shadow-[0_18px_45px_rgba(20,17,14,0.18)] px-4 py-4 space-y-2"
             >
               <Link
                 to="/a-propos-institut"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+                className="block rounded-lg px-3 py-2 text-[#1A1A1A] hover:bg-[#F4EBDD] hover:text-[#7A5B14] transition-colors"
               >
                 À propos
               </Link>
 
               <button
                 onClick={() => scrollToSection('services')}
-                className="block w-full text-left py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+                className="block w-full text-left rounded-lg px-3 py-2 text-[#1A1A1A] hover:bg-[#F4EBDD] hover:text-[#7A5B14] transition-colors"
               >
                 Prestations
               </button>
@@ -175,21 +181,21 @@ export default function Navigation({ onShowPricing, forceLight = false }) {
               <Link
                 to="/guinot"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+                className="block rounded-lg px-3 py-2 text-[#1A1A1A] hover:bg-[#F4EBDD] hover:text-[#7A5B14] transition-colors"
               >
                 Guinot
               </Link>
 
               <button
                 onClick={() => scrollToSection('lpg')}
-                className="block w-full text-left py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+                className="block w-full text-left rounded-lg px-3 py-2 text-[#1A1A1A] hover:bg-[#F4EBDD] hover:text-[#7A5B14] transition-colors"
               >
                 LPG
               </button>
 
               <button
                 onClick={() => scrollToSection('cartes-cadeaux')}
-                className="block w-full text-left py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+                className="block w-full text-left rounded-lg px-3 py-2 text-[#1A1A1A] hover:bg-[#F4EBDD] hover:text-[#7A5B14] transition-colors"
               >
                 Cartes cadeaux
               </button>
@@ -197,18 +203,20 @@ export default function Navigation({ onShowPricing, forceLight = false }) {
               <Link
                 to="/accompagnement-nutrition"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="block py-2 text-[#1A1A1A] hover:text-[#D4AF37]"
+                className="block rounded-lg px-3 py-2 text-[#1A1A1A] hover:bg-[#F4EBDD] hover:text-[#7A5B14] transition-colors"
               >
                 Accompagnement Nutrition
               </Link>
 
-              <a
-                href="tel:0233214819"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="btn-gold w-full text-sm"
-              >
-                Prendre rendez-vous
-              </a>
+              <div className="pt-4 mt-2 border-t border-[#E8DCCA]">
+                <a
+                  href="tel:0233214819"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="btn-gold w-full text-sm"
+                >
+                  Prendre rendez-vous
+                </a>
+              </div>
             </motion.div>
           )}
         </div>

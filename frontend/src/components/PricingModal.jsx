@@ -6,13 +6,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const axios = api;
 
-export default function PricingModal({ open, onClose, initialCategories = null }) {
+export default function PricingModal({
+  open,
+  onClose,
+  initialCategories = null,
+  initialSearchTerm = '',
+}) {
   const [prices, setPrices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [categoryScope, setCategoryScope] = useState(null);
+  const [openAccordionItems, setOpenAccordionItems] = useState([]);
   const modalRef = useRef(null);
   const contentRef = useRef(null);
 
@@ -21,9 +27,12 @@ export default function PricingModal({ open, onClose, initialCategories = null }
   useEffect(() => {
     if (open) {
       fetchPrices();
+      setSearchTerm('');
       setSelectedCategory('all');
+      setCategoryScope(null);
+      setOpenAccordionItems([]);
     }
-  }, [open, initialCategories]);
+  }, [open, initialCategories, initialSearchTerm]);
 
   useEffect(() => {
     if (!open) return;
@@ -41,40 +50,65 @@ export default function PricingModal({ open, onClose, initialCategories = null }
       .filter(Boolean);
 
     setCategoryScope(matchingCategories);
+    setOpenAccordionItems(matchingCategories);
   }, [open, initialCategories, prices]);
 
   useEffect(() => {
     if (!open) return;
 
-    // Bloquer le scroll du body complètement
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    const normalizedQuery = String(initialSearchTerm || '').trim();
+    if (!normalizedQuery) return;
 
-    // Empêcher TOUS les événements wheel sauf s'ils sont sur le contenu de la modale
-    const preventScroll = (event) => {
-      if (!contentRef.current) {
-        event.preventDefault();
-        return;
-      }
+    const lowerQuery = normalizedQuery.toLowerCase();
+    const matchingItems = prices.filter((item) =>
+      String(item.name || '').toLowerCase().includes(lowerQuery)
+      || String(item.category || '').toLowerCase().includes(lowerQuery)
+    );
 
-      // Vérifier si l'événement vient du contenu scrollable de la modale
-      const isInModalContent = contentRef.current.contains(event.target);
-      
-      if (!isInModalContent) {
-        event.preventDefault();
-        return;
-      }
+    if (matchingItems.length === 0) {
+      setSearchTerm(normalizedQuery);
+      return;
+    }
 
-      // Si on est dans le contenu modal, on laisse le scroll se faire naturellement
-      // mais on s'assure qu'il ne déborde pas sur l'arrière-plan
+    const matchingCategories = [...new Set(matchingItems.map((item) => item.category).filter(Boolean))];
+    setSearchTerm(normalizedQuery);
+    setSelectedCategory('all');
+    setCategoryScope(matchingCategories);
+    setOpenAccordionItems(matchingCategories);
+  }, [open, initialSearchTerm, prices]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    // Verrouillage robuste du fond (mobile iOS/Android inclus)
+    const scrollY = window.scrollY;
+    const previousBodyStyle = {
+      position: document.body.style.position,
+      top: document.body.style.top,
+      left: document.body.style.left,
+      right: document.body.style.right,
+      width: document.body.style.width,
+      overflow: document.body.style.overflow,
     };
+    const previousHtmlOverflow = document.documentElement.style.overflow;
 
-    window.addEventListener('wheel', preventScroll, { passive: false });
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.width = '100%';
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-      window.removeEventListener('wheel', preventScroll);
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.position = previousBodyStyle.position;
+      document.body.style.top = previousBodyStyle.top;
+      document.body.style.left = previousBodyStyle.left;
+      document.body.style.right = previousBodyStyle.right;
+      document.body.style.width = previousBodyStyle.width;
+      document.body.style.overflow = previousBodyStyle.overflow;
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
@@ -176,7 +210,12 @@ export default function PricingModal({ open, onClose, initialCategories = null }
               <p className="text-[#D4AF37] font-semibold">{error}</p>
             </div>
           ) : (
-            <Accordion type="multiple" className="space-y-4">
+            <Accordion
+              type="multiple"
+              value={openAccordionItems}
+              onValueChange={setOpenAccordionItems}
+              className="space-y-4"
+            >
               {Object.entries(groupedPrices).map(([category, items], index) => (
                 <AccordionItem
                   key={category}

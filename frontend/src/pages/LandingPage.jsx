@@ -13,6 +13,7 @@ import GoogleReviews from '../components/GoogleReviews';
 import OpeningHours from '../components/OpeningHours';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
+import GoogleRatingAnchorBadge from '../components/GoogleRatingAnchorBadge';
 import SEO from '../components/SEO';
 import ExceptionBanner from '../components/ExceptionBanner';
 import { getOpeningStatus } from '../data/businessHours';
@@ -82,6 +83,7 @@ export default function LandingPage() {
       />
       <div className="overflow-hidden bg-white">
         <Navigation onShowPricing={handleShowPricing} />
+        <GoogleRatingAnchorBadge />
         {isClosedPeriod && closedBannerMessage && <ExceptionBanner message={closedBannerMessage} />}
         <Hero onShowPricing={handleShowPricing} />
         <Services onShowPricing={handleShowPricing} />

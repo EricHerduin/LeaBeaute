@@ -8,7 +8,8 @@ import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 const axios = api;
 
-const stripePromise = loadStripe('pk_test_51QeoMFJ5BKpSEjx1HgPPFHyJFD4oIuPTLk97bWFpXCfsmUTgbPt1Xwk5HZnK4ydZGkZD3FZb5ysqGRWqU0r3J7uj00iJBnxQFh');
+const stripePublicKey = (import.meta.env.VITE_STRIPE_PUBLIC_KEY || '').trim();
+const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
 
 const MIN_CUSTOM_AMOUNT = 10;
 const MAX_CUSTOM_AMOUNT = 500;
@@ -207,13 +208,9 @@ export default function GiftCards() {
 
         <div className="max-w-4xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-            {amounts.map((amount, index) => (
+            {amounts.map((amount) => (
               <motion.button
                 key={amount}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => handleAmountSelect(amount)}
@@ -229,10 +226,6 @@ export default function GiftCards() {
               </motion.button>
             ))}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: amounts.length * 0.1, duration: 0.5 }}
               className={`p-6 rounded-2xl transition-all duration-300 ${
                 customAmount && showForm
                   ? 'bg-linear-to-br from-[#D4AF37] to-[#C5A028] text-white shadow-xl'

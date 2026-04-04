@@ -29,10 +29,25 @@ const visibleAgeReverseGallery = Object.entries(
 
 export default function GuinotPage() {
   const [showPricing, setShowPricing] = useState(false);
+  const [pricingInitialCategories, setPricingInitialCategories] = useState(null);
+  const [pricingInitialSearchTerm, setPricingInitialSearchTerm] = useState('');
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
+
+  const openAllPricing = () => {
+    setPricingInitialCategories(null);
+    setPricingInitialSearchTerm('');
+    setShowPricing(true);
+  };
+
+  const openVisibleAgeReversePricing = () => {
+    setPricingInitialCategories(null);
+    setPricingInitialSearchTerm('Visible Age Reverse');
+    setShowPricing(true);
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      <Navigation onShowPricing={() => setShowPricing(true)} forceLight />
+      <Navigation onShowPricing={openAllPricing} forceLight />
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 bg-white">
@@ -55,7 +70,7 @@ export default function GuinotPage() {
               >
                 Découvrir Visible Age Reverse
               </a>
-              <button onClick={() => setShowPricing(true)} className="btn-secondary">Voir les tarifs</button>
+              <button onClick={openAllPricing} className="btn-secondary">Voir les tarifs</button>
             </div>
           </div>
           <div className="rounded-2xl overflow-hidden shadow-lg">
@@ -189,7 +204,7 @@ export default function GuinotPage() {
                   <div className="mt-8">
                     <button
                       type="button"
-                      onClick={() => setShowPricing(true)}
+                      onClick={openVisibleAgeReversePricing}
                       className="btn-secondary"
                     >
                       Voir les tarifs
@@ -467,8 +482,13 @@ export default function GuinotPage() {
         </div>
       </section>
 
-      <Footer onShowPricing={() => setShowPricing(true)} />
-      <PricingModal open={showPricing} onClose={() => setShowPricing(false)} />
+      <Footer onShowPricing={openAllPricing} />
+      <PricingModal
+        open={showPricing}
+        onClose={() => setShowPricing(false)}
+        initialCategories={pricingInitialCategories}
+        initialSearchTerm={pricingInitialSearchTerm}
+      />
       <Dialog open={Boolean(selectedGalleryImage)} onOpenChange={(open) => !open && setSelectedGalleryImage(null)}>
         <DialogContent className="w-[95vw] max-w-5xl overflow-hidden border-0 bg-transparent p-0 shadow-none">
           {selectedGalleryImage ? (

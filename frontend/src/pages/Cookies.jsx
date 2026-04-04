@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
@@ -35,7 +36,7 @@ export default function Cookies() {
       <Navigation onShowPricing={() => setShowPricing(true)} />
       <div className="max-w-4xl mx-auto px-6 md:px-12 py-32">
         <h1 className="text-4xl md:text-5xl font-bold mb-6 text-[#1A1A1A]">
-          Politique de cookies et autres traceurs
+          Politique de cookies
         </h1>
         <p className="text-sm text-[#808080] mb-12">
           Dernière mise à jour : {formatCookiePolicyDate(policyConfig.lastUpdated)}
@@ -43,60 +44,55 @@ export default function Cookies() {
 
         <div className="space-y-8 text-[#4A4A4A] leading-relaxed">
           <section>
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">1. Objet de cette politique</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">1. Pourquoi cette page ?</h2>
             <p>
-              Cette politique explique comment le site de Léa Beauté utilise des cookies, le stockage local du navigateur
-              et, plus largement, des traceurs susceptibles d&apos;être déposés ou lus sur votre terminal lorsque vous
-              consultez le site ou utilisez certaines fonctionnalités.
+              Cette page vous explique simplement quels cookies peuvent être utilisés sur le site de Léa Beauté, à quoi
+              ils servent, combien de temps ils sont conservés et comment modifier votre choix.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">2. Qu&apos;est-ce qu&apos;un traceur ?</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">2. Qu&apos;est-ce qu&apos;un cookie ?</h2>
             <p>
-              Un traceur est un fichier ou une technologie permettant de stocker ou de lire des informations sur votre
-              appareil. Il peut s&apos;agir d&apos;un cookie HTTP, d&apos;un identifiant de session, du stockage local du navigateur
-              ou d&apos;une technologie comparable.
+              Un cookie est un petit fichier enregistré sur votre appareil lors de votre navigation. Il permet, selon son
+              type, d&apos;assurer le bon fonctionnement du site, de mémoriser vos préférences ou de mesurer l&apos;audience.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">3. Traceurs utilisés sur ce site</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">3. Cookies utilisés sur le site</h2>
             <div className="space-y-6">
               <div>
-                <h3 className="font-bold text-[#1A1A1A] mb-2">Traceurs strictement nécessaires</h3>
+                <h3 className="font-bold text-[#1A1A1A] mb-2">Cookies strictement nécessaires</h3>
                 <p>
-                  Le site utilise des traceurs techniques strictement nécessaires à son fonctionnement ou à la fourniture
-                  d&apos;un service expressément demandé par l&apos;utilisateur. Ils permettent notamment :
+                  Ces cookies sont indispensables au fonctionnement du site et ne peuvent pas être désactivés :
                 </p>
                 <ul className="list-disc list-inside mt-4 space-y-2">
-                  <li>d&apos;assurer le bon affichage et le fonctionnement technique du site ;</li>
-                  <li>de mémoriser l&apos;information affichée dans le bandeau d&apos;information relatif aux cookies ;</li>
-                  <li>de sécuriser certaines opérations, notamment lors d&apos;un paiement en ligne.</li>
+                  <li>affichage technique du site ;</li>
+                  <li>mémorisation de votre choix concernant les cookies ;</li>
+                  <li>sécurisation de certaines opérations, notamment lors d&apos;un paiement en ligne.</li>
                 </ul>
               </div>
 
               <div>
                 <h3 className="font-bold text-[#1A1A1A] mb-2">Paiement en ligne via Stripe</h3>
                 <p>
-                  Lorsque vous choisissez d&apos;acheter une carte cadeau, vous êtes redirigé vers l&apos;environnement de
-                  paiement sécurisé de Stripe. À cette occasion, Stripe peut déposer ses propres traceurs techniques,
-                  nécessaires à la sécurité de la transaction, à la prévention de la fraude et à la gestion de la
-                  session de paiement.
+                  Pour l&apos;achat de cartes cadeaux, le paiement est traité sur l&apos;environnement sécurisé de Stripe. Stripe
+                  peut utiliser ses propres cookies techniques pour la sécurité, la prévention de la fraude et la gestion
+                  de la session de paiement.
                 </p>
               </div>
 
               <div>
-                <h3 className="font-bold text-[#1A1A1A] mb-2">Absence de cookies publicitaires ou de mesure d&apos;audience activés par défaut</h3>
+                <h3 className="font-bold text-[#1A1A1A] mb-2">Mesure d&apos;audience (si activée)</h3>
                 {policyConfig.analyticsEnabled ? (
                   <p>
-                    Le site peut utiliser Google Analytics 4 pour mesurer l&apos;audience, uniquement après votre accord
-                    explicite sur la catégorie « mesure d&apos;audience ». Aucun suivi analytique n&apos;est chargé avant ce choix.
+                    Le site peut utiliser Google Analytics 4 uniquement si vous acceptez la catégorie « Mesure
+                    d&apos;audience ». Aucun suivi analytique n&apos;est activé avant votre choix.
                   </p>
                 ) : (
                   <p>
-                    À ce jour, le site n&apos;active pas de traceurs publicitaires ni de mesure d&apos;audience déposés par défaut
-                    pour suivre votre navigation à des fins marketing.
+                    À ce jour, la mesure d&apos;audience n&apos;est pas activée sur le site.
                   </p>
                 )}
               </div>
@@ -104,12 +100,10 @@ export default function Cookies() {
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">4. Base légale</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">4. Votre choix</h2>
             <p>
-              Les traceurs strictement nécessaires au fonctionnement du site ou à la fourniture d&apos;un service que vous
-              demandez ne nécessitent pas votre consentement préalable. Les autres catégories de traceurs, si elles
-              étaient ajoutées ultérieurement, feraient l&apos;objet d&apos;une information spécifique et, le cas échéant, d&apos;un
-              recueil de votre consentement avant dépôt.
+              Vous pouvez à tout moment accepter, refuser ou personnaliser les cookies depuis le bouton de gestion présent
+              en bas de page. Les cookies strictement nécessaires restent actifs, car ils sont indispensables au service.
             </p>
           </section>
 
@@ -121,46 +115,39 @@ export default function Cookies() {
               </p>
               <ul className="list-disc list-inside space-y-2">
                 <li>
-                  Le choix exprimé dans le bandeau cookies est conservé pendant{" "}
+                  Votre choix exprimé dans le bandeau cookies est conservé pendant{" "}
                   {formatRetentionDuration(policyConfig.choiceRetentionDays)} avant nouvelle sollicitation.
                 </li>
                 <li>
-                  La preuve du choix enregistré est conservée pendant{" "}
-                  {formatRetentionDuration(policyConfig.evidenceRetentionDays)} dans notre base de données,
-                  afin de documenter le recueil du consentement en cas de besoin.
+                  La preuve du choix est conservée pendant {formatRetentionDuration(policyConfig.evidenceRetentionDays)}
+                  dans notre base de données pour justifier le recueil du consentement.
                 </li>
                 <li>
-                  Les traceurs strictement nécessaires liés à la navigation ou à la session sont conservés pendant{" "}
+                  Les cookies techniques nécessaires liés à la navigation ou à la session sont conservés pendant{" "}
                   {policyConfig.necessaryRetentionLabel}.
                 </li>
                 <li>
-                  Les traceurs éventuellement déposés par Stripe relèvent de{" "}
-                  {policyConfig.stripeRetentionLabel}.
+                  Les cookies déposés par Stripe relèvent de {policyConfig.stripeRetentionLabel}.
                 </li>
               </ul>
             </div>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">6. Gérer les traceurs</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">6. Paramètres navigateur</h2>
             <p>
-              Vous pouvez configurer votre navigateur pour bloquer ou supprimer certains cookies. Toutefois, le blocage
-              des traceurs strictement nécessaires peut dégrader le fonctionnement du site ou empêcher l&apos;accès à
-              certaines fonctionnalités, notamment le paiement en ligne.
-            </p>
-            <p className="mt-4">
-              Si de nouveaux traceurs soumis à consentement étaient ajoutés au site, un mécanisme dédié vous permettrait
-              de les accepter, de les refuser et de modifier votre choix facilement.
+              Vous pouvez aussi configurer votre navigateur pour bloquer ou supprimer certains cookies. Attention :
+              bloquer les cookies techniques nécessaires peut dégrader le fonctionnement du site, notamment lors du paiement.
             </p>
           </section>
 
           <section>
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">7. En savoir plus</h2>
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-4">7. Contact</h2>
             <p>
-              Pour toute question sur cette politique ou sur le traitement de vos données, vous pouvez consulter notre
-              <a href="/confidentialite" className="text-[#D4AF37] hover:underline ml-1">
+              Pour toute question sur cette politique ou sur vos données personnelles, vous pouvez consulter notre
+              <Link to="/confidentialite" className="text-[#D4AF37] hover:underline ml-1">
                 politique de confidentialité
-              </a>
+              </Link>
               .
             </p>
           </section>

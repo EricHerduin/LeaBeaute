@@ -55,12 +55,13 @@ function createCookieConsentService(deps) {
           c.decision,
           c.source,
           c.policy_version,
+          c.created_at,
           c.updated_at,
           COUNT(h.id) AS history_count
         FROM cookie_consents c
         LEFT JOIN cookie_consent_history h ON h.anonymous_visitor_id = c.anonymous_visitor_id
         ${where}
-        GROUP BY c.anonymous_visitor_id, c.categories_json, c.decision, c.source, c.policy_version, c.updated_at
+        GROUP BY c.anonymous_visitor_id, c.categories_json, c.decision, c.source, c.policy_version, c.created_at, c.updated_at
         ORDER BY c.updated_at DESC
         LIMIT ${limit};
       `).map((row) => ({
@@ -69,6 +70,7 @@ function createCookieConsentService(deps) {
         decision: row.decision,
         source: row.source,
         policyVersion: row.policy_version,
+        createdAt: row.created_at,
         updatedAt: row.updated_at,
         historyCount: Number(row.history_count || 0),
       }));
