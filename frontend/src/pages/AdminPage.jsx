@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Helmet } from 'react-helmet-async';
 import api from '../lib/apiClient';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -62,6 +63,7 @@ export default function AdminPage() {
 
   // Gift Cards
   const [giftCards, setGiftCards] = useState([]);
+  const [giftCardSearchTerm, setGiftCardSearchTerm] = useState('');
   const [giftCardStatusFilters, setGiftCardStatusFilters] = useState({
     pending: true,
     active: true,
@@ -914,6 +916,27 @@ export default function AdminPage() {
     }
   };
 
+  const handleSetGiftCardStatus = async (id, nextStatus) => {
+    if (!nextStatus) return;
+
+    try {
+      await axios.patch(`/gift-cards/${id}`, null, {
+        params: { status: nextStatus },
+        headers: { Authorization: token }
+      });
+      toast.success(`Statut mis à jour: ${translateStatus(nextStatus)}`);
+      await fetchGiftCards();
+      if (showGiftCardModal && selectedGiftCard?.id === id) {
+        const response = await axios.get(`/gift-cards/${id}`, {
+          headers: { Authorization: token }
+        });
+        setSelectedGiftCard(response.data);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors du changement de statut');
+    }
+  };
+
   const handleExtendExpiry = async (id) => {
     if (!extendExpiryDate) {
       toast.error('Veuillez sélectionner une date');
@@ -1504,11 +1527,31 @@ export default function AdminPage() {
       return (a.name || '').localeCompare(b.name || '', 'fr');
     });
 
-  const filteredGiftCards = giftCards.filter(card => giftCardStatusFilters[card.status]);
+  const filteredGiftCards = giftCards
+    .filter((card) => giftCardStatusFilters[card.status])
+    .filter((card) => {
+      const term = giftCardSearchTerm.trim().toLowerCase();
+      if (!term) return true;
+      const haystack = [
+        card.code || '',
+        card.buyer_firstname || '',
+        card.buyer_lastname || '',
+        card.buyer_email || '',
+        card.recipient_name || '',
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(term);
+    });
 
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#F9F7F2] flex items-center justify-center px-6">
+        <Helmet>
+          <title>Admin | Léa Beauté Valognes</title>
+          <meta name="robots" content="noindex, nofollow, noarchive" />
+          <meta name="googlebot" content="noindex, nofollow, noarchive" />
+        </Helmet>
         <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full">
           <h1 className="text-3xl font-bold mb-6 text-[#1A1A1A] text-center">Admin Dashboard</h1>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -1539,6 +1582,11 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#F9F7F2]">
+      <Helmet>
+        <title>Admin | Léa Beauté Valognes</title>
+        <meta name="robots" content="noindex, nofollow, noarchive" />
+        <meta name="googlebot" content="noindex, nofollow, noarchive" />
+      </Helmet>
       {/* Header */}
       <div className="sticky top-0 z-50 bg-white shadow-sm border-b border-[#E8DCCA]">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -1933,6 +1981,15 @@ export default function AdminPage() {
         {activeTab === 'gift-cards' && (
           <div>
             <div className="bg-white p-6 rounded-xl shadow-sm mb-6">
+              <div className="mb-4">
+                <input
+                  type="text"
+                  value={giftCardSearchTerm}
+                  onChange={(e) => setGiftCardSearchTerm(e.target.value)}
+                  placeholder="Rechercher par code, nom, email ou bénéficiaire..."
+                  className="w-full md:max-w-xl px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
               <div className="flex flex-wrap gap-4">
                 {[
                   { key: 'pending', label: 'En attente' },
@@ -2170,11 +2227,11 @@ export default function AdminPage() {
                       <h3 className="text-lg font-semibold text-[#1A1A1A] mb-3">
                         Actions
                       </h3>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-2.5">
                         {selectedGiftCard.status === 'pending' && (
                           <button
                             onClick={() => handleActivateGiftCard(selectedGiftCard.id)}
-                            className="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium text-sm"
+                            className="px-4 py-2.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-medium text-sm shadow-sm transition-colors"
                           >
                             <FontAwesomeIcon icon={faCheckCircle} className="mr-2" />
                             Valider et générer code
@@ -2184,7 +2241,7 @@ export default function AdminPage() {
                           <>
                             <button
                               onClick={() => handleGeneratePDF(selectedGiftCard)}
-                              className="px-4 py-3 bg-[#D4AF37] text-white rounded-lg hover:bg-[#C5A028] font-medium text-sm"
+                              className="px-4 py-2.5 rounded-lg border border-[#E5D2A2] bg-[#FCF6E8] text-[#7A5A12] hover:bg-[#F8EED7] font-medium text-sm shadow-sm transition-colors"
                             >
                               <FontAwesomeIcon icon={faFilePdf} className="mr-2" />
                               Générer PDF
@@ -2192,13 +2249,47 @@ export default function AdminPage() {
                             <button
                               onClick={() => handleSendEmail(selectedGiftCard)}
                               disabled={sendingEmail}
-                              className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm disabled:opacity-50"
+                              className="px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 font-medium text-sm shadow-sm transition-colors disabled:opacity-50"
                             >
                               <FontAwesomeIcon icon={faEnvelope} className="mr-2" />
                               {sendingEmail ? 'Envoi...' : 'Envoyer par email'}
                             </button>
                           </>
                         )}
+                        {selectedGiftCard.status === 'redeemed' && (
+                          <button
+                            onClick={() => handleSetGiftCardStatus(selectedGiftCard.id, 'active')}
+                            className="px-4 py-2.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-medium text-sm shadow-sm transition-colors"
+                          >
+                            Remettre active
+                          </button>
+                        )}
+                        <div className="col-span-2 flex items-center gap-2">
+                          {selectedGiftCard.status === 'active' && (
+                            <button
+                              onClick={() => handleSetGiftCardStatus(selectedGiftCard.id, 'redeemed')}
+                              className="flex-1 px-3 py-2 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100 font-medium text-xs shadow-sm transition-colors"
+                            >
+                              Utilisée
+                            </button>
+                          )}
+                          {selectedGiftCard.status !== 'expired' && (
+                            <button
+                              onClick={() => handleSetGiftCardStatus(selectedGiftCard.id, 'expired')}
+                              className="flex-1 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-medium text-xs shadow-sm transition-colors"
+                            >
+                              Expirée
+                            </button>
+                          )}
+                          {selectedGiftCard.status !== 'canceled' && (
+                            <button
+                              onClick={() => handleSetGiftCardStatus(selectedGiftCard.id, 'canceled')}
+                              className="flex-1 px-3 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100 font-medium text-xs shadow-sm transition-colors"
+                            >
+                              Annuler
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
 

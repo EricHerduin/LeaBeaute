@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import Logo from '../assets/photos/logos/logo16-9_1.png';
-import { Instagram } from 'lucide-react';
+import { Facebook, Instagram } from 'lucide-react';
 
 export default function Footer({ onShowPricing }) {
   return (
@@ -58,16 +58,28 @@ export default function Footer({ onShowPricing }) {
               <li>7 Rue du Palais de Justice</li>
               <li>50700 Valognes</li>
               <li>
-                <a
-                  href="https://www.instagram.com/leabeautevalognes/"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 p-2 text-white/80 hover:border-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors"
-                  title="Instagram Léa Beauté Valognes"
-                  aria-label="Instagram Léa Beauté Valognes"
-                >
-                  <Instagram className="h-4 w-4" />
-                </a>
+                <div className="flex items-center gap-2">
+                  <a
+                    href="https://www.facebook.com/leabeaute50"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 p-2.5 text-white/80 hover:border-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors"
+                    title="Facebook Léa Beauté Valognes"
+                    aria-label="Facebook Léa Beauté Valognes"
+                  >
+                    <Facebook className="h-5 w-5" />
+                  </a>
+                  <a
+                    href="https://www.instagram.com/lea.beaute.valognes/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center rounded-full border border-white/15 bg-white/5 p-2.5 text-white/80 hover:border-[#D4AF37]/60 hover:text-[#D4AF37] transition-colors"
+                    title="Instagram Léa Beauté Valognes"
+                    aria-label="Instagram Léa Beauté Valognes"
+                  >
+                    <Instagram className="h-5 w-5" />
+                  </a>
+                </div>
               </li>
             </ul>
           </div>

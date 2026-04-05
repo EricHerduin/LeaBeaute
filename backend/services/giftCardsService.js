@@ -291,21 +291,38 @@ function createGiftCardsService(deps) {
     },
 
     searchGiftCards(query, searchType) {
+      const rawQuery = String(query || "").trim();
+      if (!rawQuery) {
+        return { found: false, results: [] };
+      }
+
       if (searchType === "code") {
-        const giftCard = getGiftCardByCode(query.toUpperCase());
-        if (!giftCard) {
-          return { found: false, results: [] };
-        }
-        return { found: true, results: [giftCard] };
+        const queryUpper = rawQuery.toUpperCase();
+        const normalizedCode = queryUpper.replace(/[^A-Z0-9]/g, "");
+        const safeLike = `%${escapeLike(queryUpper)}%`;
+
+        const results = readRows(`
+          SELECT * FROM gift_cards
+          WHERE
+            UPPER(code) = ${sqlValue(queryUpper)}
+            OR REPLACE(UPPER(code), '-', '') = ${sqlValue(normalizedCode)}
+            OR UPPER(code) LIKE ${sqlValue(safeLike)}
+          ORDER BY created_at DESC
+          LIMIT 20;
+        `).map(mapGiftCardRow);
+
+        return { found: results.length > 0, results };
       }
 
       if (searchType === "recipient") {
-        const safeQuery = `%${escapeLike(query)}%`;
+        const safeQuery = `%${escapeLike(rawQuery)}%`;
         const results = readRows(`
           SELECT * FROM gift_cards
-          WHERE recipient_name LIKE ${sqlValue(safeQuery)} ESCAPE '\\'
-             OR buyer_firstname LIKE ${sqlValue(safeQuery)} ESCAPE '\\'
-             OR buyer_lastname LIKE ${sqlValue(safeQuery)} ESCAPE '\\'
+          WHERE UPPER(COALESCE(recipient_name, '')) LIKE UPPER(${sqlValue(safeQuery)})
+             OR UPPER(COALESCE(buyer_firstname, '')) LIKE UPPER(${sqlValue(safeQuery)})
+             OR UPPER(COALESCE(buyer_lastname, '')) LIKE UPPER(${sqlValue(safeQuery)})
+             OR UPPER(COALESCE(buyer_email, '')) LIKE UPPER(${sqlValue(safeQuery)})
+             OR UPPER(COALESCE(code, '')) LIKE UPPER(${sqlValue(safeQuery)})
           ORDER BY created_at DESC;
         `).map(mapGiftCardRow);
 

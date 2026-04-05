@@ -58,8 +58,8 @@ function App() {
           <Route path="/prestations" element={<ServicesPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <CookieConsent />
       </BrowserRouter>
-      <CookieConsent />
       <ScrollTopFab />
       <Toaster richColors position="top-center" />
     </HelmetProvider>

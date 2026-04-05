@@ -41,7 +41,17 @@ let businessHoursCache = {
   isInitialized: false, // Flag pour savoir si les vraies données ont été chargées
 };
 
-const CACHE_DURATION = 3600000; // 1 heure
+const CACHE_DURATION = import.meta.env.DEV ? 30000 : 3600000; // 30s en dev, 1h en prod
+
+const toLocalDateKey = (date) => {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    return '';
+  }
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const normalizeDayHours = (hours) => {
   if (!hours) {
@@ -231,24 +241,75 @@ const formatTime = (time) => {
   return '';
 };
 
-const formatNextOpenMessage = (nextOpenTime) => {
-  if (!nextOpenTime) return 'Ouvre bientôt';
+const formatFullDateLabel = (date) => date.toLocaleDateString('fr-FR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+});
+
+const formatDayMonthLabel = (date) => date.toLocaleDateString('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+});
+
+const isExceptionClosedOnDate = (date) => {
+  const exception = getExceptionForDate(date);
+  return Boolean(exception && !exception.isOpen);
+};
+
+const isFullyClosedOnDate = (date) => isHoliday(date) || isExceptionClosedOnDate(date);
+
+const getConsecutiveClosedRange = (startDate, maxDays = 30) => {
+  if (!isFullyClosedOnDate(startDate)) {
+    return null;
+  }
+
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+
+  for (let i = 0; i < maxDays; i += 1) {
+    const next = new Date(end);
+    next.setDate(next.getDate() + 1);
+    if (!isFullyClosedOnDate(next)) {
+      break;
+    }
+    end.setDate(end.getDate() + 1);
+  }
+
+  return { start, end };
+};
+
+const formatClosedRangeWithReopen = (rangeStart, rangeEnd, nextOpenTime) => {
+  const startLabel = formatDayMonthLabel(rangeStart);
+  const endLabel = formatDayMonthLabel(rangeEnd);
+  const reopenLine = formatNextOpenMessage(nextOpenTime, { includeDate: true, prefix: 'Réouverture' });
+  return `Institut fermé du ${startLabel} au ${endLabel}\n${reopenLine}`;
+};
+
+const formatNextOpenMessage = (nextOpenTime, options = {}) => {
+  const { includeDate = false, prefix = 'Ouvre' } = options;
+  if (!nextOpenTime) return 'Réouverture prochainement';
+  const timeLabel = `${nextOpenTime.getHours()}h${String(nextOpenTime.getMinutes()).padStart(2, '0')}`;
+
+  if (includeDate) {
+    const dayLabel = formatFullDateLabel(nextOpenTime);
+    return `${prefix} le ${dayLabel} à ${timeLabel}`;
+  }
 
   const now = new Date();
   const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
   const isTomorrow =
-    nextOpenTime.getFullYear() === tomorrow.getFullYear() &&
-    nextOpenTime.getMonth() === tomorrow.getMonth() &&
-    nextOpenTime.getDate() === tomorrow.getDate();
-
-  const timeLabel = `${nextOpenTime.getHours()}h${String(nextOpenTime.getMinutes()).padStart(2, '0')}`;
+    nextOpenTime.getFullYear() === tomorrow.getFullYear()
+    && nextOpenTime.getMonth() === tomorrow.getMonth()
+    && nextOpenTime.getDate() === tomorrow.getDate();
 
   if (isTomorrow) {
-    return `Ouvre demain à ${timeLabel}`;
+    return `${prefix} demain à ${timeLabel}`;
   }
 
   const dayLabel = nextOpenTime.toLocaleDateString('fr-FR', { weekday: 'long' });
-  return `Ouvre ${dayLabel} à ${timeLabel}`;
+  return `${prefix} ${dayLabel} à ${timeLabel}`;
 };
 
 /**
@@ -258,16 +319,24 @@ const formatNextOpenMessage = (nextOpenTime) => {
 const getClosedSecondaryMessage = (startDate) => {
   const tomorrow = new Date(startDate);
   tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
   
   // Vérifier si demain est exceptionnellement fermé
   const tomorrowException = getExceptionForDate(tomorrow);
   if (tomorrowException && !tomorrowException.isOpen) {
+    const closedRange = getConsecutiveClosedRange(tomorrow);
+    if (closedRange && toLocalDateKey(closedRange.start) !== toLocalDateKey(closedRange.end)) {
+      const nextOpenTime = getNextOpenDay(closedRange.end);
+      return formatClosedRangeWithReopen(closedRange.start, closedRange.end, nextOpenTime);
+    }
+
     // C'est une fermeture exceptionnelle
     const endDate = tomorrowException.endDate || tomorrowException.date;
     
     // Si c'est un jour unique (date === endDate)
     if (tomorrowException.date === endDate) {
-      return `Fermeture exceptionnelle demain`;
+      const nextOpenTime = getNextOpenDay(tomorrow);
+      return `Fermeture exceptionnelle demain\n${formatNextOpenMessage(nextOpenTime, { includeDate: true, prefix: 'Réouverture' })}`;
     }
     
     // C'est une plage
@@ -289,9 +358,9 @@ const getClosedSecondaryMessage = (startDate) => {
       }
     }
     
-    const startLabel = new Date(tomorrowException.date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    const endLabel = endDateObj.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-    const reopenLabel = reopenDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const startLabel = formatFullDateLabel(new Date(tomorrowException.date + 'T00:00:00'));
+    const endLabel = formatFullDateLabel(endDateObj);
+    const reopenLabel = formatFullDateLabel(reopenDate);
     
     if (reopenTime) {
       return `Institut fermé du ${startLabel} au ${endLabel}\nRéouverture le ${reopenLabel} à ${reopenTime}`;
@@ -302,8 +371,15 @@ const getClosedSecondaryMessage = (startDate) => {
   
   // Vérifier si demain est un jour férié
   if (isHoliday(tomorrow)) {
-    const holiday = businessHoursCache.holidays.find((h) => h.date === tomorrow.toISOString().split('T')[0]);
-    return `${holiday?.name || 'Jour férié'} demain`;
+    const closedRange = getConsecutiveClosedRange(tomorrow);
+    if (closedRange && toLocalDateKey(closedRange.start) !== toLocalDateKey(closedRange.end)) {
+      const nextOpenTime = getNextOpenDay(closedRange.end);
+      return formatClosedRangeWithReopen(closedRange.start, closedRange.end, nextOpenTime);
+    }
+
+    const holiday = businessHoursCache.holidays.find((h) => h.date === toLocalDateKey(tomorrow));
+    const nextOpenTime = getNextOpenDay(tomorrow);
+    return `${holiday?.name || 'Jour férié'} demain\n${formatNextOpenMessage(nextOpenTime, { includeDate: true, prefix: 'Réouverture' })}`;
   }
   
   // Sinon retourner le prochain jour d'ouverture
@@ -319,21 +395,24 @@ const getClosedSecondaryMessage = (startDate) => {
  * Vérifie si une date est un jour férié (via le cache)
  */
 export const isHoliday = (date) => {
-  const dateStr = date.toISOString().split('T')[0];
-  return businessHoursCache.holidays.some((h) => h.date === dateStr);
+  const dateStr = toLocalDateKey(date);
+  if (!dateStr || !Array.isArray(businessHoursCache.holidays)) return false;
+  return businessHoursCache.holidays.some((h) => h && typeof h.date === 'string' && h.date === dateStr);
 };
 
 /**
  * Récupère une exception pour une date donnée (jour unique ou plage)
  */
 export const getExceptionForDate = (date) => {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = toLocalDateKey(date);
+  if (!dateStr || !Array.isArray(businessHoursCache.exceptions)) return null;
   // Chercher une exception qui couvre cette date
   return businessHoursCache.exceptions.find((e) => {
+    if (!e || typeof e.date !== 'string' || e.date.length === 0) return false;
     const startDate = e.date;
     const endDate = e.endDate || e.date; // Si pas d'endDate, c'est un jour unique
     return dateStr >= startDate && dateStr <= endDate;
-  });
+  }) || null;
 };
 
 /**
@@ -354,16 +433,21 @@ export const getOpeningStatus = () => {
   const currentHour = now.getHours();
   const currentMinute = now.getMinutes();
   const currentTimeInMinutes = currentHour * 60 + currentMinute;
-  const dateStr = now.toISOString().split('T')[0];
+  const dateStr = toLocalDateKey(now);
 
   // Vérifier si c'est un jour férié
   if (isHoliday(now)) {
     const holiday = businessHoursCache.holidays.find((h) => h.date === dateStr);
+    const closedRange = getConsecutiveClosedRange(now);
+    const nextOpen = getNextOpenDay(closedRange?.end || now);
+    const secondaryMessage = closedRange && toLocalDateKey(closedRange.start) !== toLocalDateKey(closedRange.end)
+      ? formatClosedRangeWithReopen(closedRange.start, closedRange.end, nextOpen)
+      : formatNextOpenMessage(nextOpen, { includeDate: true, prefix: 'Réouverture' });
     return {
       status: 'closed',
       message: `Fermé - ${holiday?.name || 'Jour férié'}`,
-      secondaryMessage: getClosedSecondaryMessage(now),
-      nextOpenTime: getNextOpenDay(now),
+      secondaryMessage,
+      nextOpenTime: nextOpen,
     };
   }
 
@@ -392,7 +476,7 @@ export const getOpeningStatus = () => {
       const nextOpen = getNextOpenDay(now);
       let secondaryMessage = '';
       if (nextOpen) {
-        const label = nextOpen.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+        const label = formatFullDateLabel(nextOpen);
         const heure = `${nextOpen.getHours()}h${String(nextOpen.getMinutes()).padStart(2, '0')}`;
         secondaryMessage = `Réouverture le ${label} à ${heure}`;
       } else {
@@ -529,7 +613,12 @@ export const getNextOpenDay = (startDate = new Date()) => {
 
     // Déterminer les horaires du jour
     const dayHours = exception && exception.isOpen
-      ? { open: exception.startTime, close: exception.endTime }
+      ? {
+          morningOpen: exception.startTime,
+          morningClose: exception.endTime,
+          afternoonOpen: null,
+          afternoonClose: null,
+        }
       : getHoursForDay(date.getDay());
 
     const firstOpening = getFirstOpening(dayHours);
@@ -553,7 +642,7 @@ export const getNextOpenDay = (startDate = new Date()) => {
 export const getTodayAndNextDayHours = () => {
   const now = new Date();
   const today = {
-    date: now.toISOString().split('T')[0],
+    date: toLocalDateKey(now),
     dayIndex: now.getDay(),
     isOpen: getOpeningStatus().status === 'open',
     hours: null,
@@ -564,7 +653,7 @@ export const getTodayAndNextDayHours = () => {
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tmrw = {
-    date: tomorrow.toISOString().split('T')[0],
+    date: toLocalDateKey(tomorrow),
     dayIndex: tomorrow.getDay(),
     hours: null,
     isHoliday: isHoliday(tomorrow),
@@ -611,7 +700,7 @@ export const getTodayAndNextDayHours = () => {
  * Usage: getOpeningStatusForDate(new Date(2026, 1, 14))
  */
 export const getOpeningStatusForDate = (testDate) => {
-  const dateStr = testDate.toISOString().split('T')[0];
+  const dateStr = toLocalDateKey(testDate);
   const dayIndex = testDate.getDay();
   
   console.log(`[DEBUG] Testing date: ${dateStr} (${['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][dayIndex]})`);

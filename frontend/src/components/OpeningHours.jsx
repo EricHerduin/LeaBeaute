@@ -11,6 +11,13 @@ const formatTime = (time) => {
   return `${hours}h${minutes}`;
 };
 
+const toLocalDateKey = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const normalizeDayHours = (hours) => {
   if (!hours) return null;
   return {
@@ -63,7 +70,8 @@ export default function OpeningHours({ fullWidth = false, showStatus = true, sho
   // Vérification période de fermeture
   const today = new Date();
   const exception = getExceptionForDate(today);
-  const isClosedPeriod = exception && !exception.isOpen && exception.endDate && today.toISOString().split('T')[0] >= exception.date && today.toISOString().split('T')[0] <= exception.endDate;
+  const todayKey = toLocalDateKey(today);
+  const isClosedPeriod = exception && !exception.isOpen && exception.endDate && todayKey >= exception.date && todayKey <= exception.endDate;
 
   // Message bandeau (reprend la logique businessHours.js)
   let closedBannerMessage = null;

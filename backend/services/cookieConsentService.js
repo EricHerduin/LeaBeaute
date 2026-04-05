@@ -51,7 +51,7 @@ function createCookieConsentService(deps) {
       const items = readRows(`
         SELECT
           c.anonymous_visitor_id,
-          c.categories_json,
+          c.categories,
           c.decision,
           c.source,
           c.policy_version,
@@ -61,12 +61,12 @@ function createCookieConsentService(deps) {
         FROM cookie_consents c
         LEFT JOIN cookie_consent_history h ON h.anonymous_visitor_id = c.anonymous_visitor_id
         ${where}
-        GROUP BY c.anonymous_visitor_id, c.categories_json, c.decision, c.source, c.policy_version, c.created_at, c.updated_at
+        GROUP BY c.anonymous_visitor_id, c.categories, c.decision, c.source, c.policy_version, c.created_at, c.updated_at
         ORDER BY c.updated_at DESC
         LIMIT ${limit};
       `).map((row) => ({
         anonymousVisitorId: row.anonymous_visitor_id,
-        categories: parseJson(row.categories_json, {}),
+        categories: parseJson(row.categories, {}),
         decision: row.decision,
         source: row.source,
         policyVersion: row.policy_version,
@@ -105,7 +105,7 @@ function createCookieConsentService(deps) {
 
       runSql(`
         INSERT INTO cookie_consents (
-          anonymous_visitor_id, decision, source, policy_version, banner_version, locale, categories_json,
+          anonymous_visitor_id, decision, source, policy_version, banner_version, locale, categories,
           ip_hash, user_agent, choice_expires_at, evidence_expires_at, created_at, updated_at
         ) VALUES (
           ${sqlValue(anonymousVisitorId)},
@@ -128,7 +128,7 @@ function createCookieConsentService(deps) {
           policy_version = excluded.policy_version,
           banner_version = excluded.banner_version,
           locale = excluded.locale,
-          categories_json = excluded.categories_json,
+          categories = excluded.categories,
           ip_hash = excluded.ip_hash,
           user_agent = excluded.user_agent,
           choice_expires_at = excluded.choice_expires_at,
@@ -139,7 +139,7 @@ function createCookieConsentService(deps) {
       runSql(`
         INSERT INTO cookie_consent_history (
           id, anonymous_visitor_id, decision, source, policy_version, banner_version, locale,
-          categories_json, ip_hash, user_agent, saved_at
+          categories, ip_hash, user_agent, saved_at
         ) VALUES (
           ${sqlValue(randomId())},
           ${sqlValue(anonymousVisitorId)},

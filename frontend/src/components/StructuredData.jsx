@@ -39,8 +39,8 @@ export default function StructuredData() {
       }
     ],
     "sameAs": [
-      "https://www.facebook.com/leabeautevalognes",
-      "https://www.instagram.com/leabeautevalognes"
+      "https://www.facebook.com/leabeaute50",
+      "https://www.instagram.com/lea.beaute.valognes"
     ],
     "areaServed": {
       "@type": "City",

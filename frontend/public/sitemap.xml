@@ -4,64 +4,64 @@
   
   <!-- Page d'accueil -->
   <url>
-    <loc>https://demo-client.htagfacility.fr/</loc>
-    <lastmod>2026-02-05</lastmod>
+    <loc>https://leabeautevalognes.fr/</loc>
+    <lastmod>2026-04-04</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   
   <!-- Soins Guinot -->
   <url>
-    <loc>https://demo-client.htagfacility.fr/guinot</loc>
-    <lastmod>2026-02-05</lastmod>
+    <loc>https://leabeautevalognes.fr/guinot</loc>
+    <lastmod>2026-04-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <!-- Accompagnement nutrition -->
   <url>
-    <loc>https://demo-client.htagfacility.fr/accompagnement-nutrition</loc>
-    <lastmod>2026-02-05</lastmod>
+    <loc>https://leabeautevalognes.fr/accompagnement-nutrition</loc>
+    <lastmod>2026-04-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   
   <!-- À propos de l'institut -->
   <url>
-    <loc>https://demo-client.htagfacility.fr/a-propos-institut</loc>
-    <lastmod>2026-02-05</lastmod>
+    <loc>https://leabeautevalognes.fr/a-propos-institut</loc>
+    <lastmod>2026-04-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <!-- Prestations -->
   <url>
-    <loc>https://demo-client.htagfacility.fr/prestations</loc>
-    <lastmod>2026-02-05</lastmod>
+    <loc>https://leabeautevalognes.fr/prestations</loc>
+    <lastmod>2026-04-04</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   
   <!-- Mentions légales -->
   <url>
-    <loc>https://demo-client.htagfacility.fr/mentions-legales</loc>
-    <lastmod>2026-02-05</lastmod>
+    <loc>https://leabeautevalognes.fr/mentions-legales</loc>
+    <lastmod>2026-04-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   
   <!-- Confidentialité -->
   <url>
-    <loc>https://demo-client.htagfacility.fr/confidentialite</loc>
-    <lastmod>2026-02-05</lastmod>
+    <loc>https://leabeautevalognes.fr/confidentialite</loc>
+    <lastmod>2026-04-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   
   <!-- Cookies -->
   <url>
-    <loc>https://demo-client.htagfacility.fr/cookies</loc>
-    <lastmod>2026-02-05</lastmod>
+    <loc>https://leabeautevalognes.fr/cookies</loc>
+    <lastmod>2026-04-04</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

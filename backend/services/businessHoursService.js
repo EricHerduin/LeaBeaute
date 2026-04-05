@@ -83,22 +83,26 @@ function createBusinessHoursService(deps) {
     return null;
   }
 
+  function dbBool(value) {
+    return value === 1 || value === "1" || value === true;
+  }
+
   return {
     getBusinessHours() {
       const general = readOne("SELECT * FROM business_hours_general WHERE config_id = 'main' LIMIT 1;");
       if (!general) {
         return defaultBusinessHours;
       }
-      return normalizeSchedule(parseJson(general.schedule_json, defaultBusinessHours));
+      return normalizeSchedule(parseJson(general.schedule, defaultBusinessHours));
     },
 
     saveBusinessHours(schedule) {
       const normalizedSchedule = normalizeSchedule(schedule);
       runSql(`
-        INSERT INTO business_hours_general (config_id, schedule_json, updated_at)
+        INSERT INTO business_hours_general (config_id, schedule, updated_at)
         VALUES ('main', ${sqlJson(normalizedSchedule)}, CURRENT_TIMESTAMP)
         ON CONFLICT(config_id) DO UPDATE SET
-          schedule_json = excluded.schedule_json,
+          schedule = excluded.schedule,
           updated_at = CURRENT_TIMESTAMP;
       `);
       return { success: true };
@@ -108,7 +112,7 @@ function createBusinessHoursService(deps) {
       return readRows("SELECT * FROM business_hours_exceptions ORDER BY date ASC;").map((row) => ({
         date: row.date,
         endDate: row.end_date,
-        isOpen: Boolean(row.is_open),
+        isOpen: dbBool(row.is_open),
         startTime: row.start_time,
         endTime: row.end_time,
         reason: row.reason || "",
@@ -159,7 +163,7 @@ function createBusinessHoursService(deps) {
       return readRows("SELECT * FROM business_hours_holidays ORDER BY date ASC;").map((row) => ({
         date: row.date,
         name: row.name,
-        isClosed: Boolean(row.is_closed),
+        isClosed: dbBool(row.is_closed),
       }));
     },
 
@@ -203,7 +207,7 @@ function createBusinessHoursService(deps) {
       const dayKey = String((now.getDay() + 0) % 7);
 
       const holiday = readOne(`SELECT * FROM business_hours_holidays WHERE date = ${sqlValue(todayStr)} LIMIT 1;`);
-      if (holiday?.is_closed) {
+      if (dbBool(holiday?.is_closed)) {
         return {
           status: "closed",
           message: `Fermé - ${holiday.name}`,
@@ -213,7 +217,7 @@ function createBusinessHoursService(deps) {
 
       const exception = readOne(`SELECT * FROM business_hours_exceptions WHERE date = ${sqlValue(todayStr)} LIMIT 1;`);
       if (exception) {
-        if (!exception.is_open) {
+        if (!dbBool(exception.is_open)) {
           return {
             status: "closed",
             message: `Fermé - ${exception.reason || "Exception"}`,
@@ -233,8 +237,8 @@ function createBusinessHoursService(deps) {
         };
       }
 
-      const general = readOne("SELECT schedule_json FROM business_hours_general WHERE config_id = 'main' LIMIT 1;");
-      const schedule = general ? normalizeSchedule(parseJson(general.schedule_json, defaultBusinessHours)) : defaultBusinessHours;
+      const general = readOne("SELECT schedule FROM business_hours_general WHERE config_id = 'main' LIMIT 1;");
+      const schedule = general ? normalizeSchedule(parseJson(general.schedule, defaultBusinessHours)) : defaultBusinessHours;
       const dayHours = schedule[dayKey];
       const intervals = getDayIntervals(dayHours);
 

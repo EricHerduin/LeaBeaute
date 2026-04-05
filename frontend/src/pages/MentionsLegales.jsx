@@ -82,12 +82,6 @@ export default function MentionsLegales() {
               Conformément aux articles L.612-1 et suivants du Code de la consommation, en cas de litige non résolu avec l&apos;institut,
               le client consommateur peut recourir gratuitement à un médiateur de la consommation.
             </p>
-            <p className="mt-3">
-              <strong>Médiateur :</strong> [à compléter]
-            </p>
-            <p>
-              <strong>Site du médiateur :</strong> [à compléter]
-            </p>
           </section>
 
           <section>

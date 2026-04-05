@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import api from '../lib/apiClient';
 import { toast } from 'sonner';
@@ -10,7 +10,7 @@ import {
   faList,
   faTicket
 } from '@fortawesome/free-solid-svg-icons';
-import { BadgeCheck, Clock3, Gem, Search, TicketPercent } from 'lucide-react';
+import { Clock3, Gem, Search, TicketPercent } from 'lucide-react';
 import BusinessHoursManager from '../components/BusinessHoursManager';
 
 const axios = api;
@@ -47,16 +47,16 @@ export default function AdminDashboardHome({
   onAddCoupon
 }) {
   const [verifyModal, setVerifyModal] = useState(false);
-  const [redeemModal, setRedeemModal] = useState(false);
   const [couponModal, setCouponModal] = useState(false);
   const [businessHoursModal, setBusinessHoursModal] = useState(false);
 
   const [verifyQuery, setVerifyQuery] = useState('');
-  const [verifyType, setVerifyType] = useState('code');
+  const [verifyType, setVerifyType] = useState('recipient');
   const [verifyResults, setVerifyResults] = useState(null);
   const [verifyLoading, setVerifyLoading] = useState(false);
+  const [giftCardsIndex, setGiftCardsIndex] = useState([]);
+  const [showNameSuggestions, setShowNameSuggestions] = useState(false);
 
-  const [redeemCode, setRedeemCode] = useState('');
   const [redeemLoading, setRedeemLoading] = useState(false);
 
   const [newCoupon, setNewCoupon] = useState({
@@ -68,6 +68,42 @@ export default function AdminDashboardHome({
   });
   const [couponLoading, setCouponLoading] = useState(false);
 
+  const getAuthToken = () => adminToken || localStorage.getItem('admin_token') || '';
+
+  const loadGiftCardsIndex = async () => {
+    try {
+      const response = await axios.get('/gift-cards/all', {
+        headers: { Authorization: getAuthToken() }
+      });
+      setGiftCardsIndex(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      setGiftCardsIndex([]);
+    }
+  };
+
+  const nameSuggestions = useMemo(() => {
+    if (verifyType !== 'recipient') return [];
+    const term = verifyQuery.trim().toLowerCase();
+    if (!term) return [];
+
+    const unique = new Map();
+    giftCardsIndex.forEach((card) => {
+      const buyerFullName = `${card.buyer_firstname || ''} ${card.buyer_lastname || ''}`.trim();
+      const recipientName = String(card.recipient_name || '').trim();
+
+      [recipientName, buyerFullName]
+        .filter(Boolean)
+        .forEach((name) => {
+          const key = name.toLowerCase();
+          if (!unique.has(key)) unique.set(key, name);
+        });
+    });
+
+    return Array.from(unique.values())
+      .filter((name) => name.toLowerCase().includes(term))
+      .slice(0, 8);
+  }, [giftCardsIndex, verifyQuery, verifyType]);
+
   // ============ VERIFY GIFT CARD ============
   const handleVerify = async () => {
     if (!verifyQuery.trim()) {
@@ -77,23 +113,72 @@ export default function AdminDashboardHome({
 
     setVerifyLoading(true);
     try {
-      const response = await axios.post('/gift-cards/search', null, {
-        params: {
-          query: verifyQuery.trim(),
-          search_type: verifyType
-        }
-      });
+      const localFilterCards = (cards) => {
+        const raw = verifyQuery.trim();
+        if (!raw) return [];
 
-      if (response.data.found) {
-        setVerifyResults(response.data.results);
-        toast.success(`${response.data.results.length} carte(s) trouvée(s)`);
+        if (verifyType === 'code') {
+          const normalized = raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+          return cards.filter((card) => {
+            const code = String(card.code || '').toUpperCase();
+            const codeNormalized = code.replace(/[^A-Z0-9]/g, '');
+            return code.includes(raw.toUpperCase()) || codeNormalized.includes(normalized);
+          });
+        }
+
+        const term = raw.toLowerCase();
+        return cards.filter((card) => {
+          const haystack = [
+            card.recipient_name || '',
+            card.buyer_firstname || '',
+            card.buyer_lastname || '',
+            card.buyer_email || '',
+            card.code || '',
+          ].join(' ').toLowerCase();
+          return haystack.includes(term);
+        });
+      };
+
+      const params = {
+        query: verifyQuery.trim(),
+        search_type: verifyType
+      };
+
+      let response;
+      try {
+        response = await axios.get('/gift-cards/search', { params });
+      } catch (getError) {
+        const status = getError?.response?.status;
+        if (status === 404 || status === 405) {
+          response = await axios.post('/gift-cards/search', null, { params });
+        } else {
+          throw getError;
+        }
+      }
+
+      const apiResults = Array.isArray(response?.data?.results) ? response.data.results : [];
+      if (apiResults.length > 0) {
+        setVerifyResults(apiResults);
+        toast.success(`${apiResults.length} carte(s) trouvée(s)`);
+        return;
+      }
+
+      const allCardsResponse = await axios.get('/gift-cards/all', {
+        headers: { Authorization: getAuthToken() }
+      });
+      const allCards = Array.isArray(allCardsResponse.data) ? allCardsResponse.data : [];
+      const fallbackResults = localFilterCards(allCards);
+
+      if (fallbackResults.length > 0) {
+        setVerifyResults(fallbackResults);
+        toast.success(`${fallbackResults.length} carte(s) trouvée(s)`);
       } else {
         setVerifyResults([]);
         toast.error('Aucune carte cadeau trouvée');
       }
     } catch (error) {
       console.error('Error verifying gift card:', error);
-      toast.error('Erreur lors de la recherche');
+      toast.error(error.response?.data?.detail || 'Erreur lors de la recherche');
     } finally {
       setVerifyLoading(false);
     }
@@ -111,21 +196,46 @@ export default function AdminDashboardHome({
       const response = await axios.post(
         `/gift-cards/${giftCardId}/redeem`,
         {},
-        { headers: { Authorization: adminToken } }
+        { headers: { Authorization: getAuthToken() } }
       );
 
       if (response.data.success) {
         toast.success(`Carte cadeau ${response.data.gift_card.code} marquée comme utilisée`);
-        setRedeemModal(false);
-        setVerifyQuery('');
-        setVerifyResults(null);
-        setRedeemCode('');
+        setVerifyResults((prev) => {
+          if (!Array.isArray(prev)) return prev;
+          return prev.map((card) => (
+            card.id === giftCardId ? { ...card, status: 'redeemed' } : card
+          ));
+        });
       }
     } catch (error) {
       const msg = error.response?.data?.detail || 'Erreur lors de la validation';
       toast.error(msg);
     } finally {
       setRedeemLoading(false);
+    }
+  };
+
+  const handleGiftCardStatusUpdate = async (giftCardId, nextStatus) => {
+    if (!giftCardId || !nextStatus) return;
+
+    try {
+      await axios.patch(`/gift-cards/${giftCardId}`, null, {
+        params: { status: nextStatus },
+        headers: { Authorization: getAuthToken() }
+      });
+
+      setVerifyResults((prev) => {
+        if (!Array.isArray(prev)) return prev;
+        return prev.map((card) => (
+          card.id === giftCardId ? { ...card, status: nextStatus } : card
+        ));
+      });
+
+      toast.success(`Statut mis à jour: ${translateStatus(nextStatus)}`);
+    } catch (error) {
+      const msg = error.response?.data?.detail || 'Erreur lors du changement de statut';
+      toast.error(msg);
     }
   };
 
@@ -148,7 +258,7 @@ export default function AdminDashboardHome({
       };
 
       await axios.post('/coupons', couponData, {
-        headers: { Authorization: adminToken }
+        headers: { Authorization: getAuthToken() }
       });
 
       toast.success(`Coupon "${newCoupon.code}" créé`);
@@ -237,24 +347,18 @@ export default function AdminDashboardHome({
         className="mb-16"
       >
         <h2 className="mb-6 text-2xl font-bold text-[#1A1A1A]">Actions Rapides</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           <SquareButton
             icon={<Search className="h-6 w-6" strokeWidth={1.8} />}
-            label="Vérifier une carte"
+            label="Rechercher une carte"
             tone="pearl"
             onClick={() => {
               setVerifyQuery('');
+              setVerifyType('recipient');
               setVerifyResults(null);
+              setShowNameSuggestions(false);
+              loadGiftCardsIndex();
               setVerifyModal(true);
-            }}
-          />
-          <SquareButton
-            icon={<BadgeCheck className="h-6 w-6" strokeWidth={1.8} />}
-            label="Valider une carte"
-            tone="espresso"
-            onClick={() => {
-              setRedeemCode('');
-              setRedeemModal(true);
             }}
           />
           <SquareButton
@@ -350,7 +454,7 @@ export default function AdminDashboardHome({
             className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[80vh] overflow-auto"
           >
             <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">
-              Vérifier une Carte Cadeau
+              Rechercher une Carte Cadeau
             </h2>
 
             <div className="space-y-4 mb-6">
@@ -378,23 +482,47 @@ export default function AdminDashboardHome({
                 <input
                   type="text"
                   value={verifyQuery}
+                  autoFocus
                   onChange={(e) => {
                     const value = e.target.value;
                     if (verifyType === 'code') {
                       setVerifyQuery(formatGiftCardCode(value));
                     } else {
                       setVerifyQuery(value);
+                      setShowNameSuggestions(true);
                     }
+                  }}
+                  onFocus={() => {
+                    if (verifyType === 'recipient') setShowNameSuggestions(true);
+                  }}
+                  onBlur={() => {
+                    setTimeout(() => setShowNameSuggestions(false), 120);
                   }}
                   placeholder={verifyType === 'code' ? 'LB-XXXX-XXXX' : 'Entrez un nom'}
                   className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                 />
+                {verifyType === 'recipient' && showNameSuggestions && nameSuggestions.length > 0 && (
+                  <div className="mt-2 max-h-56 overflow-auto rounded-lg border border-[#E8DCCA] bg-white shadow-lg">
+                    {nameSuggestions.map((name) => (
+                      <div
+                        key={name}
+                        onMouseDown={() => {
+                          setVerifyQuery(name);
+                          setShowNameSuggestions(false);
+                        }}
+                        className="w-full cursor-pointer px-3 py-2 text-left text-sm text-[#111111] bg-white hover:bg-[#F9F7F2]"
+                      >
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <button
                 onClick={handleVerify}
                 disabled={verifyLoading || !verifyQuery.trim()}
-                className="w-full px-6 py-3 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+                className="w-full px-6 py-3 bg-[#D4AF37] text-[#1A1A1A] rounded-lg hover:bg-[#C5A028] hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
               >
                 {verifyLoading ? 'Recherche...' : 'Rechercher'}
               </button>
@@ -402,14 +530,14 @@ export default function AdminDashboardHome({
 
             {/* Results */}
             {verifyResults && verifyResults.length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-4 text-[#1A1A1A]">
                 <h3 className="font-bold text-[#1A1A1A]">
                   Résultats ({verifyResults.length})
                 </h3>
                 {verifyResults.map((card) => (
                   <div
                     key={card.id}
-                    className="border border-[#E8DCCA] rounded-lg p-4 bg-[#FBF9F4]"
+                    className="border border-[#E8DCCA] rounded-lg p-4 bg-white text-[#1A1A1A]"
                   >
                     <div className="grid grid-cols-2 gap-4 mb-3">
                       <div>
@@ -441,15 +569,41 @@ export default function AdminDashboardHome({
                         {card.buyer_firstname} {card.buyer_lastname}
                       </p>
                     </div>
-                    {card.status === 'active' && (
-                      <button
-                        onClick={() => handleRedeem(card.id)}
-                        disabled={redeemLoading}
-                        className="w-full px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
-                      >
-                        {redeemLoading ? 'Validation...' : (<><FontAwesomeIcon icon={faCheck} className="mr-2" />Marquer comme utilisée</>)}
-                      </button>
-                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {card.status === 'pending' && (
+                        <button
+                          onClick={() => handleGiftCardStatusUpdate(card.id, 'active')}
+                          className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-all text-sm font-semibold"
+                        >
+                          Activer
+                        </button>
+                      )}
+                      {card.status === 'active' && (
+                        <button
+                          onClick={() => handleRedeem(card.id)}
+                          disabled={redeemLoading}
+                          className="px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-semibold"
+                        >
+                          {redeemLoading ? 'Validation...' : (<><FontAwesomeIcon icon={faCheck} className="mr-2" />Marquer utilisée</>)}
+                        </button>
+                      )}
+                      {card.status === 'redeemed' && (
+                        <button
+                          onClick={() => handleGiftCardStatusUpdate(card.id, 'active')}
+                          className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all text-sm font-semibold"
+                        >
+                          Remettre active
+                        </button>
+                      )}
+                      {card.status !== 'canceled' && (
+                        <button
+                          onClick={() => handleGiftCardStatusUpdate(card.id, 'canceled')}
+                          className="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-all text-sm font-semibold"
+                        >
+                          Annuler
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -463,55 +617,6 @@ export default function AdminDashboardHome({
                 Fermer
               </button>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-
-      {/* ============ REDEEM MODAL ============ */}
-      {redeemModal && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-          onClick={() => setRedeemModal(false)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl p-8 max-w-md w-full"
-          >
-            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-6">
-              Valider une Carte Cadeau
-            </h2>
-
-            <p className="text-[#4A4A4A] mb-4">
-              Utilisez la recherche ci-dessus pour trouver une carte, puis cliquez sur "Marquer comme utilisée"
-            </p>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <p className="text-sm text-blue-800">
-                💡 Conseil : Utilisez d'abord l'onglet "Vérifier" pour retrouver la carte, puis validez-la.
-              </p>
-            </div>
-
-            <button
-              onClick={() => {
-                setRedeemModal(false);
-                setVerifyModal(true);
-              }}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-md transition-all font-semibold mb-3"
-            >
-              Aller à la Recherche
-            </button>
-
-            <button
-              onClick={() => setRedeemModal(false)}
-              className="w-full px-6 py-2 border border-[#E8DCCA] text-[#1A1A1A] rounded-lg hover:bg-[#FBF9F4] transition-all"
-            >
-              Fermer
-            </button>
           </motion.div>
         </motion.div>
       )}

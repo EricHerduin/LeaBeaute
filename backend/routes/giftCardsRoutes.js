@@ -7,6 +7,7 @@ function createGiftCardsRoutes({ giftCardsController, requireAdmin }) {
   router.get("/gift-cards/status/:sessionId", giftCardsController.getCheckoutStatus);
   router.post("/webhooks/stripe", giftCardsController.handleStripeWebhook);
   router.get("/gift-cards/verify/:code", giftCardsController.verifyGiftCard);
+  router.get("/gift-cards/search", giftCardsController.searchGiftCards);
   router.post("/gift-cards/search", giftCardsController.searchGiftCards);
   router.post("/gift-cards/:giftCardId/redeem", requireAdmin, giftCardsController.redeemGiftCard);
   router.get("/gift-cards/list", requireAdmin, giftCardsController.listGiftCards);

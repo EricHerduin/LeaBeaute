@@ -4,4 +4,4 @@ Allow: /
 Disallow: /admin
 
 # Sitemaps
-Sitemap: https://demo-client.htagfacility.fr/sitemap.xml
+Sitemap: https://leabeautevalognes.fr/sitemap.xml

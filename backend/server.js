@@ -27,7 +27,10 @@ const { createCouponsRoutes } = require("./routes/couponsRoutes");
 const { createTestimonialsService } = require("./services/testimonialsService");
 const { createTestimonialsController } = require("./controllers/testimonialsController");
 const { createTestimonialsRoutes } = require("./routes/testimonialsRoutes");
+const { getSqlClient } = require("./sql/sqlClient");
+
 const {
+  engine: storageEngine,
   executeSchema,
   readRows,
   runSql,
@@ -35,7 +38,7 @@ const {
   sqlJson,
   sqlValue,
   getSqliteDatabasePath,
-} = require("./sqlite/sqliteClient");
+} = getSqlClient();
 
 const app = express();
 const port = Number(process.env.PORT || 8000);
@@ -346,7 +349,7 @@ function mapTestimonialRow(row) {
 function mapConsentRow(row, history = []) {
   return {
     anonymousVisitorId: row.anonymous_visitor_id,
-    categories: parseJson(row.categories_json, {}),
+    categories: parseJson(row.categories ?? row.categories_json, {}),
     decision: row.decision,
     source: row.source,
     policyVersion: row.policy_version,
@@ -393,16 +396,16 @@ function sortPricesWithCategoryOrder(prices, categoryOrder = []) {
 }
 
 function getAdminSetting(key) {
-  const row = readOne(`SELECT value_json FROM admin_settings WHERE key = ${sqlValue(key)} LIMIT 1;`);
-  return row ? parseJson(row.value_json, null) : null;
+  const row = readOne(`SELECT \`value\` FROM admin_settings WHERE \`key\` = ${sqlValue(key)} LIMIT 1;`);
+  return row ? parseJson(row.value, null) : null;
 }
 
 function setAdminSetting(key, value) {
   runSql(`
-    INSERT INTO admin_settings (key, value_json, updated_at)
+    INSERT INTO admin_settings (\`key\`, \`value\`, updated_at)
     VALUES (${sqlValue(key)}, ${sqlJson(value, null)}, CURRENT_TIMESTAMP)
-    ON CONFLICT(key) DO UPDATE SET
-      value_json = excluded.value_json,
+    ON CONFLICT(\`key\`) DO UPDATE SET
+      \`value\` = excluded.value,
       updated_at = CURRENT_TIMESTAMP;
   `);
 }
@@ -437,7 +440,7 @@ function getConsentHistory(visitorId) {
   `).map((row) => ({
     id: row.id,
     decision: row.decision,
-    categories: parseJson(row.categories_json, {}),
+    categories: parseJson(row.categories ?? row.categories_json, {}),
     source: row.source,
     policyVersion: row.policy_version,
     bannerVersion: row.banner_version,
@@ -511,7 +514,7 @@ function seedDatabase() {
         );
       `);
     }
-    console.info(`Tarifs SQLite initialisés: ${pricesSeed.length}`);
+    console.info(`Tarifs ${storageEngine.toUpperCase()} initialisés: ${pricesSeed.length}`);
   }
 
   const holidaysCount = Number(readOne("SELECT COUNT(*) AS count FROM business_hours_holidays;")?.count || 0);
@@ -528,7 +531,7 @@ function seedDatabase() {
         );
       `);
     }
-    console.info(`Jours fériés SQLite initialisés: ${holidaysSeed.length}`);
+    console.info(`Jours fériés ${storageEngine.toUpperCase()} initialisés: ${holidaysSeed.length}`);
   }
 }
 
@@ -603,8 +606,8 @@ async function activateGiftCardAfterPayment({ giftCardId, sessionId, couponToken
 app.get("/api/", (req, res) => {
   res.json({
     message: "Léa Beauté Valognes API",
-    storage: "sqlite",
-    sqlitePath: getSqliteDatabasePath(),
+    storage: storageEngine,
+    sqlitePath: storageEngine === "sqlite" ? getSqliteDatabasePath() : null,
   });
 });
 const requireAdmin = createRequireAdmin({ adminPassword });
@@ -783,15 +786,21 @@ app.get("/api/google-reviews", async (req, res, next) => {
 
 app.use((error, req, res, next) => {
   console.error(error);
-  res.status(error.status || 500).json({ detail: error.message || "Internal server error" });
+  const statusCode = Number(error?.status);
+  const safeStatus = Number.isInteger(statusCode) && statusCode >= 400 && statusCode <= 599
+    ? statusCode
+    : 500;
+  res.status(safeStatus).json({ detail: error.message || "Internal server error" });
 });
 
 async function start() {
   seedDatabase();
 
   app.listen(port, () => {
-    console.info(`API Node SQLite démarrée sur le port ${port}`);
-    console.info(`SQLite local: ${getSqliteDatabasePath()}`);
+    console.info(`API Node ${storageEngine.toUpperCase()} démarrée sur le port ${port}`);
+    if (storageEngine === "sqlite") {
+      console.info(`SQLite local: ${getSqliteDatabasePath()}`);
+    }
   });
 }
 
