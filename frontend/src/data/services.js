@@ -13,14 +13,14 @@ export const services = [
   {
     id: 'epilations',
     imageSrc: epilationImage,
-    imageAlt: "Épilations (sourcils, lèvres, maillot, jambes)",
+    imageAlt: "Épilations (sourcils, lèvres, maillot, jambes, lumière pulsée)",
     fallbackLetter: 'E',
     title: 'Épilations',
-    description: 'Sourcils, lèvres, maillot, jambes... Toutes zones avec des techniques adaptées.',
-    details: "Des gestes précis et une épilation adaptée à chaque zone pour une peau nette et confortable.",
-    techniquesText: 'Cire tiède ou pelable selon la zone · Conseils pour limiter les rougeurs · Finitions soignées',
+    description: 'Sourcils, lèvres, maillot, jambes... Toutes zones avec des techniques adaptées, dont l’épilation à la lumière pulsée.',
+    details: "L’épilation à la lumière pulsée est une épilation semi-définitive : 90 à 95% des poils sont éliminés en une dizaine de séances.",
+    techniquesText: 'Cire tiède ou pelable selon la zone · Épilation lumière pulsée semi-définitive · Conseils pour limiter les rougeurs',
     duration: '20–45 min',
-    pricingCategories: ['Epilations', 'Forfaits épilations']
+    pricingCategories: ['Epilations', 'Forfaits épilations', 'Épilation lumière pulsée']
   },
   {
     id: 'soins-visage-guinot',
