@@ -150,7 +150,7 @@ function createGiftCardsService(deps) {
         runSql(`
           INSERT INTO payment_transactions (
             id, gift_card_id, session_id, amount, original_amount, currency, status, payment_status,
-            coupon_token, coupon_data_json, metadata_json, created_at, updated_at
+            coupon_token, coupon_data, metadata, created_at, updated_at
           ) VALUES (
             ${sqlValue(randomId())},
             ${sqlValue(giftCardId)},
