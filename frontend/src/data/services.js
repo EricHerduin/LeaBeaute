@@ -112,10 +112,10 @@ export const services = [
     imageAlt: 'Autres prestations',
     fallbackLetter: '+',
     title: 'Autres prestations',
-    description: 'UV, pressothérapie, électrolyse, teinture cils/sourcils, strass dentaire.',
+    description: 'UV, électrolyse, teinture cils/sourcils, strass dentaire.',
     details: "Des prestations complémentaires pour répondre à des besoins ciblés et ponctuels.",
-    techniquesText: 'Pressothérapie · Teinture cils/sourcils · Électrolyse',
+    techniquesText: 'Teinture cils/sourcils  · Électrolyse · UV · Strass dentaire',
     duration: '15–45 min',
-    pricingCategories: ['Autres soins', 'Électrolyse', 'Pressothérapie', 'UV', 'Épilation lumière pulsée']
+    pricingCategories: ['Autres soins', 'Électrolyse', 'UV', 'Épilation lumière pulsée']
   }
 ];

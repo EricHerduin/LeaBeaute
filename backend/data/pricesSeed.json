@@ -467,15 +467,7 @@
     "isActive": true,
     "sortOrder": 40
   },
-  {
-    "category": "Pressothérapie",
-    "name": "Jambes ou ventre (20 min)",
-    "priceEur": 25,
-    "durationMin": 20,
-    "note": "Soin jambes lourdes, anti-cellulite, récupération sportive",
-    "isActive": true,
-    "sortOrder": 10
-  },
+
   {
     "category": "UV",
     "name": "Séance UV",
