@@ -7,7 +7,7 @@ import {
   faCheck,
   faCreditCard,
   faGift,
-  faList,
+  faPaperPlane,
   faTicket
 } from '@fortawesome/free-solid-svg-icons';
 import { Clock3, Gem, Search, TicketPercent } from 'lucide-react';
@@ -49,6 +49,7 @@ export default function AdminDashboardHome({
   const [verifyModal, setVerifyModal] = useState(false);
   const [couponModal, setCouponModal] = useState(false);
   const [businessHoursModal, setBusinessHoursModal] = useState(false);
+  const [testEmailModal, setTestEmailModal] = useState(false);
 
   const [verifyQuery, setVerifyQuery] = useState('');
   const [verifyType, setVerifyType] = useState('recipient');
@@ -67,6 +68,8 @@ export default function AdminDashboardHome({
     maxUses: ''
   });
   const [couponLoading, setCouponLoading] = useState(false);
+  const [testEmailTo, setTestEmailTo] = useState('');
+  const [testEmailLoading, setTestEmailLoading] = useState(false);
 
   const getAuthToken = () => adminToken || localStorage.getItem('admin_token') || '';
 
@@ -279,6 +282,39 @@ export default function AdminDashboardHome({
     }
   };
 
+  // ============ SEND TEST EMAIL ============
+  const handleSendTestEmail = async () => {
+    const toEmail = testEmailTo.trim();
+    if (!toEmail) {
+      toast.error('Veuillez renseigner un email destinataire');
+      return;
+    }
+
+    setTestEmailLoading(true);
+    try {
+      await axios.post(
+        '/gift-cards/test-email',
+        { to_email: toEmail },
+        { headers: { Authorization: getAuthToken() } }
+      );
+
+      toast.success(`Email de test envoyé à ${toEmail}`);
+      setTestEmailModal(false);
+      setTestEmailTo('');
+    } catch (error) {
+      const status = error?.response?.status;
+      if (status === 404) {
+        toast.error('Fonction indisponible sur le serveur API actuel (deploiement backend requis).');
+        return;
+      }
+
+      const msg = error.response?.data?.detail || 'Erreur lors de l\'envoi de l\'email de test';
+      toast.error(msg);
+    } finally {
+      setTestEmailLoading(false);
+    }
+  };
+
   // ============ RENDER COMPONENTS ============
 
   const SquareButton = ({ icon, label, onClick, tone = 'champagne' }) => {
@@ -378,6 +414,12 @@ export default function AdminDashboardHome({
             label="Horaires"
             tone="noir"
             onClick={() => setBusinessHoursModal(true)}
+          />
+          <SquareButton
+            icon={<FontAwesomeIcon icon={faPaperPlane} className="h-5 w-5" />}
+            label="Email test carte PDF"
+            tone="espresso"
+            onClick={() => setTestEmailModal(true)}
           />
         </div>
       </motion.div>
@@ -719,6 +761,73 @@ export default function AdminDashboardHome({
               <button
                 onClick={() => setCouponModal(false)}
                 className="flex-1 px-6 py-2 border border-[#E8DCCA] text-[#1A1A1A] rounded-lg hover:bg-[#FBF9F4] transition-all"
+              >
+                Annuler
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* ============ TEST EMAIL MODAL ============ */}
+      {testEmailModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+          onClick={() => {
+            if (!testEmailLoading) {
+              setTestEmailModal(false);
+            }
+          }}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl p-8 max-w-md w-full"
+          >
+            <h2 className="text-2xl font-bold text-[#1A1A1A] mb-2">
+              Envoyer un Email de Test
+            </h2>
+            <p className="text-sm text-[#4A4A4A] mb-6">
+              Un email de test sera envoyé avec une carte cadeau PDF en pièce jointe.
+            </p>
+
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-medium text-[#1A1A1A] mb-2">
+                  Email destinataire
+                </label>
+                <input
+                  type="email"
+                  value={testEmailTo}
+                  autoFocus
+                  onChange={(e) => setTestEmailTo(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !testEmailLoading) {
+                      handleSendTestEmail();
+                    }
+                  }}
+                  placeholder="cliente@example.com"
+                  className="w-full px-4 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleSendTestEmail}
+                disabled={testEmailLoading || !testEmailTo.trim()}
+                className="flex-1 px-6 py-2 bg-linear-to-r from-[#D4AF37] to-[#C5A028] text-[#1A1A1A] rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all font-semibold"
+              >
+                {testEmailLoading ? 'Envoi...' : 'Envoyer le test'}
+              </button>
+              <button
+                onClick={() => setTestEmailModal(false)}
+                disabled={testEmailLoading}
+                className="flex-1 px-6 py-2 border border-[#E8DCCA] text-[#1A1A1A] rounded-lg hover:bg-[#FBF9F4] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 Annuler
               </button>

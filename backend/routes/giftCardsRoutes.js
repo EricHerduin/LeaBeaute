@@ -19,6 +19,7 @@ function createGiftCardsRoutes({ giftCardsController, requireAdmin }) {
   router.patch("/gift-cards/:giftCardId/extend-expiry", requireAdmin, giftCardsController.extendExpiry);
   router.patch("/gift-cards/:giftCardId/update-recipient", requireAdmin, giftCardsController.updateRecipient);
   router.post("/gift-cards/:giftCardId/resend-email", requireAdmin, giftCardsController.resendEmail);
+  router.post("/gift-cards/test-email", requireAdmin, giftCardsController.sendTestEmail);
 
   return router;
 }

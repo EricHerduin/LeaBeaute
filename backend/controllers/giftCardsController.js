@@ -21,9 +21,13 @@ function createGiftCardsController({ giftCardsService }) {
       }
     },
 
-    handleStripeWebhook(req, res, next) {
+    async handleStripeWebhook(req, res, next) {
       try {
-        res.json(giftCardsService.handleStripeWebhook(req.body, req.headers["stripe-signature"]));
+        const result = await giftCardsService.handleStripeWebhook(
+          req.body,
+          req.headers["stripe-signature"],
+        );
+        res.json(result);
       } catch (error) {
         next(error);
       }
@@ -156,6 +160,15 @@ function createGiftCardsController({ giftCardsService }) {
           res.status(404).json({ detail: "Gift card not found" });
           return;
         }
+        res.json(result);
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    async sendTestEmail(req, res, next) {
+      try {
+        const result = await giftCardsService.sendTestEmail(req.body);
         res.json(result);
       } catch (error) {
         next(error);

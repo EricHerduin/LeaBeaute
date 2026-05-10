@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node --watch server.js",
     "start": "node server.js",
+    "test": "node --test",
     "seed:holidays": "node seed-holidays.js",
     "db:init:local-sqlite": "node init-local-sqlite.js",
     "db:migrate:mongo-to-local-sqlite": "node migrate-mongo-to-local-sqlite.js",
@@ -23,6 +24,7 @@
     "mongodb": "^6.16.0",
     "mysql2": "^3.20.0",
     "nodemailer": "^6.10.1",
+    "pdfkit": "^0.18.0",
     "stripe": "^18.1.1"
   }
 }

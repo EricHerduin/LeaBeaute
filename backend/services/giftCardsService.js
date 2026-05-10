@@ -238,7 +238,7 @@ function createGiftCardsService(deps) {
       };
     },
 
-    handleStripeWebhook(rawBody, signature) {
+    async handleStripeWebhook(rawBody, signature) {
       if (!stripe || !stripeWebhookSecret) {
         const error = new Error("Invalid signature");
         error.status = 400;
@@ -248,22 +248,56 @@ function createGiftCardsService(deps) {
       let event;
       try {
         event = stripe.webhooks.constructEvent(rawBody, signature, stripeWebhookSecret);
-      } catch {
-        const error = new Error("Invalid signature");
-        error.status = 400;
+      } catch (error) {
+        console.error("Erreur signature Stripe webhook :", error.message);
+        const signatureError = new Error("Invalid signature");
+        signatureError.status = 400;
+        throw signatureError;
+      }
+
+      if (event.type !== "checkout.session.completed") {
+        return {
+          status: "ignored",
+          event_type: event.type,
+        };
+      }
+
+      const session = event.data.object;
+      console.log("Webhook checkout.session.completed reçu :", {
+        sessionId: session.id,
+        paymentStatus: session.payment_status,
+        status: session.status,
+        metadata: session.metadata,
+      });
+
+      if (session.payment_status !== "paid") {
+        return {
+          status: "ignored",
+          reason: "payment_not_paid",
+          payment_status: session.payment_status,
+        };
+      }
+
+      const transaction = getPaymentTransactionBySessionId(session.id);
+      if (!transaction) {
+        console.error("Transaction introuvable pour la session Stripe :", session.id);
+        const error = new Error("Transaction not found for Stripe session");
+        error.status = 404;
         throw error;
       }
 
-      if (event.type === "checkout.session.completed") {
-        const session = event.data.object;
-        runSql(`
-          UPDATE payment_transactions
-          SET payment_status = 'paid', status = 'complete', updated_at = ${sqlValue(nowIso())}
-          WHERE session_id = ${sqlValue(session.id)};
-        `);
-      }
+      const giftCard = await activateGiftCardAfterPayment({
+        giftCardId: transaction.gift_card_id,
+        sessionId: session.id,
+        couponToken: transaction.coupon_token,
+      });
 
-      return { status: "success" };
+      return {
+        status: "success",
+        event_type: event.type,
+        gift_card_id: giftCard.id,
+        gift_card_status: giftCard.status,
+      };
     },
 
     verifyGiftCard(code) {
@@ -522,6 +556,53 @@ function createGiftCardsService(deps) {
       }
 
       return { success: true };
+    },
+
+    async sendTestEmail(body) {
+      const payload = body || {};
+      const toEmail = String(payload.to_email || payload.toEmail || process.env.EMAIL_TEST_TO || process.env.EMAIL_USER || "").trim();
+      if (!toEmail) {
+        const error = new Error("to_email is required");
+        error.status = 400;
+        throw error;
+      }
+
+      const recipientName = String(payload.recipient_name || payload.recipientName || "Cliente test").trim();
+      const buyerName = String(payload.buyer_name || payload.buyerName || "L'equipe Lea Beaute").trim();
+
+      const parsedAmount = Number(payload.amount);
+      const amount = Number.isFinite(parsedAmount) && parsedAmount > 0 ? parsedAmount : 80;
+
+      const giftCardCode = String(payload.gift_card_code || payload.giftCardCode || "TEST-LEA-2026").trim();
+      const expiresAt = payload.expires_at || payload.expiresAt || new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString();
+
+      const success = await sendGiftCardEmail({
+        toEmail,
+        recipientName,
+        giftCardCode,
+        amount,
+        expiresAt,
+        buyerName,
+      });
+
+      if (!success) {
+        const error = new Error("Failed to send email");
+        error.status = 500;
+        throw error;
+      }
+
+      return {
+        success: true,
+        test: true,
+        pdf_attachment: true,
+        to_email: toEmail,
+        preview: {
+          recipient_name: recipientName,
+          gift_card_code: giftCardCode,
+          amount,
+          expires_at: expiresAt,
+        },
+      };
     },
   };
 }
