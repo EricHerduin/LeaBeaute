@@ -7,7 +7,7 @@ const Stripe = require("stripe");
 
 const pricesSeed = require("./data/pricesSeed.json");
 const holidaysSeed = require("./data/holidaysSeed.json");
-const { sendGiftCardEmail } = require("./emailService");
+const { generateGiftCardPdfBuffer, sendGiftCardEmail } = require("./emailService");
 const { createRequireAdmin } = require("./middleware/adminAuth");
 const { createPricesService } = require("./services/pricesService");
 const { createPricesController } = require("./controllers/pricesController");
@@ -680,6 +680,7 @@ const giftCardsService = createGiftCardsService({
   activateGiftCardAfterPayment,
   generateGiftCode,
   normalizeIsoDate,
+  generateGiftCardPdfBuffer,
   sendGiftCardEmail,
 });
 const giftCardsController = createGiftCardsController({ giftCardsService });

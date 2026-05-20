@@ -286,6 +286,24 @@ function createGiftCardsService(deps) {
         throw error;
       }
 
+      const existingGiftCard = getGiftCardById(transaction.gift_card_id);
+      if (existingGiftCard?.status === "active" && existingGiftCard.code) {
+        if (runSql && sqlValue) {
+          runSql(`
+            UPDATE payment_transactions
+            SET payment_status = 'paid', status = 'complete', updated_at = ${sqlValue(nowIso())}
+            WHERE session_id = ${sqlValue(session.id)};
+          `);
+        }
+
+        return {
+          status: "already_processed",
+          event_type: event.type,
+          gift_card_id: existingGiftCard.id,
+          gift_card_status: existingGiftCard.status,
+        };
+      }
+
       const giftCard = await activateGiftCardAfterPayment({
         giftCardId: transaction.gift_card_id,
         sessionId: session.id,
@@ -459,6 +477,165 @@ function createGiftCardsService(deps) {
       return getGiftCardById(giftCardId);
     },
 
+    async getGiftCardStripeStatus(giftCardId) {
+      this.ensureStripeConfigured();
+
+      const giftCard = getGiftCardById(giftCardId);
+      if (!giftCard) {
+        return null;
+      }
+      if (!giftCard.stripeSessionId) {
+        const error = new Error("No Stripe session linked to this gift card");
+        error.status = 400;
+        throw error;
+      }
+
+      const transaction = getPaymentTransactionBySessionId(giftCard.stripeSessionId);
+      const session = await stripe.checkout.sessions.retrieve(giftCard.stripeSessionId, {
+        expand: ["payment_intent.latest_charge"],
+      });
+      const paymentIntent = typeof session.payment_intent === "object" ? session.payment_intent : null;
+      const latestCharge = paymentIntent && typeof paymentIntent.latest_charge === "object"
+        ? paymentIntent.latest_charge
+        : null;
+
+      return {
+        gift_card: {
+          id: giftCard.id,
+          code: giftCard.code,
+          status: giftCard.status,
+        },
+        local_transaction: transaction
+          ? {
+              id: transaction.id,
+              status: transaction.status,
+              payment_status: transaction.payment_status,
+              amount: transaction.amount === null ? null : Number(transaction.amount),
+              currency: transaction.currency,
+              updated_at: transaction.updated_at || null,
+            }
+          : null,
+        stripe_session: {
+          id: session.id,
+          status: session.status,
+          payment_status: session.payment_status,
+          amount_total: session.amount_total,
+          currency: session.currency,
+          customer_email: session.customer_details?.email || session.customer_email || null,
+          payment_intent_id: paymentIntent?.id || session.payment_intent || null,
+          created: session.created || null,
+          expires_at: session.expires_at || null,
+          url: session.url || null,
+        },
+        payment_intent: paymentIntent
+          ? {
+              id: paymentIntent.id,
+              status: paymentIntent.status,
+              amount: paymentIntent.amount,
+              amount_received: paymentIntent.amount_received,
+              currency: paymentIntent.currency,
+              latest_charge: latestCharge?.id || paymentIntent.latest_charge || null,
+              charge_refunded: Boolean(latestCharge?.refunded),
+              amount_refunded: latestCharge?.amount_refunded ?? null,
+            }
+          : null,
+      };
+    },
+
+    async reconcileGiftCardStripePayment(giftCardId) {
+      this.ensureStripeConfigured();
+
+      const giftCard = getGiftCardById(giftCardId);
+      if (!giftCard) {
+        return null;
+      }
+      if (!giftCard.stripeSessionId) {
+        const error = new Error("No Stripe session linked to this gift card");
+        error.status = 400;
+        throw error;
+      }
+
+      if (giftCard.status === "active" && giftCard.code) {
+        return {
+          status: "already_processed",
+          gift_card: giftCard,
+        };
+      }
+
+      const transaction = getPaymentTransactionBySessionId(giftCard.stripeSessionId);
+      if (!transaction) {
+        const error = new Error("Transaction not found for Stripe session");
+        error.status = 404;
+        throw error;
+      }
+
+      const session = await stripe.checkout.sessions.retrieve(giftCard.stripeSessionId, {
+        expand: ["payment_intent.latest_charge"],
+      });
+      const paymentIntent = typeof session.payment_intent === "object" ? session.payment_intent : null;
+      const latestCharge = paymentIntent && typeof paymentIntent.latest_charge === "object"
+        ? paymentIntent.latest_charge
+        : null;
+      const amountReceived = Number(paymentIntent?.amount_received || 0);
+      const amountRefunded = Number(latestCharge?.amount_refunded || 0);
+
+      if (session.status !== "complete" || session.payment_status !== "paid") {
+        const error = new Error(`Stripe session is not paid/complete (${session.status}/${session.payment_status})`);
+        error.status = 400;
+        throw error;
+      }
+      if (!paymentIntent || paymentIntent.status !== "succeeded") {
+        const error = new Error(`Stripe payment intent is not succeeded (${paymentIntent?.status || "missing"})`);
+        error.status = 400;
+        throw error;
+      }
+      if (latestCharge?.refunded || (amountReceived > 0 && amountRefunded >= amountReceived)) {
+        const error = new Error("Stripe payment has been refunded");
+        error.status = 400;
+        throw error;
+      }
+
+      const activatedGiftCard = await activateGiftCardAfterPayment({
+        giftCardId: giftCard.id,
+        sessionId: session.id,
+        couponToken: transaction.coupon_token,
+      });
+
+      return {
+        status: "reconciled",
+        gift_card: activatedGiftCard,
+      };
+    },
+
+    async generateGiftCardPdf(giftCardId) {
+      const giftCard = getGiftCardById(giftCardId);
+      if (!giftCard || !giftCard.code) {
+        return null;
+      }
+
+      const buyerName = `${giftCard.buyer_firstname} ${giftCard.buyer_lastname}`.trim();
+      const generatePdf = deps.generateGiftCardPdfBuffer || require("../emailService").generateGiftCardPdfBuffer;
+      const pdfBuffer = await generatePdf({
+        recipientName: giftCard.recipient_name || buyerName,
+        giftCardCode: giftCard.code,
+        amount: giftCard.amountEur,
+        expiresAt: giftCard.expiresAt,
+        buyerName,
+        personalMessage: giftCard.personal_message,
+      });
+
+      return { giftCard, pdfBuffer };
+    },
+
+    async generateGiftCardPdfBySessionId(sessionId) {
+      const transaction = getPaymentTransactionBySessionId(sessionId);
+      if (!transaction || !transaction.gift_card_id) {
+        return null;
+      }
+
+      return this.generateGiftCardPdf(transaction.gift_card_id);
+    },
+
     activateGiftCard(giftCardId) {
       const giftCard = getGiftCardById(giftCardId);
       if (!giftCard) {
@@ -506,17 +683,21 @@ function createGiftCardsService(deps) {
       return { success: true, new_expiry_date: newExpiryDate };
     },
 
-    updateRecipient(giftCardId, recipientNameInput) {
+    updateRecipient(giftCardId, recipientNameInput, personalMessageInput) {
       const recipientName = String(recipientNameInput || "").trim();
       if (!recipientName) {
         const error = new Error("recipient_name is required");
         error.status = 400;
         throw error;
       }
+      const personalMessage = String(personalMessageInput || "").trim();
 
       runSql(`
         UPDATE gift_cards
-        SET recipient_name = ${sqlValue(recipientName)}, updated_at = ${sqlValue(nowIso())}
+        SET
+          recipient_name = ${sqlValue(recipientName)},
+          personal_message = ${personalMessage ? sqlValue(personalMessage) : "NULL"},
+          updated_at = ${sqlValue(nowIso())}
         WHERE id = ${sqlValue(giftCardId)};
       `);
 
@@ -525,10 +706,30 @@ function createGiftCardsService(deps) {
         return null;
       }
 
-      return { success: true, recipient_name: recipientName };
+      return { success: true, gift_card: giftCard };
     },
 
-    async resendEmail(giftCardId) {
+    updatePersonalMessage(giftCardId, personalMessageInput) {
+      const personalMessage = String(personalMessageInput || "").trim();
+
+      runSql(`
+        UPDATE gift_cards
+        SET
+          personal_message = ${personalMessage ? sqlValue(personalMessage) : "NULL"},
+          updated_at = ${sqlValue(nowIso())}
+        WHERE id = ${sqlValue(giftCardId)};
+      `);
+
+      const giftCard = getGiftCardById(giftCardId);
+      if (!giftCard) {
+        return null;
+      }
+
+      return { success: true, gift_card: giftCard };
+    },
+
+    async resendEmail(giftCardId, body) {
+      const payload = body || {};
       const giftCard = getGiftCardById(giftCardId);
       if (!giftCard) {
         return null;
@@ -539,14 +740,22 @@ function createGiftCardsService(deps) {
         throw error;
       }
 
+      const toEmail = String(payload.to_email || payload.toEmail || giftCard.buyer_email || "").trim();
+      if (!toEmail) {
+        const error = new Error("to_email is required");
+        error.status = 400;
+        throw error;
+      }
+
       const buyerName = `${giftCard.buyer_firstname} ${giftCard.buyer_lastname}`.trim();
       const success = await sendGiftCardEmail({
-        toEmail: giftCard.buyer_email,
+        toEmail,
         recipientName: giftCard.recipient_name || buyerName,
         giftCardCode: giftCard.code,
         amount: giftCard.amountEur,
         expiresAt: giftCard.expiresAt,
         buyerName,
+        personalMessage: giftCard.personal_message,
       });
 
       if (!success) {
@@ -555,7 +764,7 @@ function createGiftCardsService(deps) {
         throw error;
       }
 
-      return { success: true };
+      return { success: true, to_email: toEmail };
     },
 
     async sendTestEmail(body) {

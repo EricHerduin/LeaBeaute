@@ -21,6 +21,22 @@ function createGiftCardsController({ giftCardsService }) {
       }
     },
 
+    async getGiftCardPdfBySession(req, res, next) {
+      try {
+        const result = await giftCardsService.generateGiftCardPdfBySessionId(req.params.sessionId);
+        if (!result) {
+          res.status(404).json({ detail: "Gift card PDF not found" });
+          return;
+        }
+        const safeCode = String(result.giftCard.code || "carte-cadeau").replace(/[^A-Za-z0-9_-]/g, "-");
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="carte-cadeau-${safeCode}.pdf"`);
+        res.send(result.pdfBuffer);
+      } catch (error) {
+        next(error);
+      }
+    },
+
     async handleStripeWebhook(req, res, next) {
       try {
         const result = await giftCardsService.handleStripeWebhook(
@@ -114,6 +130,48 @@ function createGiftCardsController({ giftCardsService }) {
       }
     },
 
+    async getGiftCardStripeStatus(req, res, next) {
+      try {
+        const result = await giftCardsService.getGiftCardStripeStatus(req.params.giftCardId);
+        if (!result) {
+          res.status(404).json({ detail: "Gift card not found" });
+          return;
+        }
+        res.json(result);
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    async reconcileGiftCardStripePayment(req, res, next) {
+      try {
+        const result = await giftCardsService.reconcileGiftCardStripePayment(req.params.giftCardId);
+        if (!result) {
+          res.status(404).json({ detail: "Gift card not found" });
+          return;
+        }
+        res.json(result);
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    async getGiftCardPdf(req, res, next) {
+      try {
+        const result = await giftCardsService.generateGiftCardPdf(req.params.giftCardId);
+        if (!result) {
+          res.status(404).json({ detail: "Gift card PDF not found" });
+          return;
+        }
+        const safeCode = String(result.giftCard.code || "carte-cadeau").replace(/[^A-Za-z0-9_-]/g, "-");
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", `inline; filename="carte-cadeau-${safeCode}.pdf"`);
+        res.send(result.pdfBuffer);
+      } catch (error) {
+        next(error);
+      }
+    },
+
     activateGiftCard(req, res, next) {
       try {
         const result = giftCardsService.activateGiftCard(req.params.giftCardId);
@@ -142,7 +200,27 @@ function createGiftCardsController({ giftCardsService }) {
 
     updateRecipient(req, res, next) {
       try {
-        const result = giftCardsService.updateRecipient(req.params.giftCardId, req.body.recipient_name);
+        const result = giftCardsService.updateRecipient(
+          req.params.giftCardId,
+          req.body.recipient_name,
+          req.body.personal_message ?? req.body.personalMessage,
+        );
+        if (!result) {
+          res.status(404).json({ detail: "Gift card not found" });
+          return;
+        }
+        res.json(result);
+      } catch (error) {
+        next(error);
+      }
+    },
+
+    updatePersonalMessage(req, res, next) {
+      try {
+        const result = giftCardsService.updatePersonalMessage(
+          req.params.giftCardId,
+          req.body.personal_message ?? req.body.personalMessage,
+        );
         if (!result) {
           res.status(404).json({ detail: "Gift card not found" });
           return;
@@ -155,7 +233,7 @@ function createGiftCardsController({ giftCardsService }) {
 
     async resendEmail(req, res, next) {
       try {
-        const result = await giftCardsService.resendEmail(req.params.giftCardId);
+        const result = await giftCardsService.resendEmail(req.params.giftCardId, req.body);
         if (!result) {
           res.status(404).json({ detail: "Gift card not found" });
           return;

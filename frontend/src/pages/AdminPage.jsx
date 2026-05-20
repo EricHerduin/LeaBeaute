@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import api from '../lib/apiClient';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faHouse, faXmark, faInfoCircle, faFilePdf, faEnvelope, faCalendarPlus, faUserEdit, faCheckCircle, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faHouse, faXmark, faInfoCircle, faFilePdf, faEnvelope, faCalendarPlus, faUserEdit, faCheckCircle, faCog, faCopy, faRotateRight } from '@fortawesome/free-solid-svg-icons';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import AdminDashboardHome from './AdminDashboardHome';
 import logoLeaBeaute from '../assets/photos/logos/logo16-9_1.png';
@@ -76,7 +76,14 @@ export default function AdminPage() {
   const [showGiftCardModal, setShowGiftCardModal] = useState(false);
   const [extendExpiryDate, setExtendExpiryDate] = useState('');
   const [newRecipientName, setNewRecipientName] = useState('');
+  const [newPersonalMessage, setNewPersonalMessage] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [statusConfirmation, setStatusConfirmation] = useState(null);
+  const [emailConfirmation, setEmailConfirmation] = useState(null);
+  const [emailRecipient, setEmailRecipient] = useState('');
+  const [stripeStatusModal, setStripeStatusModal] = useState(null);
+  const [stripeStatusLoading, setStripeStatusLoading] = useState(false);
+  const [stripeReconcileLoading, setStripeReconcileLoading] = useState(false);
 
   // Coupons
   const [coupons, setCoupons] = useState([]);
@@ -897,6 +904,7 @@ export default function AdminPage() {
     setShowGiftCardModal(true);
     setExtendExpiryDate(card.expiresAt ? card.expiresAt.split('T')[0] : '');
     setNewRecipientName(card.recipient_name || '');
+    setNewPersonalMessage(card.personal_message || '');
   };
 
   const handleActivateGiftCard = async (id) => {
@@ -937,6 +945,125 @@ export default function AdminPage() {
     }
   };
 
+  const formatStripeAmount = (amount, currency = 'eur') => {
+    if (amount === null || typeof amount === 'undefined') return '-';
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency: String(currency || 'eur').toUpperCase()
+    }).format(Number(amount) / 100);
+  };
+
+  const formatStripeTimestamp = (timestamp) => {
+    if (!timestamp) return '-';
+    return new Date(Number(timestamp) * 1000).toLocaleString('fr-FR');
+  };
+
+  const truncateStripeId = (value) => {
+    if (!value) return '-';
+    const text = String(value);
+    if (text.length <= 18) return text;
+    return `${text.slice(0, 10)}...${text.slice(-6)}`;
+  };
+
+  const copyToClipboard = async (value, label = 'Identifiant') => {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(String(value));
+      toast.success(`${label} copié`);
+    } catch (error) {
+      toast.error('Impossible de copier');
+    }
+  };
+
+  const StripeIdField = ({ label, value }) => (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-[#808080] shrink-0">{label} :</span>
+      <span className="min-w-0 flex items-center gap-2">
+        <span className="font-mono text-xs truncate max-w-[180px]" title={value || '-'}>
+          {truncateStripeId(value)}
+        </span>
+        {value && (
+          <button
+            type="button"
+            onClick={() => copyToClipboard(value, label)}
+            className="text-[#D4AF37] hover:text-[#C5A028]"
+            title={`Copier ${label}`}
+          >
+            <FontAwesomeIcon icon={faCopy} />
+          </button>
+        )}
+      </span>
+    </div>
+  );
+
+  const handleCheckStripeStatus = async (card) => {
+    if (!card?.id) return;
+
+    setStripeStatusLoading(true);
+    try {
+      const response = await axios.get(`/gift-cards/${card.id}/stripe-status`, {
+        headers: { Authorization: token }
+      });
+      setStripeStatusModal(response.data);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Erreur lors de la vérification Stripe');
+    } finally {
+      setStripeStatusLoading(false);
+    }
+  };
+
+  const shouldShowStripeReconcile = (status) => (
+    status?.stripe_session?.payment_status === 'paid'
+    && status?.stripe_session?.status === 'complete'
+    && status?.payment_intent?.status === 'succeeded'
+    && !status?.payment_intent?.charge_refunded
+    && Number(status?.payment_intent?.amount_refunded || 0) < Number(status?.payment_intent?.amount_received || 0)
+    && status?.gift_card?.status === 'pending'
+  );
+
+  const handleReconcileStripePayment = async () => {
+    const giftCardId = stripeStatusModal?.gift_card?.id;
+    if (!giftCardId) return;
+
+    setStripeReconcileLoading(true);
+    try {
+      const response = await axios.post(`/gift-cards/${giftCardId}/reconcile-stripe`, {}, {
+        headers: { Authorization: token }
+      });
+      toast.success('Carte activée depuis Stripe et email envoyé');
+      const updatedCard = response.data?.gift_card;
+      if (updatedCard) {
+        setSelectedGiftCard(updatedCard);
+        setGiftCards((cards) => cards.map((card) => (
+          card.id === updatedCard.id ? { ...card, ...updatedCard } : card
+        )));
+      }
+      await fetchGiftCards();
+      await handleCheckStripeStatus({ id: giftCardId });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Impossible de corriger depuis Stripe');
+    } finally {
+      setStripeReconcileLoading(false);
+    }
+  };
+
+  const openStatusConfirmation = (card, nextStatus) => {
+    if (!card || !nextStatus) return;
+    setStatusConfirmation({
+      id: card.id,
+      code: card.code,
+      currentStatus: card.status,
+      nextStatus
+    });
+  };
+
+  const confirmStatusChange = async () => {
+    if (!statusConfirmation) return;
+    const { id, nextStatus } = statusConfirmation;
+    setStatusConfirmation(null);
+    await handleSetGiftCardStatus(id, nextStatus);
+  };
+
   const handleExtendExpiry = async (id) => {
     if (!extendExpiryDate) {
       toast.error('Veuillez sélectionner une date');
@@ -972,12 +1099,26 @@ export default function AdminPage() {
       }, {
         headers: { Authorization: token }
       });
-      toast.success('Bénéficiaire mis à jour');
-      fetchGiftCards();
+      const messageResponse = await axios.patch(`/gift-cards/${id}/update-message`, {
+        personal_message: newPersonalMessage
+      }, {
+        headers: { Authorization: token }
+      });
       const response = await axios.get(`/gift-cards/${id}`, {
         headers: { Authorization: token }
       });
-      setSelectedGiftCard(response.data);
+      const updatedCard = {
+        ...response.data,
+        ...(messageResponse.data?.gift_card || {})
+      };
+      setSelectedGiftCard(updatedCard);
+      setGiftCards((cards) => cards.map((card) => (
+        card.id === id ? { ...card, ...updatedCard } : card
+      )));
+      setNewRecipientName(updatedCard.recipient_name || '');
+      setNewPersonalMessage(updatedCard.personal_message || '');
+      await fetchGiftCards();
+      toast.success('Bénéficiaire et message mis à jour');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de la mise à jour');
     }
@@ -1018,6 +1159,24 @@ export default function AdminPage() {
       previewWindow.opener = null;
     } catch (error) {
       console.warn('Impossible de détacher opener sur l’onglet du PDF carte cadeau.');
+    }
+
+    try {
+      const response = await axios.get(`/gift-cards/${card.id}/pdf`, {
+        headers: { Authorization: token },
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      previewWindow.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      toast.success('PDF généré avec succès');
+      return;
+    } catch (error) {
+      previewWindow.close();
+      console.error('Erreur génération PDF:', error);
+      toast.error('Erreur lors de la génération du PDF');
+      return;
     }
 
     try {
@@ -1396,18 +1555,34 @@ export default function AdminPage() {
     }
   };
 
-  const handleSendEmail = async (card) => {
+  const openEmailConfirmation = (card) => {
     if (!card.code) {
       toast.error('Cette carte doit être validée avant d\'envoyer l\'email');
       return;
     }
 
+    setEmailConfirmation(card);
+    setEmailRecipient(card.buyer_email || '');
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailConfirmation) return;
+
+    const toEmail = emailRecipient.trim();
+    if (!toEmail) {
+      toast.error('Veuillez renseigner un email destinataire');
+      return;
+    }
+
     setSendingEmail(true);
     try {
-      await axios.post(`/gift-cards/${card.id}/resend-email`, {}, {
+      const response = await axios.post(`/gift-cards/${emailConfirmation.id}/resend-email`, {
+        to_email: toEmail
+      }, {
         headers: { Authorization: token }
       });
-      toast.success(`Email envoyé à ${card.buyer_email}`);
+      toast.success(`Email envoyé à ${response.data.to_email || toEmail}`);
+      setEmailConfirmation(null);
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Erreur lors de l\'envoi de l\'email');
     } finally {
@@ -2164,31 +2339,30 @@ export default function AdminPage() {
                       <div className="space-y-4">
                         <div>
                           <p className="text-sm text-[#808080] mb-2">Nom du bénéficiaire</p>
-                          <div className="flex gap-2">
+                          <div className="space-y-3">
                             <input
                               type="text"
                               value={newRecipientName}
                               onChange={(e) => setNewRecipientName(e.target.value)}
                               placeholder="Nom du bénéficiaire"
-                              className="flex-1 px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm"
+                              className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm"
+                            />
+                            <textarea
+                              value={newPersonalMessage}
+                              onChange={(e) => setNewPersonalMessage(e.target.value)}
+                              placeholder="Message personnel"
+                              rows={3}
+                              className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm resize-none"
                             />
                             <button
                               onClick={() => handleUpdateRecipient(selectedGiftCard.id)}
                               className="px-4 py-2 bg-[#D4AF37] text-white rounded-lg hover:bg-[#C5A028] text-sm font-medium"
                             >
                               <FontAwesomeIcon icon={faUserEdit} className="mr-2" />
-                              Modifier
+                              Enregistrer
                             </button>
                           </div>
                         </div>
-                        {selectedGiftCard.personal_message && (
-                          <div>
-                            <p className="text-sm text-[#808080] mb-2">Message personnel</p>
-                            <p className="text-sm text-[#4A4A4A] bg-[#F9F7F2] p-3 rounded-lg italic">
-                              "{selectedGiftCard.personal_message}"
-                            </p>
-                          </div>
-                        )}
                       </div>
                     </div>
 
@@ -2247,7 +2421,7 @@ export default function AdminPage() {
                               Générer PDF
                             </button>
                             <button
-                              onClick={() => handleSendEmail(selectedGiftCard)}
+                              onClick={() => openEmailConfirmation(selectedGiftCard)}
                               disabled={sendingEmail}
                               className="px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 font-medium text-sm shadow-sm transition-colors disabled:opacity-50"
                             >
@@ -2267,7 +2441,7 @@ export default function AdminPage() {
                         <div className="col-span-2 flex items-center gap-2">
                           {selectedGiftCard.status === 'active' && (
                             <button
-                              onClick={() => handleSetGiftCardStatus(selectedGiftCard.id, 'redeemed')}
+                              onClick={() => openStatusConfirmation(selectedGiftCard, 'redeemed')}
                               className="flex-1 px-3 py-2 rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-800 hover:bg-indigo-100 font-medium text-xs shadow-sm transition-colors"
                             >
                               Utilisée
@@ -2275,7 +2449,7 @@ export default function AdminPage() {
                           )}
                           {selectedGiftCard.status !== 'expired' && (
                             <button
-                              onClick={() => handleSetGiftCardStatus(selectedGiftCard.id, 'expired')}
+                              onClick={() => openStatusConfirmation(selectedGiftCard, 'expired')}
                               className="flex-1 px-3 py-2 rounded-lg border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-medium text-xs shadow-sm transition-colors"
                             >
                               Expirée
@@ -2283,7 +2457,7 @@ export default function AdminPage() {
                           )}
                           {selectedGiftCard.status !== 'canceled' && (
                             <button
-                              onClick={() => handleSetGiftCardStatus(selectedGiftCard.id, 'canceled')}
+                              onClick={() => openStatusConfirmation(selectedGiftCard, 'canceled')}
                               className="flex-1 px-3 py-2 rounded-lg border border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100 font-medium text-xs shadow-sm transition-colors"
                             >
                               Annuler
@@ -2302,12 +2476,19 @@ export default function AdminPage() {
                         <div className="text-xs text-[#808080] space-y-1">
                           <p>ID: {selectedGiftCard.id}</p>
                           {selectedGiftCard.stripeSessionId && (
-                            <p>Stripe Session: {selectedGiftCard.stripeSessionId}</p>
+                            <StripeIdField label="Session Stripe" value={selectedGiftCard.stripeSessionId} />
                           )}
                           {selectedGiftCard.stripePaymentIntentId && (
-                            <p>Payment Intent: {selectedGiftCard.stripePaymentIntentId}</p>
+                            <StripeIdField label="Payment Intent" value={selectedGiftCard.stripePaymentIntentId} />
                           )}
                         </div>
+                        <button
+                          onClick={() => handleCheckStripeStatus(selectedGiftCard)}
+                          disabled={stripeStatusLoading}
+                          className="mt-3 px-4 py-2 rounded-lg border border-[#E5D2A2] bg-[#FCF6E8] text-[#7A5A12] hover:bg-[#F8EED7] font-medium text-sm disabled:opacity-50"
+                        >
+                          {stripeStatusLoading ? 'Vérification...' : 'Vérifier Stripe'}
+                        </button>
                       </div>
                     )}
                   </div>
@@ -2320,6 +2501,149 @@ export default function AdminPage() {
                       Fermer
                     </button>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {statusConfirmation && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+                <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                  <h3 className="text-xl font-bold text-[#1A1A1A] mb-3">
+                    Confirmer l'action
+                  </h3>
+                  <p className="text-sm text-[#4A4A4A] mb-2">
+                    Carte {statusConfirmation.code || statusConfirmation.id}
+                  </p>
+                  <p className="text-sm text-[#4A4A4A] mb-6">
+                    Passer le statut de <strong>{translateStatus(statusConfirmation.currentStatus)}</strong> à{' '}
+                    <strong>{translateStatus(statusConfirmation.nextStatus)}</strong> ?
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setStatusConfirmation(null)}
+                      className="flex-1 px-4 py-2 border border-[#E8DCCA] rounded-lg text-[#4A4A4A] hover:bg-[#F9F7F2]"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={confirmStatusChange}
+                      className="flex-1 px-4 py-2 bg-[#D4AF37] text-white rounded-lg hover:bg-[#C5A028] font-medium"
+                    >
+                      Confirmer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {emailConfirmation && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+                <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+                  <h3 className="text-xl font-bold text-[#1A1A1A] mb-3">
+                    Envoyer la carte par email
+                  </h3>
+                  <p className="text-sm text-[#4A4A4A] mb-4">
+                    Carte {emailConfirmation.code} - {emailConfirmation.amountEur} €
+                  </p>
+                  <label className="block text-sm font-medium text-[#4A4A4A] mb-2">
+                    Adresse destinataire
+                  </label>
+                  <input
+                    type="email"
+                    value={emailRecipient}
+                    onChange={(e) => setEmailRecipient(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#E8DCCA] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D4AF37] text-sm mb-6"
+                    placeholder="email@exemple.fr"
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setEmailConfirmation(null)}
+                      disabled={sendingEmail}
+                      className="flex-1 px-4 py-2 border border-[#E8DCCA] rounded-lg text-[#4A4A4A] hover:bg-[#F9F7F2] disabled:opacity-50"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      onClick={handleSendEmail}
+                      disabled={sendingEmail}
+                      className="flex-1 px-4 py-2 bg-[#D4AF37] text-white rounded-lg hover:bg-[#C5A028] font-medium disabled:opacity-50"
+                    >
+                      {sendingEmail ? 'Envoi...' : 'Envoyer'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {stripeStatusModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+                <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6">
+                  <div className="flex items-start justify-between gap-4 mb-5">
+                    <div>
+                      <h3 className="text-xl font-bold text-[#1A1A1A]">
+                        État Stripe de la carte
+                      </h3>
+                      <p className="text-sm text-[#808080] mt-1">
+                        Carte {stripeStatusModal.gift_card?.code || stripeStatusModal.gift_card?.id}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setStripeStatusModal(null)}
+                      className="text-[#808080] hover:text-[#1A1A1A]"
+                      aria-label="Fermer"
+                    >
+                      <FontAwesomeIcon icon={faXmark} />
+                    </button>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="border border-[#E8DCCA] rounded-lg p-4">
+                      <h4 className="font-semibold text-[#1A1A1A] mb-3">Stripe Checkout</h4>
+                      <div className="space-y-2 text-sm">
+                        <StripeIdField label="Session" value={stripeStatusModal.stripe_session?.id} />
+                        <p><span className="text-[#808080]">Statut :</span> {stripeStatusModal.stripe_session?.status || '-'}</p>
+                        <p><span className="text-[#808080]">Paiement :</span> {stripeStatusModal.stripe_session?.payment_status || '-'}</p>
+                        <p><span className="text-[#808080]">Montant :</span> {formatStripeAmount(stripeStatusModal.stripe_session?.amount_total, stripeStatusModal.stripe_session?.currency)}</p>
+                        <p><span className="text-[#808080]">Email :</span> {stripeStatusModal.stripe_session?.customer_email || '-'}</p>
+                        <p><span className="text-[#808080]">Créée :</span> {formatStripeTimestamp(stripeStatusModal.stripe_session?.created)}</p>
+                      </div>
+                    </div>
+
+                    <div className="border border-[#E8DCCA] rounded-lg p-4">
+                      <h4 className="font-semibold text-[#1A1A1A] mb-3">Local / Paiement</h4>
+                      <div className="space-y-2 text-sm">
+                        <p><span className="text-[#808080]">Carte :</span> {translateStatus(stripeStatusModal.gift_card?.status)}</p>
+                        <p><span className="text-[#808080]">Transaction locale :</span> {stripeStatusModal.local_transaction?.status || '-'}</p>
+                        <p><span className="text-[#808080]">Paiement local :</span> {stripeStatusModal.local_transaction?.payment_status || '-'}</p>
+                        <StripeIdField label="Payment Intent" value={stripeStatusModal.payment_intent?.id || stripeStatusModal.stripe_session?.payment_intent_id} />
+                        <p><span className="text-[#808080]">Statut PI :</span> {stripeStatusModal.payment_intent?.status || '-'}</p>
+                        <p><span className="text-[#808080]">Reçu :</span> {formatStripeAmount(stripeStatusModal.payment_intent?.amount_received, stripeStatusModal.payment_intent?.currency)}</p>
+                        <p><span className="text-[#808080]">Remboursé :</span> {formatStripeAmount(stripeStatusModal.payment_intent?.amount_refunded, stripeStatusModal.payment_intent?.currency)}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {shouldShowStripeReconcile(stripeStatusModal) && (
+                    <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                      <p className="text-sm text-amber-900 mb-3">
+                        Stripe indique un paiement terminé, mais la carte est encore en attente. Vous pouvez relancer le traitement après vérification du Payment Intent et de l’absence de remboursement complet.
+                      </p>
+                      <button
+                        onClick={handleReconcileStripePayment}
+                        disabled={stripeReconcileLoading}
+                        className="px-4 py-2 rounded-lg bg-amber-700 text-white hover:bg-amber-800 font-medium text-sm disabled:opacity-50"
+                      >
+                        <FontAwesomeIcon icon={faRotateRight} className="mr-2" />
+                        {stripeReconcileLoading ? 'Correction...' : 'Corriger depuis Stripe'}
+                      </button>
+                    </div>
+                  )}
+
+                  {stripeStatusModal.stripe_session?.url && (
+                    <p className="mt-4 text-xs text-[#808080]">
+                      Lien Checkout encore présent côté Stripe. S’il est expiré ou payé, il ne doit pas être réutilisé.
+                    </p>
+                  )}
                 </div>
               </div>
             )}

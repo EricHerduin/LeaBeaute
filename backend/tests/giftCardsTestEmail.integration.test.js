@@ -81,3 +81,54 @@ test("generateGiftCardPdfBuffer genere un vrai PDF exemple", async () => {
   assert.equal(pdfBuffer.length > 1000, true);
   assert.equal(pdfBuffer.subarray(0, 4).toString(), "%PDF");
 });
+
+test("updateRecipient met a jour le beneficiaire et le message personnel", () => {
+  const queries = [];
+  const updatedGiftCard = {
+    id: "gift_1",
+    recipient_name: "Camille",
+    personal_message: "Joyeux anniversaire",
+  };
+  const service = createGiftCardsService({
+    nowIso: () => "2026-05-11T10:00:00.000Z",
+    sqlValue: (value) => {
+      if (value === null || typeof value === "undefined") return "NULL";
+      return `'${String(value).replace(/'/g, "''")}'`;
+    },
+    runSql: (sql) => queries.push(sql),
+    getGiftCardById: () => updatedGiftCard,
+  });
+
+  const result = service.updateRecipient("gift_1", "Camille", "Joyeux anniversaire");
+
+  assert.equal(result.success, true);
+  assert.equal(result.gift_card.personal_message, "Joyeux anniversaire");
+  assert.match(queries[0], /recipient_name = 'Camille'/);
+  assert.match(queries[0], /personal_message = 'Joyeux anniversaire'/);
+  assert.match(queries[0], /WHERE id = 'gift_1'/);
+});
+
+test("updatePersonalMessage met a jour uniquement le message personnel", () => {
+  const queries = [];
+  const updatedGiftCard = {
+    id: "gift_1",
+    recipient_name: "Camille",
+    personal_message: "Profite bien de ton soin",
+  };
+  const service = createGiftCardsService({
+    nowIso: () => "2026-05-11T10:00:00.000Z",
+    sqlValue: (value) => {
+      if (value === null || typeof value === "undefined") return "NULL";
+      return `'${String(value).replace(/'/g, "''")}'`;
+    },
+    runSql: (sql) => queries.push(sql),
+    getGiftCardById: () => updatedGiftCard,
+  });
+
+  const result = service.updatePersonalMessage("gift_1", "Profite bien de ton soin");
+
+  assert.equal(result.success, true);
+  assert.equal(result.gift_card.personal_message, "Profite bien de ton soin");
+  assert.match(queries[0], /personal_message = 'Profite bien de ton soin'/);
+  assert.match(queries[0], /WHERE id = 'gift_1'/);
+});

@@ -83,6 +83,22 @@ export default function GiftCardSuccess() {
     }
 
     try {
+      const response = await axios.get(`/gift-cards/status/${sessionId}/pdf`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      previewWindow.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      return;
+    } catch (error) {
+      previewWindow.close();
+      console.error('PDF generation error:', error);
+      toast.error('Erreur lors de la génération du PDF');
+      return;
+    }
+
+    try {
       const pdfDoc = await PDFDocument.create();
       const pageWidth = 595.28;
       const pageHeight = 419.53;

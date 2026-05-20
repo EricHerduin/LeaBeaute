@@ -7,8 +7,10 @@ function createServiceForWebhook({
   constructEvent,
   transaction = null,
   activatedGiftCard = { id: "gc_1", status: "active" },
+  existingGiftCard = null,
 }) {
   const activateCalls = [];
+  const queries = [];
 
   const service = createGiftCardsService({
     stripe: {
@@ -18,13 +20,20 @@ function createServiceForWebhook({
     },
     stripeWebhookSecret: "whsec_test",
     getPaymentTransactionBySessionId: () => transaction,
+    getGiftCardById: () => existingGiftCard,
+    nowIso: () => "2026-05-11T10:00:00.000Z",
+    sqlValue: (value) => {
+      if (value === null || typeof value === "undefined") return "NULL";
+      return `'${String(value).replace(/'/g, "''")}'`;
+    },
+    runSql: (sql) => queries.push(sql),
     activateGiftCardAfterPayment: async (payload) => {
       activateCalls.push(payload);
       return activatedGiftCard;
     },
   });
 
-  return { service, activateCalls };
+  return { service, activateCalls, queries };
 }
 
 test("handleStripeWebhook rejette une signature invalide", async () => {
@@ -145,6 +154,40 @@ test("handleStripeWebhook active la carte cadeau apres checkout.session.complete
 
   assert.deepEqual(result, {
     status: "success",
+    event_type: "checkout.session.completed",
+    gift_card_id: "gift_123",
+    gift_card_status: "active",
+  });
+});
+
+test("handleStripeWebhook ignore un checkout.session.completed deja traite", async () => {
+  const transaction = {
+    gift_card_id: "gift_123",
+    coupon_token: "token_abc",
+  };
+
+  const { service, activateCalls, queries } = createServiceForWebhook({
+    constructEvent: () => ({
+      type: "checkout.session.completed",
+      data: {
+        object: {
+          id: "cs_paid_1",
+          payment_status: "paid",
+          status: "complete",
+          metadata: { gift_card_id: "gift_123" },
+        },
+      },
+    }),
+    transaction,
+    existingGiftCard: { id: "gift_123", status: "active", code: "GC-123456" },
+  });
+
+  const result = await service.handleStripeWebhook(Buffer.from("{}"), "sig_ok");
+
+  assert.equal(activateCalls.length, 0);
+  assert.match(queries[0], /UPDATE payment_transactions/);
+  assert.deepEqual(result, {
+    status: "already_processed",
     event_type: "checkout.session.completed",
     gift_card_id: "gift_123",
     gift_card_status: "active",
