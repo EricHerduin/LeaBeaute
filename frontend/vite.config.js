@@ -2,13 +2,14 @@ import path from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+export default defineConfig(({ isSsrBuild }) => ({
   base: "/",
   plugins: [react()],
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
+        // manualChunks ne s'applique qu'au build client (pas SSR)
+        manualChunks: isSsrBuild ? undefined : {
           vendor: ["react", "react-dom"],
           router: ["react-router-dom"],
           motion: ["framer-motion"],
@@ -34,6 +35,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  // Bundler les modules CJS dans le bundle SSR (évite l'erreur ESM Node v25)
+  ssr: {
+    noExternal: ["react-helmet-async", "sonner"],
+  },
   server: {
     host: "0.0.0.0",
     port: 3005,
@@ -44,4 +49,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));

@@ -15,7 +15,7 @@ export default function NotFound() {
       />
       <Navigation />
       
-      {/* 404 Content */}}
+      {/* 404 Content */}
       <div className="flex-1 flex items-center justify-center px-6 py-20">
         <div className="max-w-2xl w-full text-center">
           {/* Animated 404 Number */}
