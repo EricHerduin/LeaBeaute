@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import api from '../lib/apiClient';
-import LPGPic from '../assets/photos/lpg/Lpg.jpg';
+import LPGPic from '../assets/photos/lpg/Lpg.webp';
 
 export default function LPGSection({ onShowPricing }) {
   const [lpgPrices, setLpgPrices] = useState([]);
@@ -86,6 +86,7 @@ export default function LPGSection({ onShowPricing }) {
                 src={LPGPic}
                 alt="LPG Endermologie"
                 className="w-full h-[500px] object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
             </div>

@@ -2,20 +2,21 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Navigation from '../components/Navigation';
+import SEO from '../components/SEO';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
 import { Dialog, DialogContent } from '../components/ui/dialog';
-import hydradermieImage from '../assets/photos/prestations/hydradermie1000_1.jpg'
-import hydradermieLiftImage from '../assets/photos/prestations/soin-hydradermie-lift.jpg'
-import ageSummumImage from '../assets/photos/prestations/soin-age-summum_1.jpg'
-import hydrapeelingImage from '../assets/photos/prestations/soin-hydra-peeling_1.jpg'
-import detoxygeneImage from '../assets/photos/prestations/soin-detoxygene_1.jpg'
-import cabineImage from '../assets/photos/prestations/cabine.png'
+import hydradermieImage from '../assets/photos/prestations/hydradermie1000_1.webp'
+import hydradermieLiftImage from '../assets/photos/prestations/soin-hydradermie-lift.webp'
+import ageSummumImage from '../assets/photos/prestations/soin-age-summum_1.webp'
+import hydrapeelingImage from '../assets/photos/prestations/soin-hydra-peeling_1.webp'
+import detoxygeneImage from '../assets/photos/prestations/soin-detoxygene_1.webp'
+import cabineImage from '../assets/photos/prestations/cabine.webp'
 import cabine1Image from '../assets/photos/prestations/cabine_1.webp'
-import soinGuinotImage from '../assets/photos/prestations/soin-guinot.jpg'
+import soinGuinotImage from '../assets/photos/prestations/soin-guinot.webp'
 
 const visibleAgeReverseGallery = Object.entries(
-  import.meta.glob('../assets/photos/guinot-visible-age-reverse/*.{jpg,jpeg,png,webp,avif,JPG,JPEG,PNG,WEBP,AVIF}', {
+  import.meta.glob('../assets/photos/guinot-visible-age-reverse/*.{webp,avif,WEBP,AVIF}', {
     eager: true,
     import: 'default',
   })
@@ -47,6 +48,12 @@ export default function GuinotPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="Soins Guinot à Valognes | Léa Beauté"
+        description="Découvrez les soins Guinot à l’institut Léa Beauté de Valognes. Hydradermie, Age Summum, Eye Lift, Hydra Peeling… Des protocoles experts adaptés à votre peau."
+        keywords="soins Guinot Valognes, Hydradermie, soin anti-âge Guinot, soin visage Valognes, Manche 50"
+        url="https://leabeautevalognes.fr/guinot"
+      />
       <Navigation onShowPricing={openAllPricing} forceLight />
 
       {/* Hero Section */}

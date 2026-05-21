@@ -1,16 +1,22 @@
 import { motion } from 'framer-motion';
-import HeroPicture from '../assets/photos/Hero.jpg'
 
 export default function Hero({ onShowPricing }) {
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
-        <img
-          src={HeroPicture}
-          alt="Institut de beauté"
-          className="w-full h-full object-cover"
-        />
+        <picture>
+          <source srcSet="/Hero.webp" type="image/webp" />
+          <img
+            src="/Hero.webp"
+            alt="Institut de beauté Léa Beauté Valognes — soins du visage, épilations, LPG"
+            className="w-full h-full object-cover"
+            fetchPriority="high"
+            loading="eager"
+            width="1920"
+            height="1080"
+          />
+        </picture>
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-white"></div>
       </div>
 

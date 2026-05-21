@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
+import SEO from '../components/SEO';
 import {
   fetchCookiePolicyConfig,
   formatCookiePolicyDate,
@@ -33,6 +34,12 @@ export default function Cookies() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="Politique de cookies | Léa Beauté Valognes"
+        description="Politique de gestion des cookies de l’institut Léa Beauté à Valognes. Paramétrez vos préférences."
+        keywords="cookies Léa Beauté, politique cookies"
+        url="https://leabeautevalognes.fr/cookies"
+      />
       <Navigation onShowPricing={() => setShowPricing(true)} />
       <div className="max-w-4xl mx-auto px-6 md:px-12 py-32">
         <h1 className="text-4xl md:text-5xl font-bold mb-6 text-[#1A1A1A]">

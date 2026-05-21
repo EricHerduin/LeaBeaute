@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import Logo from '../assets/photos/logos/logo16-9_1.png';
+import Logo from '../assets/photos/logos/logo16-9_1.webp';
 import OpeningStatus from './OpeningStatus';
 import ExceptionBanner from './ExceptionBanner';
 import { getOpeningStatus } from '../data/businessHours';

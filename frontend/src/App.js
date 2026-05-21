@@ -8,18 +8,20 @@ import CookieConsent from "./components/CookieConsent";
 import GoogleAnalyticsConsentBridge from "./components/GoogleAnalyticsConsentBridge";
 import StructuredData from "./components/StructuredData";
 import LandingPage from './pages/LandingPage';
-import GuinotPage from './pages/GuinotPage';
-import CoachingPage from './pages/CoachingPage';
-import GiftCardSuccess from './pages/GiftCardSuccess';
-import MentionsLegales from './pages/MentionsLegales';
-import Confidentialite from './pages/Confidentialite';
-import Cookies from './pages/Cookies';
-import AdminPage from './pages/AdminPage';
-import AboutInstitut from './pages/AboutInstitut';
-import ServicesPage from './pages/ServicesPage';
-import NotFound from './pages/NotFound';
+import { lazy, Suspense } from 'react';
 import { getOpeningStatus } from './data/businessHours';
 import { useState, useEffect } from 'react';
+
+const GuinotPage = lazy(() => import('./pages/GuinotPage'));
+const CoachingPage = lazy(() => import('./pages/CoachingPage'));
+const GiftCardSuccess = lazy(() => import('./pages/GiftCardSuccess'));
+const MentionsLegales = lazy(() => import('./pages/MentionsLegales'));
+const Confidentialite = lazy(() => import('./pages/Confidentialite'));
+const Cookies = lazy(() => import('./pages/Cookies'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const AboutInstitut = lazy(() => import('./pages/AboutInstitut'));
+const ServicesPage = lazy(() => import('./pages/ServicesPage'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function App() {
   const [exceptionBanner, setExceptionBanner] = useState(null);
@@ -45,19 +47,21 @@ function App() {
       <BrowserRouter>
         <ScrollToTop />
         <GoogleAnalyticsConsentBridge />
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/guinot" element={<GuinotPage />} />
-          <Route path="/accompagnement-nutrition" element={<CoachingPage />} />
-          <Route path="/gift-card-success" element={<GiftCardSuccess />} />
-          <Route path="/mentions-legales" element={<MentionsLegales />} />
-          <Route path="/confidentialite" element={<Confidentialite />} />
-          <Route path="/cookies" element={<Cookies />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/a-propos-institut" element={<AboutInstitut />} />
-          <Route path="/prestations" element={<ServicesPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<div aria-hidden="true" />}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/guinot" element={<GuinotPage />} />
+            <Route path="/accompagnement-nutrition" element={<CoachingPage />} />
+            <Route path="/gift-card-success" element={<GiftCardSuccess />} />
+            <Route path="/mentions-legales" element={<MentionsLegales />} />
+            <Route path="/confidentialite" element={<Confidentialite />} />
+            <Route path="/cookies" element={<Cookies />} />
+            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/a-propos-institut" element={<AboutInstitut />} />
+            <Route path="/prestations" element={<ServicesPage />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
         <CookieConsent />
       </BrowserRouter>
       <ScrollTopFab />

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
+import SEO from '../components/SEO';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
 import { services } from '../data/services';
@@ -17,6 +18,12 @@ export default function ServicesPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="Toutes nos Prestations | Léa Beauté Valognes"
+        description="Toutes les prestations de l’institut Léa Beauté à Valognes : soins visage, modelages corps, épilations, manucure, pédicure, extensions de cils."
+        keywords="prestations beauté Valognes, soins visage, épilation Valognes, manucure, pédicure, modelage corps, Manche 50"
+        url="https://leabeautevalognes.fr/prestations"
+      />
       <Navigation onShowPricing={() => setShowPricing(true)} />
 
       {/* Hero */}

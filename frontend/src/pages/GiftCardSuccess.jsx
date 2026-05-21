@@ -4,8 +4,9 @@ import api from '../lib/apiClient';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import SEO from '../components/SEO';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import logoLeaBeaute from '../assets/photos/logos/logo16-9_1.png';
+import logoLeaBeaute from '../assets/photos/logos/logo16-9_1.webp';
 import {
   faCheck,
   faCircleInfo,
@@ -574,6 +575,12 @@ export default function GiftCardSuccess() {
 
   return (
     <div className="min-h-screen bg-[#F9F7F2] py-12 md:py-20">
+      <SEO
+        title="Confirmation commande | Léa Beauté Valognes"
+        description="Votre carte cadeau Léa Beauté a bien été commandée."
+        url="https://leabeautevalognes.fr/gift-card-success"
+        noindex={true}
+      />
       <div className="max-w-4xl mx-auto px-6 md:px-12 gift-card-wrapper">
         {/* Header with print buttons - hidden on print */}
         <div className="print:hidden mb-8">

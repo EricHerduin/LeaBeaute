@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { loadStripe } from '@stripe/stripe-js';
 import api from '../lib/apiClient';
 import { toast } from 'sonner';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -9,7 +8,6 @@ import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons';
 const axios = api;
 
 const stripePublicKey = (import.meta.env.VITE_STRIPE_PUBLIC_KEY || '').trim();
-const stripePromise = stripePublicKey ? loadStripe(stripePublicKey) : null;
 
 const MIN_CUSTOM_AMOUNT = 10;
 const MAX_CUSTOM_AMOUNT = 500;

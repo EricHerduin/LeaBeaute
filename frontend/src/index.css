@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-reveal {
+  opacity: 0;
+}
+
+.card-reveal.is-visible {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
 @layer base {
   :root {
     --primary: 45 74% 52%;

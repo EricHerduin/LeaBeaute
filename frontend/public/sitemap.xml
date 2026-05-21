@@ -1,69 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <!-- Page d'accueil -->
   <url>
     <loc>https://leabeautevalognes.fr/</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2025-05-21</lastmod>
   </url>
   
   <!-- Soins Guinot -->
   <url>
     <loc>https://leabeautevalognes.fr/guinot</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <lastmod>2025-05-21</lastmod>
   </url>
   
   <!-- Accompagnement nutrition -->
   <url>
     <loc>https://leabeautevalognes.fr/accompagnement-nutrition</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
+    <lastmod>2025-05-21</lastmod>
   </url>
   
   <!-- À propos de l'institut -->
   <url>
     <loc>https://leabeautevalognes.fr/a-propos-institut</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2025-05-21</lastmod>
   </url>
   
   <!-- Prestations -->
   <url>
     <loc>https://leabeautevalognes.fr/prestations</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
+    <lastmod>2025-05-21</lastmod>
   </url>
   
   <!-- Mentions légales -->
   <url>
     <loc>https://leabeautevalognes.fr/mentions-legales</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <lastmod>2025-01-01</lastmod>
   </url>
   
   <!-- Confidentialité -->
   <url>
     <loc>https://leabeautevalognes.fr/confidentialite</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <lastmod>2025-01-01</lastmod>
   </url>
   
   <!-- Cookies -->
   <url>
     <loc>https://leabeautevalognes.fr/cookies</loc>
-    <lastmod>2026-04-04</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <lastmod>2025-01-01</lastmod>
   </url>
   
 </urlset>

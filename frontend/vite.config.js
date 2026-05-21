@@ -3,8 +3,20 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  base: "./",
+  base: "/",
   plugins: [react()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+          router: ["react-router-dom"],
+          motion: ["framer-motion"],
+          ui: ["sonner", "react-helmet-async"],
+        },
+      },
+    },
+  },
   esbuild: {
     loader: "jsx",
     include: /src\/.*\.[jt]sx?$/,

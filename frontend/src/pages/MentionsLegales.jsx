@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import PricingModal from '../components/PricingModal';
 
 export default function MentionsLegales() {
@@ -9,6 +10,12 @@ export default function MentionsLegales() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="Mentions légales | Léa Beauté Valognes"
+        description="Mentions légales de l’institut de beauté Léa Beauté situé à Valognes (50700), Manche, Normandie."
+        keywords="mentions légales Léa Beauté"
+        url="https://leabeautevalognes.fr/mentions-legales"
+      />
       <Navigation onShowPricing={() => setShowPricing(true)} />
       <div className="max-w-4xl mx-auto px-6 md:px-12 py-32">
         <h1 className="text-4xl md:text-5xl font-bold mb-12 text-[#1A1A1A]">Mentions légales</h1>

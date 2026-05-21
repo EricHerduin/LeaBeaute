@@ -1,12 +1,12 @@
-import lpgImage from '../assets/photos/prestations/lpg.jpg';
-import uvImage from '../assets/photos/prestations/uv.jpg';
-import soinsVisageImage from '../assets/photos/prestations/soins_visage.jpg';
-import epilationImage from '../assets/photos/prestations/epilation.jpg';
-import extensionCilsImage from '../assets/photos/prestations/extensions_cils.jpg';
-import mainsPiedsImage from '../assets/photos/prestations/soins_mains_et_pieds.jpg';
-import maquillageImage from '../assets/photos/prestations/maquillage.jpg';
-import soinsVisage2image from '../assets/photos/prestations/soins_visage_1.jpg';
-import nutritionImage from '../assets/photos/prestations/Chrono nutrition.png';
+import lpgImage from '../assets/photos/prestations/lpg.webp';
+import uvImage from '../assets/photos/prestations/uv.webp';
+import soinsVisageImage from '../assets/photos/prestations/soins_visage.webp';
+import epilationImage from '../assets/photos/prestations/epilation.webp';
+import extensionCilsImage from '../assets/photos/prestations/extensions_cils.webp';
+import mainsPiedsImage from '../assets/photos/prestations/soins_mains_et_pieds.webp';
+import maquillageImage from '../assets/photos/prestations/maquillage.webp';
+import soinsVisage2image from '../assets/photos/prestations/soins_visage_1.webp';
+import nutritionImage from '../assets/photos/prestations/Chrono nutrition.webp';
 
 
 export const services = [

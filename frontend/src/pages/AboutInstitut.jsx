@@ -4,18 +4,41 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import OpeningHours from '../components/OpeningHours';
 import { motion } from 'framer-motion';
 import videoVitrine from '../assets/videos/video_vitrine.mp4';
-import leaPhoto from '../assets/photos/Equipe/Lea.jpg';
-import maryssaPhoto from '../assets/photos/Equipe/Maryssa.jpg';
-import maelisePhoto from '../assets/photos/Equipe/Maelise.jpg';
-import equipePhoto from '../assets/photos/Equipe/Equipe.jpg';
+import leaPhoto from '../assets/photos/Equipe/Lea.webp';
+import maryssaPhoto from '../assets/photos/Equipe/Maryssa.webp';
+import maelisePhoto from '../assets/photos/Equipe/Maelise.webp';
+import equipePhoto from '../assets/photos/Equipe/Equipe.webp';
+
+function useRevealGrid(ref) {
+  useEffect(() => {
+    const grid = ref.current;
+    if (!grid) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        grid.querySelectorAll('.card-reveal').forEach((card, i) => {
+          card.style.animationDelay = `${i * 100}ms`;
+          card.classList.add('is-visible');
+        });
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(grid);
+    return () => observer.disconnect();
+  }, [ref]);
+}
 
 export default function AboutInstitut() {
   const [showPricing, setShowPricing] = useState(false);
   const videoRef = useRef(null);
   const videoWrapperRef = useRef(null);
+  const teamGridRef = useRef(null);
+  useRevealGrid(teamGridRef);
 
   useEffect(() => {
     if (!videoWrapperRef.current) {
@@ -45,6 +68,12 @@ export default function AboutInstitut() {
   }, []);
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="L’Institut Léa Beauté Valognes | Notre équipe"
+        description="Découvrez l’équipe de l’institut Léa Beauté à Valognes. Léa, Maryssa et Maélise vous accueillent dans un cadre chaleureux dédié à votre beauté et bien-être."
+        keywords="institut Léa Beauté Valognes équipe, esthéticiennes Valognes, bien-être Valognes, soins beauté Manche"
+        url="https://leabeautevalognes.fr/a-propos-institut"
+      />
       <Navigation onShowPricing={() => setShowPricing(true)} />
 
       {/* Hero Section */}
@@ -84,16 +113,11 @@ export default function AboutInstitut() {
       {/* Équipe Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          <h2 className="text-3xl font-bold text-center text-[#1A1A1A] mb-12">Notre équipe</h2>
+          <div ref={teamGridRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {/* Léa */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full"
-            >
-              <img src={leaPhoto} alt="Léa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" />
+            <div className="card-reveal glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full">
+              <img src={leaPhoto} alt="Léa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" loading="lazy" />
               <h3 className="text-2xl font-bold text-[#1A1A1A] mb-1">Léa</h3>
               <div className="min-h-[52px] mb-2">
                 <span className="block text-sm text-[#D4AF37] font-medium">Spécialité : Conseil &amp; Soins Visage</span>
@@ -101,16 +125,10 @@ export default function AboutInstitut() {
               </div>
               <p className="text-[#808080] text-sm mb-4 flex-1">Fondatrice de l'institut, Léa est animée par la passion de l'esthétique depuis plus de 15 ans. Véritable experte du soin visage, elle met un point d'honneur à personnaliser chaque diagnostic et à créer une relation de confiance avec ses clientes. Toujours à l'écoute, elle aime partager ses conseils pour révéler la beauté naturelle de chacune. Maman de deux filles, elle sait combien il est important de s'accorder du temps pour soi et transmet cette philosophie à toute l'équipe.</p>
               <p className="text-[#D4AF37] text-xs italic mt-auto">"Ce que j'aime le plus ? Voir une cliente repartir apaisée, le sourire aux lèvres, et savoir qu'elle a pris soin d'elle."</p>
-            </motion.div>
+            </div>
             {/* Maryssa */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1, duration: 0.6 }}
-              className="glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full"
-            >
-              <img src={maryssaPhoto} alt="Maryssa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" />
+            <div className="card-reveal glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full">
+              <img src={maryssaPhoto} alt="Maryssa" className="w-40 h-40 object-cover rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2]" loading="lazy" />
               <h3 className="text-2xl font-bold text-[#1A1A1A] mb-1">Maryssa</h3>
               <div className="min-h-[52px] mb-2">
                 <span className="block text-sm text-[#D4AF37] font-medium">Spécialité : Ongles &amp; Extensions de cils</span>
@@ -118,17 +136,11 @@ export default function AboutInstitut() {
               </div>
               <p className="text-[#4A4A4A] text-sm mb-4 flex-1">Créative et minutieuse, Maryssa sublime vos mains et votre regard avec passion. Elle maîtrise l'art du nail art, des extensions de cils et des poses les plus tendances. Toujours à la recherche de nouveautés, elle se forme régulièrement pour proposer des prestations innovantes et personnalisées. Sa bonne humeur et son sens du détail font d'elle une alliée précieuse pour sublimer votre féminité.</p>
               <p className="text-[#D4AF37] text-xs italic mt-auto">"J'adore voir le regard de mes clientes s'illuminer après une pose d'ongles ou d'extensions réussie !"</p>
-            </motion.div>
+            </div>
             {/* Maélise */}
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2, duration: 0.6 }}
-              className="glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full"
-            >
+            <div className="card-reveal glass-card p-8 rounded-2xl flex flex-col items-center text-center h-full">
               <div className="w-40 h-40 rounded-full mb-4 shadow-lg border-4 border-[#F9F7F2] overflow-hidden">
-                <img src={maelisePhoto} alt="Maélise" className="w-full h-full object-cover object-[center_80%] scale-140" />
+                <img src={maelisePhoto} alt="Maélise" className="w-full h-full object-cover object-[center_80%] scale-140" loading="lazy" />
               </div>
               <h3 className="text-2xl font-bold text-[#1A1A1A] mb-1">Maélise</h3>
               <div className="min-h-[52px] mb-2">
@@ -137,7 +149,7 @@ export default function AboutInstitut() {
               </div>
               <p className="text-[#4A4A4A] text-sm mb-4 flex-1">Douce et attentive, Maélise vous invite à la détente grâce à ses modelages relaxants et personnalisés. Spécialiste des techniques de massage bien-être, elle adapte chaque séance à vos besoins du moment : relaxation profonde, soulagement des tensions, ou simple parenthèse cocooning. Son objectif : que vous repartiez ressourcée, détendue et le corps léger.</p>
               <p className="text-[#D4AF37] text-xs italic mt-auto">"Le massage, c'est offrir un voyage sensoriel et un vrai moment pour soi, loin du stress du quotidien."</p>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>

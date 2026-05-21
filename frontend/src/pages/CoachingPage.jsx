@@ -2,10 +2,11 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { MoonStar, SunMedium, UtensilsCrossed } from 'lucide-react';
 import api from '../lib/apiClient';
+import SEO from '../components/SEO';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 import PricingModal from '../components/PricingModal';
-import nutritionImage from '../assets/photos/prestations/chrononutrition_4.jpg' 
+import nutritionImage from '../assets/photos/prestations/chrononutrition_4.webp'
 
 export default function CoachingPage() {
   const [showPricing, setShowPricing] = useState(false);
@@ -138,6 +139,12 @@ export default function CoachingPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="Accompagnement Nutrition Valognes | Léa Beauté"
+        description="Accompagnement nutrition et chrononutrition à l’institut Léa Beauté de Valognes. Retrouvez votre équilibre alimentaire avec un suivi personnalisé."
+        keywords="accompagnement nutrition Valognes, chrononutrition, coaching nutrition Manche, diététique Valognes, équilibre alimentaire"
+        url="https://leabeautevalognes.fr/accompagnement-nutrition"
+      />
       <Navigation onShowPricing={() => setShowPricing(true)} forceLight />
       
       {/* Hero */}

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import Logo from '../assets/photos/logos/logo16-9_1.png';
+import Logo from '../assets/photos/logos/logo16-9_1.webp';
 import { Facebook, Instagram } from 'lucide-react';
 
 export default function Footer({ onShowPricing }) {

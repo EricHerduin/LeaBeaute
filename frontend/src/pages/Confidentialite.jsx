@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
+import SEO from '../components/SEO';
 import PricingModal from '../components/PricingModal';
 
 export default function Confidentialite() {
@@ -9,6 +10,12 @@ export default function Confidentialite() {
 
   return (
     <div className="min-h-screen bg-white">
+      <SEO
+        title="Politique de confidentialité | Léa Beauté Valognes"
+        description="Politique de confidentialité et protection des données personnelles de l'institut Léa Beauté à Valognes (50)."
+        keywords="confidentialité Léa Beauté, RGPD, données personnelles"
+        url="https://leabeautevalognes.fr/confidentialite"
+      />
       <Navigation onShowPricing={() => setShowPricing(true)} />
       <div className="max-w-4xl mx-auto px-6 md:px-12 py-32">
         <h1 className="text-4xl md:text-5xl font-bold mb-12 text-[#1A1A1A]">Politique de confidentialité</h1>

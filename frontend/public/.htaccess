@@ -2,6 +2,22 @@
   RewriteEngine On
   RewriteBase /
 
+  # ─────────────────────────────────────────────
+  # Redirection canonique : HTTPS + sans www
+  # ─────────────────────────────────────────────
+
+  # HTTP → HTTPS (gère aussi http://www. en un seul saut)
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://leabeautevalognes.fr%{REQUEST_URI} [R=301,L]
+
+  # https://www. → https:// (sans www)
+  RewriteCond %{HTTP_HOST} ^www\.leabeautevalognes\.fr$ [NC]
+  RewriteRule ^ https://leabeautevalognes.fr%{REQUEST_URI} [R=301,L]
+
+  # ─────────────────────────────────────────────
+  # SPA React Router
+  # ─────────────────────────────────────────────
+
   # Serve existing files/directories normally
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
@@ -9,4 +25,63 @@
 
   # SPA fallback for React Router (e.g. /admin)
   RewriteRule ^ index.html [L]
+</IfModule>
+
+# ─────────────────────────────────────────────
+# GZIP compression
+# ─────────────────────────────────────────────
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml text/javascript
+  AddOutputFilterByType DEFLATE application/javascript application/x-javascript
+  AddOutputFilterByType DEFLATE application/json application/xml
+  AddOutputFilterByType DEFLATE image/svg+xml font/woff font/woff2 application/font-woff2
+</IfModule>
+
+# Brotli (si disponible)
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/xml text/javascript
+  AddOutputFilterByType BROTLI_COMPRESS application/javascript application/x-javascript
+  AddOutputFilterByType BROTLI_COMPRESS application/json application/xml
+  AddOutputFilterByType BROTLI_COMPRESS image/svg+xml font/woff font/woff2 application/font-woff2
+</IfModule>
+
+# ─────────────────────────────────────────────
+# Cache long terme — assets hashés Vite
+# ─────────────────────────────────────────────
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Assets hashés (JS, CSS, images, polices) : 1 an immutable
+  <FilesMatch "\.[0-9a-f]{8,}\.(js|css|woff2|webp|png|jpg|jpeg|svg|ico)$">
+    ExpiresDefault "access plus 1 year"
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Images publiques non-hashées (hero, favicons, polices locales)
+  <FilesMatch "\.(webp|png|jpg|jpeg|gif|ico|svg)$">
+    ExpiresDefault "access plus 30 days"
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+
+  # Polices woff2 locales : 1 an
+  <FilesMatch "\.woff2?$">
+    ExpiresDefault "access plus 1 year"
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # HTML : pas de cache (SPA entry point)
+  <FilesMatch "\.html$">
+    ExpiresDefault "access plus 0 seconds"
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# ─────────────────────────────────────────────
+# En-têtes de sécurité
+# ─────────────────────────────────────────────
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>

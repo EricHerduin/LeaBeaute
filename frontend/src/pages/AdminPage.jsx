@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faHouse, faXmark, faInfoCircle, faFilePdf, faEnvelope, faCalendarPlus, faUserEdit, faCheckCircle, faCog, faCopy, faRotateRight } from '@fortawesome/free-solid-svg-icons';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import AdminDashboardHome from './AdminDashboardHome';
-import logoLeaBeaute from '../assets/photos/logos/logo16-9_1.png';
+import logoLeaBeaute from '../assets/photos/logos/logo16-9_1.webp';
 import { pricingPdfConfig } from '../lib/pricingPdfConfig';
 import { Cookie } from 'lucide-react';
 

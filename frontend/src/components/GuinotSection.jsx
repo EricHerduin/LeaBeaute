@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import soinVisageImage from '../assets/photos/prestations/soins_visage_1.jpg';
+import soinVisageImage from '../assets/photos/prestations/soins_visage_1.webp';
 
 export default function GuinotSection({ onShowPricing }) {
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ export default function GuinotSection({ onShowPricing }) {
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                   <div>
-                    <h4 className="font-bold text-[#1A1A1A] mb-1">{item.title}</h4>
+                    <h3 className="font-bold text-[#1A1A1A] mb-1">{item.title}</h3>
                     <p className="text-[#4A4A4A] text-sm">{item.desc}</p>
                   </div>
                 </div>
@@ -80,6 +80,7 @@ export default function GuinotSection({ onShowPricing }) {
                 src={soinVisageImage}
                 alt="Soin visage Guinot"
                 className="w-full h-[500px] object-cover"
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
             </div>
