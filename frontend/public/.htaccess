@@ -6,11 +6,16 @@
   # Redirection canonique : HTTPS + sans www
   # ─────────────────────────────────────────────
 
-  # HTTP → HTTPS (gère aussi http://www. en un seul saut)
+  # HTTP → HTTPS (compatible proxy Nginx/Cloudflare/cPanel)
+  # %{HTTPS} off = pas de SSL direct Apache
+  # %{HTTP:X-Forwarded-Proto} !https = pas de proxy HTTPS non plus
   RewriteCond %{HTTPS} off
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
   RewriteRule ^ https://leabeautevalognes.fr%{REQUEST_URI} [R=301,L]
 
   # https://www. → https:// (sans www)
+  RewriteCond %{HTTPS} on [OR]
+  RewriteCond %{HTTP:X-Forwarded-Proto} https
   RewriteCond %{HTTP_HOST} ^www\.leabeautevalognes\.fr$ [NC]
   RewriteRule ^ https://leabeautevalognes.fr%{REQUEST_URI} [R=301,L]
 
