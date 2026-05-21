@@ -28,8 +28,12 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # SPA fallback for React Router (e.g. /admin)
-  RewriteRule ^ index.html [L]
+  # SSG: serve pre-rendered HTML for extensionless routes (/guinot → guinot.html)
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}.html -f
+  RewriteRule ^(.*)$ /$1.html [L]
+
+  # SPA fallback for React Router (routes without pre-rendered HTML)
+  RewriteRule ^ /index.html [L]
 </IfModule>
 
 # ─────────────────────────────────────────────
