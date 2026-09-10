@@ -39,8 +39,8 @@ Faits vérifiés en production :
 - [x] 4. `GoogleReviews.jsx` masque la section si `reviews.length === 0`.
       Le bouton « Laisser un avis » est masqué si `VITE_GOOGLE_PLACE_ID` est vide (sinon lien mort).
 - [x] Tests : 6 nouveaux tests dans `backend/tests/googleReviews.test.js`. Suite complète : 17/17.
-- [ ] 5. Renseigner les variables d'environnement en production (action Éric) + rebuild du front.
-- [ ] 6. Vérification en production après déploiement.
+- [x] 5. Variables d'environnement renseignées en production + rebuild du front.
+- [x] 6. Vérifié en production le 2026-09-10 : avis affichés (note 4,4 — 103 avis).
 
 Fichiers créés (pattern service/controller/routes du dépôt) :
 - `backend/services/googleReviewsService.js`
@@ -210,3 +210,38 @@ par git, ce type de conflit se reproduira : un `npm install` d'un côté écrase
 Piste à trancher avec Éric : sortir les dossiers de projet de Syncthing et ne s'appuyer
 que sur git (`clone` sur chaque machine, `pull`/`push` via GitHub). Syncthing resterait
 utile pour les dossiers non versionnés.
+
+
+## RÉSOLU le 2026-09-10 — les avis Google s'affichent
+
+Cause racine confirmée : **`PERMISSION_DENIED`** renvoyé par Google. La clé en place
+n'était pas valide pour Places API (New). Une nouvelle clé a été créée et renseignée dans
+`backend/.env`, puis l'application Node redémarrée.
+
+Le correctif a rempli son office : dès le déploiement du backend, l'endpoint a cessé de
+renvoyer un faux 200 et a nommé la cause en clair (503 + `PERMISSION_DENIED`), là où
+l'ancien code masquait l'erreur derrière un JSON factice depuis des mois.
+
+Vérifié en production :
+
+| Élément | État |
+|---|---|
+| `/api/google-reviews` | `200` — `"status":"ok"`, 103 avis, note **4,4** |
+| Section sur le site | 5 cartes affichées, note et compteur réels |
+| Bouton « Laisser un avis » | pointe vers `placeid=ChIJreE_Pi-DDEgRJ0veR0hH5jE` |
+| Meta description | version enrichie (161 caractères) |
+| Schema `founder` | présent |
+| `robots.txt` | 493 o, directives crawlers IA en place |
+| `llms.txt` | servi correctement, horaires corrigés |
+| `/guinot` | toujours pré-rendu (35 598 o) |
+| Polices auto-hébergées | conservées |
+
+À noter : la note réellement attribuée par les client·e·s est **4,4**, alors que le site
+affichait publiquement **4,8** — valeur inventée par le repli codé en dur. C'est ce que
+la suppression de l'échec silencieux a permis de corriger.
+
+### Reste à faire sur la clé API
+
+- [ ] Restreindre la clé : **API** → Places API (New) uniquement ; **application** →
+      adresses IP (celle du serveur), surtout pas « Référents HTTP ».
+- [ ] Supprimer l'ancienne clé devenue inutile dans la console Google Cloud.
