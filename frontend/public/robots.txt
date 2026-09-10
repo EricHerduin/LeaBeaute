@@ -3,5 +3,28 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
+# Crawlers IA — autorisés explicitement pour la visibilité en recherche IA
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# Crawlers d'entraînement — bloqués
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
 # Sitemaps
 Sitemap: https://leabeautevalognes.fr/sitemap.xml
