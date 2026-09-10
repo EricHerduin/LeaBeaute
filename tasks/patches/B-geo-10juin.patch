@@ -1,0 +1,201 @@
+diff --git a/frontend/index.html b/frontend/index.html
+index 39a8a07..95e31ab 100644
+--- a/frontend/index.html
++++ b/frontend/index.html
+@@ -18,22 +18,27 @@
+     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
+     <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png?v=2" />
+     <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png?v=2" />
+-    <!-- Preload LCP hero image -->
+-    <link rel="preload" as="image" href="/Hero.webp" type="image/webp" fetchpriority="high" />
+-    <!-- Self-hosted fonts (no Google Fonts CDN) -->
+-    <link rel="preload" as="style" href="/fonts/fonts.css" />
+-    <link rel="stylesheet" href="/fonts/fonts.css" />
+-    <title>Léa Beauté - Institut de Beauté à Valognes | Soins Guinot, LPG, Épilations</title>
+-    <!-- JSON-LD structured data (static, crawlable sans JS) -->
++    <link rel="preconnect" href="https://fonts.googleapis.com" />
++    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
++    <link
++      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Manrope:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap"
++      rel="stylesheet"
++    />
++    <title>Léa Beauté Valognes - Institut de Beauté et Bien-être</title>
++    <meta name="description" content="Institut de beauté à Valognes (50). Soins Guinot, épilations, LPG, manucure, pédicure, extensions de cils, accompagnement nutrition. Prenez RDV au 02 33 21 48 19." />
++
++    <!-- Données structurées statiques — lisibles par les crawlers IA sans JavaScript -->
+     <script type="application/ld+json">
+     {
+       "@context": "https://schema.org",
+       "@type": "BeautySalon",
+       "name": "Léa Beauté",
+-      "image": "https://leabeautevalognes.fr/Hero.webp",
+-      "description": "Institut de beauté à Valognes proposant des soins visage Guinot, épilations, LPG Endermologie, extensions de cils, manucure, pédicure et accompagnement en chrononutrition.",
++      "description": "Institut de beauté à Valognes proposant des soins Guinot, épilations, LPG Endermologie, extensions de cils, mains et pieds, maquillage et accompagnement nutrition personnalisé.",
++      "url": "https://leabeautevalognes.fr",
+       "telephone": "+33233214819",
+       "email": "contact@leabeautevalognes.fr",
++      "image": "https://leabeautevalognes.fr/assets/photos/logos/logo16-9_1.png",
++      "priceRange": "€€",
+       "address": {
+         "@type": "PostalAddress",
+         "streetAddress": "7 Rue du Palais de Justice",
+@@ -47,18 +52,16 @@
+         "latitude": 49.508661,
+         "longitude": -1.470834
+       },
+-      "url": "https://leabeautevalognes.fr",
+-      "priceRange": "€€",
+       "openingHoursSpecification": [
+         {
+           "@type": "OpeningHoursSpecification",
+-          "dayOfWeek": "Monday",
++          "dayOfWeek": ["Monday"],
+           "opens": "14:00",
+           "closes": "18:30"
+         },
+         {
+           "@type": "OpeningHoursSpecification",
+-          "dayOfWeek": ["Tuesday", "Thursday", "Friday"],
++          "dayOfWeek": ["Tuesday", "Wednesday", "Thursday", "Friday"],
+           "opens": "09:00",
+           "closes": "18:30"
+         },
+@@ -66,33 +69,18 @@
+           "@type": "OpeningHoursSpecification",
+           "dayOfWeek": "Saturday",
+           "opens": "09:00",
+-          "closes": "16:00"
++          "closes": "17:00"
+         }
+       ],
+       "sameAs": [
+         "https://www.facebook.com/leabeaute50",
+         "https://www.instagram.com/lea.beaute.valognes"
+-      ]
+-    }
+-    </script>
+-    <script type="application/ld+json">
+-    {
+-      "@context": "https://schema.org",
+-      "@type": "Organization",
+-      "name": "Léa Beauté",
+-      "url": "https://leabeautevalognes.fr",
+-      "logo": {
+-        "@type": "ImageObject",
+-        "url": "https://leabeautevalognes.fr/assets/photos/logos/logo16-9_1.png",
+-        "width": 512,
+-        "height": 288
+-      },
+-      "contactPoint": {
+-        "@type": "ContactPoint",
+-        "telephone": "+33233214819",
+-        "contactType": "customer service",
+-        "areaServed": "FR",
+-        "availableLanguage": "French"
++      ],
++      "founder": {
++        "@type": "Person",
++        "name": "Léa",
++        "jobTitle": "Esthéticienne fondatrice",
++        "description": "Esthéticienne depuis plus de 15 ans, spécialisée en soins visage Guinot et conseil beauté personnalisé."
+       }
+     }
+     </script>
+@@ -243,5 +231,64 @@
+       })();
+     </script>
+     <script type="module" src="/src/index.js"></script>
++
++    <!-- Contenu statique pour les crawlers IA (non exécutés en JS) -->
++    <!-- Ce bloc est masqué visuellement par React dès le chargement -->
++    <noscript id="static-seo-content">
++      <main>
++        <h1>Léa Beauté Valognes — Institut de Beauté</h1>
++        <p>
++          Léa Beauté est un institut de beauté situé au 7 Rue du Palais de Justice, 50700 Valognes
++          (Manche, Normandie), fondé par Léa, esthéticienne depuis plus de 15 ans. L'institut
++          propose des soins visage Guinot (Hydradermie, Visible Age Reverse, Age Summum, Hydra
++          Peeling, Eye Lift, Détoxygène), des épilations à la cire et à la lumière pulsée
++          semi-définitive, des séances LPG Endermologie pour le corps, des extensions de cils,
++          des soins des mains et des pieds, du maquillage et un accompagnement nutritionnel
++          personnalisé (chrononutrition).
++        </p>
++        <p>
++          Téléphone : 02 33 21 48 19 — contact@leabeautevalognes.fr
++        </p>
++        <p>
++          Horaires d'ouverture : Lundi 14h00–18h30, Mardi 09h00–18h30, Mercredi 09h00–18h30,
++          Jeudi 09h00–18h30, Vendredi 09h00–18h30, Samedi 09h00–17h00.
++        </p>
++        <h2>Notre équipe</h2>
++        <p>
++          Léa, fondatrice et responsable de l'institut, est esthéticienne depuis plus de 15 ans.
++          Experte en soins visage et conseil beauté personnalisé, elle est accompagnée de Maryssa,
++          spécialisée en ongles et extensions de cils, et de Maélise, spécialiste des modelages
++          du corps.
++        </p>
++        <h2>Soins visage Guinot</h2>
++        <p>
++          L'Hydradermie 1000 est un soin visage professionnel Guinot qui combine l'action de
++          courants galvaniques et d'actifs cosmétiques concentrés pour une pénétration optimisée.
++          Il s'adapte à tous les types de peau et agit sur l'éclat, le confort et l'hydratation
++          dès la première séance, en 45 à 75 minutes. Le Visible Age Reverse est notre soin
++          signature anti-âge non invasif de 30 minutes, pour une peau plus lisse, plus tonique
++          et plus régulière. L'Age Summum agit simultanément sur les rides, la fermeté, l'éclat
++          et l'uniformité du visage, du cou et du décolleté.
++        </p>
++        <h2>Épilation à la lumière pulsée</h2>
++        <p>
++          L'épilation à la lumière pulsée est une méthode semi-définitive : 90 à 95 % des poils
++          traités sont éliminés durablement en une dizaine de séances. Elle est applicable sur
++          toutes les zones — jambes, maillot, aisselles, visage — et convient à la plupart des
++          types de peau.
++        </p>
++        <h2>LPG Endermologie</h2>
++        <p>
++          Les séances LPG Endermologie Corps utilisent la technologie mécanobiologique pour
++          améliorer la qualité de peau et accompagner les objectifs silhouette en 35 à 45 minutes.
++        </p>
++        <h2>Accompagnement nutrition</h2>
++        <p>
++          L'accompagnement nutritionnel personnalisé par chrononutrition aide à retrouver un
++          équilibre alimentaire durable. Il inclut un bilan initial, un suivi régulier et des
++          conseils pratiques adaptés au mode de vie de chaque cliente.
++        </p>
++      </main>
++    </noscript>
+   </body>
+ </html>
+diff --git a/frontend/public/robots.txt b/frontend/public/robots.txt
+index 1de7c48..73e7437 100644
+--- a/frontend/public/robots.txt
++++ b/frontend/public/robots.txt
+@@ -3,5 +3,28 @@ User-agent: *
+ Allow: /
+ Disallow: /admin
+ 
++# Crawlers IA — autorisés explicitement pour la visibilité en recherche IA
++User-agent: GPTBot
++Allow: /
++
++User-agent: OAI-SearchBot
++Allow: /
++
++User-agent: ChatGPT-User
++Allow: /
++
++User-agent: ClaudeBot
++Allow: /
++
++User-agent: PerplexityBot
++Allow: /
++
++# Crawlers d'entraînement — bloqués
++User-agent: CCBot
++Disallow: /
++
++User-agent: anthropic-ai
++Disallow: /
++
+ # Sitemaps
+ Sitemap: https://leabeautevalognes.fr/sitemap.xml
