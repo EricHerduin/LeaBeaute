@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import '../styles/custom-scrollbar-hide.css';
 import { motion } from 'framer-motion';
-import { Star, Quote, ExternalLink } from 'lucide-react';
+import { Star, Quote, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { API } from '../lib/apiClient';
 
 const getGoogleReviewsStore = () => {
@@ -26,6 +26,9 @@ const GoogleReviews = () => {
   const [reviewsData, setReviewsData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const scrollerRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
 
   useEffect(() => {
     const fetchReviews = async () => {
@@ -65,6 +68,41 @@ const GoogleReviews = () => {
 
     fetchReviews();
   }, []);
+
+  // Les flèches ne s'affichent que s'il reste du contenu à faire défiler
+  // dans la direction concernée.
+  const updateScrollButtons = useCallback(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const maxScroll = scroller.scrollWidth - scroller.clientWidth;
+    setCanScrollLeft(scroller.scrollLeft > 1);
+    setCanScrollRight(scroller.scrollLeft < maxScroll - 1);
+  }, []);
+
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return undefined;
+
+    updateScrollButtons();
+    scroller.addEventListener('scroll', updateScrollButtons, { passive: true });
+    window.addEventListener('resize', updateScrollButtons);
+
+    return () => {
+      scroller.removeEventListener('scroll', updateScrollButtons);
+      window.removeEventListener('resize', updateScrollButtons);
+    };
+  }, [reviewsData, updateScrollButtons]);
+
+  const scrollByCard = (direction) => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    const firstCard = scroller.firstElementChild;
+    // gap-6 = 24 px entre les cartes
+    const step = firstCard ? firstCard.offsetWidth + 24 : scroller.clientWidth * 0.8;
+    scroller.scrollBy({ left: direction * step, behavior: 'smooth' });
+  };
 
   const renderStars = (rating) => {
     const stars = [];
@@ -223,18 +261,44 @@ const GoogleReviews = () => {
         </motion.div>
 
         {/* Carrousel horizontal moderne avec snap et animation */}
-        <div
-          className="flex gap-6 overflow-x-auto py-4 scroll-smooth snap-x snap-mandatory custom-scrollbar-hide"
-          style={{ scrollBehavior: 'smooth' }}
-        >
-          {reviewCards.map((card, idx) => (
-            <div
-              key={idx}
-              className="min-w-[320px] max-w-xs shrink-0 snap-center transition-transform duration-300 hover:scale-105 hover:shadow-2xl"
+        <div className="relative">
+          {/* Flèches masquées sur mobile : le balayage tactile y est plus naturel */}
+          {canScrollLeft ? (
+            <button
+              type="button"
+              onClick={() => scrollByCard(-1)}
+              aria-label="Voir les avis précédents"
+              className="absolute top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-white/95 p-3 text-[#8A6A16] shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-white hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6A16] focus-visible:ring-offset-2 md:flex left-0"
             >
-              {card}
-            </div>
-          ))}
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          ) : null}
+
+          <div
+            ref={scrollerRef}
+            className="flex gap-6 overflow-x-auto py-4 scroll-smooth snap-x snap-mandatory custom-scrollbar-hide"
+            style={{ scrollBehavior: 'smooth' }}
+          >
+            {reviewCards.map((card, idx) => (
+              <div
+                key={idx}
+                className="min-w-[320px] max-w-xs shrink-0 snap-center transition-transform duration-300 hover:scale-105 hover:shadow-2xl"
+              >
+                {card}
+              </div>
+            ))}
+          </div>
+
+          {canScrollRight ? (
+            <button
+              type="button"
+              onClick={() => scrollByCard(1)}
+              aria-label="Voir les avis suivants"
+              className="absolute top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full bg-white/95 p-3 text-[#8A6A16] shadow-lg backdrop-blur-sm transition-all duration-300 hover:bg-white hover:shadow-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#8A6A16] focus-visible:ring-offset-2 md:flex right-0"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          ) : null}
         </div>
 
         {/* CTA to leave a review : masqué sans Place ID, sinon le lien est mort */}
