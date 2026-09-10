@@ -6,8 +6,7 @@ export default function SEO({
   keywords = "institut beauté Valognes, Guinot, épilation, LPG, manucure, pédicure, soins visage, accompagnement nutrition, chrononutrition, extensions cils, Manche 50",
   image = "https://leabeautevalognes.fr/assets/photos/logos/logo16-9_1.png",
   url = "https://leabeautevalognes.fr",
-  type = "website",
-  noindex = false
+  type = "website"
 }) {
   const fullTitle = title.includes('Léa Beauté') ? title : `${title} | Léa Beauté Valognes`;
   
@@ -41,8 +40,8 @@ export default function SEO({
       <meta name="ICBM" content="49.508661, -1.470834" />
       
       {/* Robots */}
-      <meta name="robots" content={noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"} />
-      <meta name="googlebot" content={noindex ? "noindex, nofollow" : "index, follow"} />
+      <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+      <meta name="googlebot" content="index, follow" />
       
       {/* Canonical */}
       <link rel="canonical" href={url} />

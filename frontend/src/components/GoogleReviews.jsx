@@ -100,11 +100,14 @@ const GoogleReviews = () => {
     );
   }
 
-  if (error || !reviewsData) {
-    return null; // Ne pas afficher la section en cas d'erreur
+  const reviews = reviewsData?.reviews || [];
+
+  // Aucun avis réel à montrer : on masque la section plutôt que d'afficher
+  // une note sans avis derrière (trompeur pour le visiteur et pour le SEO).
+  if (error || !reviewsData || reviews.length === 0) {
+    return null;
   }
 
-  const reviews = reviewsData?.reviews || [];
   const reviewCards = [];
   for (let index = 0; index < reviews.length; index += 1) {
     const review = reviews[index];
@@ -234,7 +237,8 @@ const GoogleReviews = () => {
           ))}
         </div>
 
-        {/* CTA to leave a review */}
+        {/* CTA to leave a review : masqué sans Place ID, sinon le lien est mort */}
+        {placeId ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -251,6 +255,7 @@ const GoogleReviews = () => {
             <Star className="w-5 h-5 fill-white" />
           </a>
         </motion.div>
+        ) : null}
       </div>
     </section>
   );

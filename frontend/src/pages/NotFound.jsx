@@ -2,17 +2,10 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import SEO from '../components/SEO';
 
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <SEO
-        title="Page introuvable | Léa Beauté Valognes"
-        description="La page que vous recherchez n’existe pas."
-        url="https://leabeautevalognes.fr"
-        noindex={true}
-      />
       <Navigation />
       
       {/* 404 Content */}

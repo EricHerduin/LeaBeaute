@@ -1,6 +1,14 @@
-import { ViteReactSSG } from "vite-react-ssg";
-import routes from "@/routes";
+import React from "react";
+import ReactDOM from "react-dom/client";
 import "@/index.css";
+import App from "@/App";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 
-// Exporte createRoot pour vite-react-ssg (build SSG + hydration client)
-export const createRoot = ViteReactSSG({ routes });
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <React.StrictMode>
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
+  </React.StrictMode>,
+);
