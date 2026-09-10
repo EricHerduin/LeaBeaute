@@ -189,3 +189,24 @@ apparaîtra directement dans la réponse (503 + `status` Google) et dans les log
 À noter : `VITE_GOOGLE_PLACE_ID` est en revanche **absent du build en ligne**
 (le bouton « Laisser un avis » pointe vers `writereview?placeid=`, vide). À vérifier dans
 `frontend/.env.production` — c'est une variable distincte de celles du backend.
+
+## Constat du 2026-09-10 : les fichiers source restent synchronisés par Syncthing
+
+Exclure `**/.git` protège l'historique git, mais **les fichiers de travail continuent
+d'être synchronisés** entre le MacBook et l'iMac. Démonstration observée le jour même :
+
+- 13h07:14 et 13h07:38 — Syncthing a reçu de l'iMac `frontend/package-lock.json` et
+  `backend/package-lock.json`, écrasant les versions validées ici.
+- Le diff retirait ~127 marqueurs `"dev": true` du lock frontend : l'iMac reclassait des
+  dépendances de développement en dépendances de production.
+- Le versioning activé le matin même a conservé les versions remplacées dans
+  `Dev_Sync/.stversions` — le filet a fonctionné dès son premier usage.
+- Les locks ont été restaurés depuis `main` (version validée par `npm ci` + build SSG
+  aux hashes conformes à la production).
+
+Tant que deux machines partagent un arbre de travail par synchronisation de fichiers **et**
+par git, ce type de conflit se reproduira : un `npm install` d'un côté écrase l'autre.
+
+Piste à trancher avec Éric : sortir les dossiers de projet de Syncthing et ne s'appuyer
+que sur git (`clone` sur chaque machine, `pull`/`push` via GitHub). Syncthing resterait
+utile pour les dossiers non versionnés.
