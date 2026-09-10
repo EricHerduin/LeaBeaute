@@ -27,6 +27,9 @@ const { createCouponsRoutes } = require("./routes/couponsRoutes");
 const { createTestimonialsService } = require("./services/testimonialsService");
 const { createTestimonialsController } = require("./controllers/testimonialsController");
 const { createTestimonialsRoutes } = require("./routes/testimonialsRoutes");
+const { createGoogleReviewsService } = require("./services/googleReviewsService");
+const { createGoogleReviewsController } = require("./controllers/googleReviewsController");
+const { createGoogleReviewsRoutes } = require("./routes/googleReviewsRoutes");
 const { getSqlClient } = require("./sql/sqlClient");
 
 const {
@@ -718,71 +721,16 @@ app.use("/api", createBusinessHoursRoutes({ businessHoursController, requireAdmi
 app.use("/api", createCouponsRoutes({ couponsController, requireAdmin }));
 app.use("/api", createTestimonialsRoutes({ testimonialsController }));
 
+const googleReviewsService = createGoogleReviewsService();
+const googleReviewsController = createGoogleReviewsController({ googleReviewsService });
+app.use("/api", createGoogleReviewsRoutes({ googleReviewsController }));
+
 app.post("/api/admin/login", (req, res) => {
   if (req.body.password === adminPassword) {
     res.json({ success: true, token: adminPassword });
     return;
   }
   res.status(401).json({ detail: "Invalid password" });
-});
-
-app.get("/api/google-reviews", async (req, res, next) => {
-  try {
-    const placeId = process.env.GOOGLE_PLACE_ID;
-    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-
-    if (!placeId || !apiKey) {
-      return res.json({
-        name: "Léa Beauté",
-        rating: 4.8,
-        user_ratings_total: 0,
-        reviews: [],
-      });
-    }
-
-    const url = new URL("https://maps.googleapis.com/maps/api/place/details/json");
-    url.searchParams.set("place_id", placeId);
-    url.searchParams.set("fields", "name,rating,user_ratings_total,reviews");
-    url.searchParams.set("key", apiKey);
-    url.searchParams.set("language", "fr");
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.status !== "OK") {
-      console.error(`Google Places API error: ${data.status}`);
-      return res.json({
-        name: "Léa Beauté",
-        rating: 4.8,
-        user_ratings_total: 0,
-        reviews: [],
-      });
-    }
-
-    const result = data.result || {};
-    res.json({
-      name: result.name,
-      rating: result.rating,
-      user_ratings_total: result.user_ratings_total,
-      reviews: (result.reviews || []).slice(0, 5).map((review) => ({
-        author: review.author_name,
-        rating: review.rating,
-        text: review.text,
-        time: review.time,
-        relative_time: review.relative_time_description,
-        profile_photo: review.profile_photo_url,
-        author_url: review.author_url,
-        reply: review.reply
-          ? {
-              text: review.reply.comment,
-              time: review.reply.time,
-            }
-          : null,
-      })),
-    });
-  } catch (error) {
-    next(error);
-  }
 });
 
 app.use((error, req, res, next) => {
