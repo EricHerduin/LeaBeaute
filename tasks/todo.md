@@ -278,16 +278,34 @@ redirection avant même de pouvoir traiter le cookie. Message observé dans Safa
 | GET, User-Agent Safari | 200 — passe |
 | POST `/api/webhooks/stripe`, UA Stripe | 400 — passe |
 
-### Impact
+### Déclencheur réel : l'adresse IP, pas le navigateur
 
-Tout ce qui écrit depuis le site est cassé : achat de carte cadeau, **connexion au
-back-office**, dépôt d'avis, enregistrement du consentement cookies.
-Les lectures (tarifs, horaires, avis Google, pages) ne sont pas touchées — d'où
-l'impression que « le site marche ».
-Les webhooks Stripe passent (User-Agent non navigateur) : un paiement abouti serait
-bien confirmé — mais aucun paiement ne peut démarrer.
+Éric a identifié la vraie variable : **NordVPN était actif**. Vérifié le 11/09 —
+l'IP publique des tests était `187.13.12.190`, **Datacamp Limited (AS212238)**,
+l'infrastructure qui héberge les nœuds de sortie NordVPN.
 
-Cohérent avec la dernière carte cadeau vendue le **03/09/2026**.
+Tous mes tests `curl` partaient de cette même IP : c'est pourquoi je voyais le 307.
+La règle Tiger Protect combine donc **réputation d'IP** (datacenter / VPN) et
+**User-Agent de navigateur** — un UA `curl` depuis la même IP passait sans challenge.
+
+### Impact réel — à confirmer
+
+Le site n'est **pas** cassé pour l'ensemble des visiteurs, contrairement à ce que
+j'avais d'abord écrit. Sont concernés les visiteurs dont l'IP est classée
+« datacenter / VPN / proxy » :
+
+- achat de carte cadeau impossible,
+- connexion au back-office impossible (à savoir si Éric administre le site via un VPN),
+- dépôt d'avis et enregistrement du consentement cookies bloqués.
+
+Les lectures (GET) passent dans tous les cas. Les webhooks Stripe aussi (UA non navigateur).
+
+**À vérifier** : refaire un achat **VPN désactivé**. Si la commande aboutit, la panne ne
+concerne que les visiteurs sous VPN. Je ne peux pas le tester moi-même : mon trafic sort
+par la même connexion.
+
+Note : la dernière carte vendue le 03/09 ne prouve donc rien — ce n'est pas une date de
+panne, seulement le rythme normal des ventes.
 
 ### Hors de cause (vérifié)
 
