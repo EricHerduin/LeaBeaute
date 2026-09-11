@@ -288,24 +288,24 @@ Tous mes tests `curl` partaient de cette même IP : c'est pourquoi je voyais le 
 La règle Tiger Protect combine donc **réputation d'IP** (datacenter / VPN) et
 **User-Agent de navigateur** — un UA `curl` depuis la même IP passait sans challenge.
 
-### Impact réel — à confirmer
+### Impact réel — CONFIRMÉ le 11/09
 
-Le site n'est **pas** cassé pour l'ensemble des visiteurs, contrairement à ce que
-j'avais d'abord écrit. Sont concernés les visiteurs dont l'IP est classée
-« datacenter / VPN / proxy » :
+**VPN désactivé, la commande aboutit.** Le site fonctionne normalement pour les visiteurs
+en IP résidentielle. Seules les IP classées « datacenter / VPN / proxy » sont challengées.
 
-- achat de carte cadeau impossible,
-- connexion au back-office impossible (à savoir si Éric administre le site via un VPN),
-- dépôt d'avis et enregistrement du consentement cookies bloqués.
+Double confirmation : mes propres tests restent en 307 alors qu'Éric est passé en 400,
+parce que l'environnement d'exécution de l'agent sort par sa propre IP de datacenter
+(`Datacamp Limited`, AS212238) — et non par la connexion d'Éric, contrairement à ce que
+j'avais écrit. Deux causes distinctes, une seule règle.
 
-Les lectures (GET) passent dans tous les cas. Les webhooks Stripe aussi (UA non navigateur).
+Sont donc concernés les seuls visiteurs sous VPN ou proxy d'entreprise :
+achat de carte cadeau, dépôt d'avis, consentement cookies — et **connexion au back-office**,
+point à surveiller si Éric administre parfois le site depuis un VPN.
 
-**À vérifier** : refaire un achat **VPN désactivé**. Si la commande aboutit, la panne ne
-concerne que les visiteurs sous VPN. Je ne peux pas le tester moi-même : mon trafic sort
-par la même connexion.
+Lectures (GET) et webhooks Stripe : jamais touchés.
 
-Note : la dernière carte vendue le 03/09 ne prouve donc rien — ce n'est pas une date de
-panne, seulement le rythme normal des ventes.
+Conséquence pratique : **je ne peux pas tester les écritures (POST) sur l'API de production
+depuis cet environnement.** Tout diagnostic d'écriture devra passer par Éric ou par les logs.
 
 ### Hors de cause (vérifié)
 
