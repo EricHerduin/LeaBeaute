@@ -245,3 +245,66 @@ la suppression de l'échec silencieux a permis de corriger.
 - [ ] Restreindre la clé : **API** → Places API (New) uniquement ; **application** →
       adresses IP (celle du serveur), surtout pas « Référents HTTP ».
 - [ ] Supprimer l'ancienne clé devenue inutile dans la console Google Cloud.
+
+## 2026-09-11 — Paiement carte cadeau en échec : Tiger Protect (o2switch)
+
+### Cause racine
+
+`api.leabeautevalognes.fr` est protégé par **Tiger Protect**, la sécurité o2switch.
+Elle intercepte **toute requête POST portant un User-Agent de navigateur** et répond :
+
+```
+HTTP/2 307
+location: https://api.leabeautevalognes.fr/api/gift-cards/create-checkout
+set-cookie: o2s-chl=...; domain=.api.leabeautevalognes.fr
+tiger-protect-security: https://faq.o2switch.fr/.../tiger-protect
+```
+
+C'est un challenge par cookie : le client doit rejouer la requête avec `o2s-chl`.
+
+**Pourquoi c'est bloquant** : l'API est sur une origine différente du site, et la réponse 307
+ne porte **aucun en-tête `Access-Control-Allow-Origin`**. Le navigateur refuse donc la
+redirection avant même de pouvoir traiter le cookie. Message observé dans Safari :
+« Cross-origin redirection [...] denied by Cross-Origin Resource Sharing policy [...] Status code: 307 ».
+
+### Mesures (curl, 11/09)
+
+| Requête | Résultat |
+|---|---|
+| POST, User-Agent `curl` | 400 — passe |
+| POST, User-Agent Safari | **307** — bloqué |
+| POST, User-Agent Chrome | **307** — bloqué |
+| POST avec le cookie `o2s-chl` | 400 — passe |
+| GET, User-Agent Safari | 200 — passe |
+| POST `/api/webhooks/stripe`, UA Stripe | 400 — passe |
+
+### Impact
+
+Tout ce qui écrit depuis le site est cassé : achat de carte cadeau, **connexion au
+back-office**, dépôt d'avis, enregistrement du consentement cookies.
+Les lectures (tarifs, horaires, avis Google, pages) ne sont pas touchées — d'où
+l'impression que « le site marche ».
+Les webhooks Stripe passent (User-Agent non navigateur) : un paiement abouti serait
+bien confirmé — mais aucun paiement ne peut démarrer.
+
+Cohérent avec la dernière carte cadeau vendue le **03/09/2026**.
+
+### Hors de cause (vérifié)
+
+- Le code applicatif : les modifications du 09-10/09 ne touchent que les fichiers des avis Google.
+- L'URL d'API du bundle : `"https://api.leabeautevalognes.fr"`, identique à l'ancien build.
+- Stripe : configuré (sinon 501, or on obtient 400).
+- Le CORS applicatif : le preflight OPTIONS répond 204 avec les bons en-têtes.
+- Le schéma SQL : les 17 colonnes de l'INSERT existent.
+
+### Correction — côté hébergement uniquement
+
+- [ ] cPanel → **Tiger Protect** → passer la règle concernée de « challenge » à désactivée,
+      ou exclure le sous-domaine `api.leabeautevalognes.fr`.
+- [ ] Si l'exclusion n'est pas disponible dans l'interface, ouvrir un ticket o2switch.
+      Argument : un challenge par redirection 307 + cookie est **incompatible avec une API
+      consommée en XHR/fetch depuis une autre origine**, la redirection ne portant pas
+      d'en-tête CORS.
+
+**Aucun contournement côté code n'est possible** : vérifié, le navigateur ne peut jamais
+obtenir ni rejouer le cookie, la redirection étant rejetée en amont.
